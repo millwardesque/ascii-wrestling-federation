@@ -1,0 +1,319 @@
+"""Match flow: positions, rebound, damage, and pinfall resolution."""
+
+from __future__ import annotations
+
+import random
+from dataclasses import dataclass, field
+
+from moves import BodyPosition, Move, MoveRule, all_move_rules, move_valid
+from wrestlers import Wrestler
+
+# Hit probability: p = clamp(BASE + k_mom*momentum - k_diff*difficulty + ... , P_MIN, P_MAX)
+# Tuned so high-difficulty moves fail more at low momentum / healthy defender.
+_HIT_BASE = 0.58
+_HIT_K_MOMENTUM = 0.065
+_HIT_K_DIFFICULTY = 0.072
+_HIT_K_ATTACKER_HP = 0.055
+_HIT_K_DEFENDER_HP = 0.085
+_HIT_K_AGILITY_GAP = 0.12  # scales (defender.agility - actor.agility) / 10
+_HIT_P_MIN = 0.12
+_HIT_P_MAX = 0.94
+
+
+@dataclass
+class MatchState:
+    wrestlers: tuple[Wrestler, Wrestler]
+    health: list[int] = field(default_factory=list)
+    position: list[BodyPosition] = field(default_factory=list)
+    rebound: list[bool] = field(default_factory=list)
+    momentum: list[int] = field(default_factory=list)
+    rules: list[MoveRule] = field(default_factory=all_move_rules)
+    cpu_last_move_id: str | None = None
+
+    def __post_init__(self) -> None:
+        if not self.health:
+            self.health = [w.max_health for w in self.wrestlers]
+        if not self.position:
+            self.position = [BodyPosition.STANDING, BodyPosition.STANDING]
+        if not self.rebound:
+            self.rebound = [False, False]
+        if not self.momentum:
+            self.momentum = [0, 0]
+
+    def valid_rules(self, actor_idx: int) -> list[tuple[int, MoveRule]]:
+        actor = self.wrestlers[actor_idx]
+        target = self.wrestlers[1 - actor_idx]
+        out: list[tuple[int, MoveRule]] = []
+        for i, rule in enumerate(self.rules):
+            if move_valid(
+                rule,
+                actor,
+                target,
+                self.position[actor_idx],
+                self.position[1 - actor_idx],
+                self.rebound[actor_idx],
+            ):
+                out.append((i, rule))
+        return out
+
+
+def move_needs_hit_roll(m: Move) -> bool:
+    """Pins use _resolve_pin; utility moves skip the offensive roll."""
+    if m.is_pin:
+        return False
+    return not m.skip_hit_roll
+
+
+def hit_probability(state: MatchState, actor_idx: int, rule: MoveRule) -> float:
+    """Deterministic P(land) for the current snapshot — shared by runtime roll and CPU EV."""
+    m = rule.move
+    tgt = 1 - actor_idx
+    actor = state.wrestlers[actor_idx]
+    target = state.wrestlers[tgt]
+    mom = state.momentum[actor_idx]
+    att_hp = state.health[actor_idx] / max(1, actor.max_health)
+    def_hp = state.health[tgt] / max(1, target.max_health)
+    diff = m.difficulty
+    agi_gap = (target.agility - actor.agility) / 10.0
+    p = (
+        _HIT_BASE
+        + _HIT_K_MOMENTUM * mom
+        - _HIT_K_DIFFICULTY * diff
+        + _HIT_K_ATTACKER_HP * att_hp
+        - _HIT_K_DEFENDER_HP * def_hp
+        - _HIT_K_AGILITY_GAP * agi_gap
+    )
+    if m.id == "get_up":
+        # Easier than strikes, but not free — beat-down wrestlers struggle more (low att_hp).
+        p += 0.12
+    return max(_HIT_P_MIN, min(_HIT_P_MAX, p))
+
+
+def _rand_float(rng: random.Random | None) -> float:
+    if rng is not None:
+        return rng.random()
+    return random.random()
+
+
+def _rand_int(rng: random.Random | None, a: int, b: int) -> int:
+    if rng is not None:
+        return rng.randint(a, b)
+    return random.randint(a, b)
+
+
+def _damage_with_stats(base: int, actor: Wrestler, target: Wrestler, agility_bonus: bool) -> int:
+    raw = base + actor.strength // 3
+    mitigation = target.endurance // 4
+    if agility_bonus:
+        raw += actor.agility // 4
+    return max(1, raw - mitigation)
+
+
+def apply_move(
+    state: MatchState,
+    actor_idx: int,
+    rule: MoveRule,
+    rng: random.Random | None = None,
+) -> tuple[str, int | None]:
+    """Mutates state. Returns (narrative, winner_index) — winner set only on 3-count."""
+    m = rule.move
+    tgt = 1 - actor_idx
+    actor = state.wrestlers[actor_idx]
+    target = state.wrestlers[tgt]
+    lines: list[str] = []
+
+    if m.is_pin:
+        pin_text, won = _resolve_pin(state, actor_idx, rng)
+        lines.append(pin_text)
+        if actor_idx == 1:
+            state.cpu_last_move_id = m.id
+        return "\n".join(lines), (actor_idx if won else None)
+
+    if move_needs_hit_roll(m):
+        p = hit_probability(state, actor_idx, rule)
+        if _rand_float(rng) >= p:
+            lines.extend(_resolve_miss(state, actor_idx, rule, rng))
+            if actor_idx == 1:
+                state.cpu_last_move_id = m.id
+            return "\n".join(lines), None
+
+    if m.grants_rebound:
+        state.rebound[actor_idx] = True
+
+    if m.base_damage > 0:
+        top = m.actor_top or m.id.startswith("top_")
+        dmg = _damage_with_stats(
+            m.base_damage, actor, target, agility_bonus=top or m.actor_rebound or m.actor_running_ropes_only
+        )
+        state.health[tgt] = max(0, state.health[tgt] - dmg)
+        lines.append(f"  {actor.nickname} deals {dmg} damage with {m.name.lower()}.")
+
+    if m.actor_after is not None:
+        state.position[actor_idx] = m.actor_after
+    if m.target_after is not None:
+        state.position[tgt] = m.target_after
+
+    if m.id == "recover":
+        heal = max(3, actor.max_health // 25)
+        cap = actor.max_health
+        state.health[actor_idx] = min(cap, state.health[actor_idx] + heal)
+        lines.append(f"  {actor.nickname} recovers {heal} stamina.")
+
+    if m.actor_rebound:
+        state.rebound[actor_idx] = False
+
+    gain = min(5, state.momentum[actor_idx] + m.momentum_gain)
+    state.momentum[actor_idx] = gain
+    if actor_idx == 1:
+        state.cpu_last_move_id = m.id
+    text = "\n".join(lines) if lines else f"  {actor.nickname}: {m.name}."
+    return text, None
+
+
+def _resolve_miss(
+    state: MatchState,
+    actor_idx: int,
+    rule: MoveRule,
+    rng: random.Random | None,
+) -> list[str]:
+    """Failed hit: no position change, optional chip damage, momentum shift, consume rebound."""
+    m = rule.move
+    tgt = 1 - actor_idx
+    actor = state.wrestlers[actor_idx]
+    target = state.wrestlers[tgt]
+    lines: list[str] = []
+
+    if m.id == "get_up":
+        lines.append(
+            f"  {actor.nickname} tries to rise but can't find it — still on the mat!"
+        )
+        state.momentum[actor_idx] = max(0, state.momentum[actor_idx] - 1)
+        return lines
+
+    if m.actor_rebound:
+        state.rebound[actor_idx] = False
+
+    if m.base_damage > 0:
+        chip = max(1, m.base_damage // 8)
+        top = m.actor_top or m.id.startswith("top_")
+        dmg = min(
+            chip,
+            _damage_with_stats(
+                chip, actor, target, agility_bonus=top or m.actor_rebound or m.actor_running_ropes_only
+            ),
+        )
+        state.health[tgt] = max(0, state.health[tgt] - dmg)
+        lines.append(f"  {target.nickname} reverses the {m.name.lower()} — only {dmg} damage.")
+
+    if _rand_float(rng) < 0.5:
+        lines.append(f"  {target.nickname} turns the tables!")
+    else:
+        lines.append(f"  {actor.nickname} whiffs — {target.nickname} shrugs it off.")
+
+    state.momentum[actor_idx] = max(0, state.momentum[actor_idx] - 2)
+    state.momentum[tgt] = min(5, state.momentum[tgt] + 1)
+    return lines
+
+
+def _resolve_pin(state: MatchState, actor_idx: int, rng: random.Random | None) -> tuple[str, bool]:
+    tgt = 1 - actor_idx
+    attacker = state.wrestlers[actor_idx]
+    defender = state.wrestlers[tgt]
+    lines: list[str] = []
+    hp_frac = state.health[tgt] / max(1, defender.max_health)
+    mom = state.momentum[actor_idx]
+
+    for count in (1, 2, 3):
+        att = (
+            attacker.strength
+            + _rand_int(rng, 1, 10)
+            + mom * 2
+            + int((1.0 - hp_frac) * 12)
+        )
+        defe = defender.endurance + _rand_int(rng, 1, 10) + int(hp_frac * 18)
+        lines.append(f"  Referee: {count}…")
+        if att <= defe:
+            lines.append(f"  {defender.nickname} kicks out!")
+            state.momentum[actor_idx] = max(0, mom - 2)
+            return "\n".join(lines), False
+
+    lines.append(f"  *** PINFALL — {attacker.nickname} wins ***")
+    return "\n".join(lines), True
+
+
+_CPU_VARIETY_PENALTY = 18.0
+
+
+def cpu_choose_rule(state: MatchState, cpu_idx: int) -> MoveRule:
+    options = state.valid_rules(cpu_idx)
+    if not options:
+        raise RuntimeError("CPU has no valid moves — state bug.")
+    _, rules = zip(*options)
+    rules_list = list(rules)
+
+    opp = 1 - cpu_idx
+    opp_hp = state.health[opp] / max(1, state.wrestlers[opp].max_health)
+
+    def score(r: MoveRule) -> float:
+        m = r.move
+        if m.is_pin:
+            s = 0.0
+            if opp_hp < 0.35:
+                s += 80
+            if opp_hp >= 0.35:
+                s -= 40
+            return s + random.uniform(0, 4)
+
+        if move_needs_hit_roll(m):
+            p = hit_probability(state, cpu_idx, r)
+            ev_damage = p * float(m.base_damage)
+            s = ev_damage + p * m.momentum_gain * 1.5
+        else:
+            s = float(m.base_damage) + m.momentum_gain * 1.5
+
+        if m.actor_top and m.target_grounded:
+            s += 15
+        if m.actor_rebound:
+            s += 6
+        if m.id == "dismount_top":
+            s -= 5
+        if m.id == "recover" and state.health[cpu_idx] > state.wrestlers[cpu_idx].max_health * 0.6:
+            s -= 10
+        if m.id == "get_up":
+            s += 100
+        if m.id == "escape_corner":
+            s += 100
+        if state.cpu_last_move_id is not None and m.id == state.cpu_last_move_id:
+            s -= _CPU_VARIETY_PENALTY
+        return s + random.uniform(0, 4)
+
+    return max(rules_list, key=score)
+
+
+def outcome_label(log: str) -> str:
+    """Short label derived from apply_move / pin log text for round recap."""
+    if not log.strip():
+        return "—"
+    if "PINFALL" in log or "pinfall" in log.lower():
+        return "pinfall"
+    if "kicks out" in log:
+        return "kickout"
+    if "Referee:" in log:
+        return "pin"
+    if "still on the mat" in log:
+        return "miss"
+    if "reverses" in log or "whiffs" in log:
+        return "miss"
+    if "deals" in log:
+        return "hit"
+    if "recovers" in log:
+        return "recover"
+    return "ok"
+
+
+def format_round_summary(player_move: str, player_log: str, cpu_move: str, cpu_log: str) -> str:
+    """Single line: your move/outcome, then CPU move/outcome."""
+    return (
+        f"You: {player_move} — {outcome_label(player_log)} · "
+        f"CPU: {cpu_move} — {outcome_label(cpu_log)}"
+    )
