@@ -55,10 +55,23 @@ class Move:
     skip_hit_roll: bool = False
     # Head-targeting strikes (easter egg: rare "bloodied" state on successful hit)
     targets_head: bool = False
+    # Signature / finisher: bonus damage tier + stores pin strength for next cover only
+    is_finisher: bool = False
+    finisher_pin_bonus: int = 0  # added to each pin count roll; consumed on next pin attempt
+    min_momentum: int = 0  # 0 = always allowed if other gates pass
 
 
 def _always(_a: Wrestler, _t: Wrestler) -> bool:
     return True
+
+
+def _only_wrestler(wrestler_id: str) -> Callable[[Wrestler, Wrestler], bool]:
+    """Finisher / signature moves: only the named roster id may attempt this move."""
+
+    def _check(actor: Wrestler, _target: Wrestler) -> bool:
+        return actor.id == wrestler_id
+
+    return _check
 
 
 # Predicate: (actor, target) -> extra validation
@@ -429,6 +442,188 @@ def all_move_rules() -> list[MoveRule]:
         ),
         MoveRule(
             Move(
+                id="stunner",
+                name="Stone Cold Stunner",
+                description="Snapmare driver — lights out. FINISHER (Stone Cold only).",
+                target_standing=True,
+                base_damage=18,
+                target_after=BodyPosition.GROUNDED,
+                momentum_gain=3,
+                difficulty=5,
+                targets_head=True,
+                is_finisher=True,
+                finisher_pin_bonus=10,
+                min_momentum=3,
+            ),
+            extra=_only_wrestler("stone_cold"),
+        ),
+        MoveRule(
+            Move(
+                id="rock_bottom",
+                name="Rock Bottom",
+                description="Side slam — spine to canvas. FINISHER (The Rock only).",
+                target_standing=True,
+                base_damage=19,
+                target_after=BodyPosition.GROUNDED,
+                momentum_gain=3,
+                difficulty=5,
+                is_finisher=True,
+                finisher_pin_bonus=12,
+                min_momentum=3,
+            ),
+            extra=_only_wrestler("the_rock"),
+        ),
+        MoveRule(
+            Move(
+                id="gts",
+                name="Go to Sleep",
+                description="Knee lift — they fold. FINISHER (CM Punk only).",
+                target_standing=True,
+                base_damage=18,
+                target_after=BodyPosition.GROUNDED,
+                momentum_gain=3,
+                difficulty=5,
+                targets_head=True,
+                is_finisher=True,
+                finisher_pin_bonus=10,
+                min_momentum=3,
+            ),
+            extra=_only_wrestler("cm_punk"),
+        ),
+        MoveRule(
+            Move(
+                id="sweet_chin_music",
+                name="Sweet Chin Music",
+                description="Superkick out of nowhere. FINISHER (Mr. Perfect only).",
+                target_standing=True,
+                base_damage=17,
+                target_after=BodyPosition.GROUNDED,
+                momentum_gain=3,
+                difficulty=5,
+                targets_head=True,
+                is_finisher=True,
+                finisher_pin_bonus=11,
+                min_momentum=3,
+            ),
+            extra=_only_wrestler("mr_perfect"),
+        ),
+        MoveRule(
+            Move(
+                id="sharp_shooter",
+                name="Sharpshooter",
+                description="Legs hooked — torture rack for the back. FINISHER (Bret Hart only).",
+                target_grounded=True,
+                base_damage=15,
+                momentum_gain=3,
+                difficulty=4,
+                is_finisher=True,
+                finisher_pin_bonus=14,
+                min_momentum=2,
+            ),
+            extra=_only_wrestler("bret_hart"),
+        ),
+        MoveRule(
+            Move(
+                id="flying_elbow_finisher",
+                name="Flying elbow drop",
+                description="From the top rope — elbow to the chest. FINISHER (Macho Man only).",
+                actor_top=True,
+                actor_standing=False,
+                target_grounded=True,
+                base_damage=26,
+                actor_after=BodyPosition.STANDING,
+                target_after=BodyPosition.GROUNDED,
+                momentum_gain=4,
+                difficulty=5,
+                targets_head=True,
+                is_finisher=True,
+                finisher_pin_bonus=9,
+                min_momentum=2,
+            ),
+            extra=_only_wrestler("macho_man"),
+        ),
+        MoveRule(
+            Move(
+                id="razors_edge",
+                name="Razor's Edge",
+                description="Fallaway slam from the crucifix — lights out. FINISHER (Scott Hall only).",
+                target_standing=True,
+                base_damage=19,
+                target_after=BodyPosition.GROUNDED,
+                momentum_gain=3,
+                difficulty=5,
+                is_finisher=True,
+                finisher_pin_bonus=12,
+                min_momentum=3,
+            ),
+            extra=_only_wrestler("scott_hall"),
+        ),
+        MoveRule(
+            Move(
+                id="figure_four",
+                name="Figure Four",
+                description="Leglock on the mat — snap the knee. FINISHER (Ric Flair only).",
+                target_grounded=True,
+                base_damage=14,
+                momentum_gain=3,
+                difficulty=4,
+                is_finisher=True,
+                finisher_pin_bonus=14,
+                min_momentum=2,
+            ),
+            extra=_only_wrestler("ric_flair"),
+        ),
+        MoveRule(
+            Move(
+                id="spinebuster",
+                name="Spinebuster",
+                description="Hoist and drive — authority in the ring. FINISHER (Arn Anderson only).",
+                target_standing=True,
+                base_damage=18,
+                target_after=BodyPosition.GROUNDED,
+                momentum_gain=3,
+                difficulty=5,
+                is_finisher=True,
+                finisher_pin_bonus=11,
+                min_momentum=3,
+            ),
+            extra=_only_wrestler("arn_anderson"),
+        ),
+        MoveRule(
+            Move(
+                id="giant_boot",
+                name="Big boot",
+                description="Size-18 boot to the face — timber. FINISHER (Andre only).",
+                target_standing=True,
+                base_damage=20,
+                target_after=BodyPosition.GROUNDED,
+                momentum_gain=3,
+                difficulty=5,
+                targets_head=True,
+                is_finisher=True,
+                finisher_pin_bonus=11,
+                min_momentum=3,
+            ),
+            extra=_only_wrestler("andre"),
+        ),
+        MoveRule(
+            Move(
+                id="atomic_leg_drop",
+                name="Atomic leg drop",
+                description="Leg across the throat — listen to the people. FINISHER (Hulk Hogan only).",
+                target_grounded=True,
+                base_damage=17,
+                momentum_gain=3,
+                difficulty=4,
+                targets_head=True,
+                is_finisher=True,
+                finisher_pin_bonus=10,
+                min_momentum=2,
+            ),
+            extra=_only_wrestler("hulk_hogan"),
+        ),
+        MoveRule(
+            Move(
                 id="pin",
                 name="Cover — pinfall attempt",
                 description="Hook the leg — listen for the count.",
@@ -497,8 +692,11 @@ def move_valid(
     actor_pos: BodyPosition,
     target_pos: BodyPosition,
     actor_has_rebound: bool,
+    actor_momentum: int = 0,
 ) -> bool:
     m = rule.move
+    if m.min_momentum > 0 and actor_momentum < m.min_momentum:
+        return False
     if m.actor_corner_only:
         if actor_pos != BodyPosition.CORNER:
             return False

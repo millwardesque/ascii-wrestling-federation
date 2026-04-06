@@ -33,6 +33,8 @@ class MatchState:
     bloodied: list[bool] = field(default_factory=list)
     rules: list[MoveRule] = field(default_factory=all_move_rules)
     cpu_last_move_id: str | None = None
+    # Set when a finisher lands; added to each count on the attacker's next pin attempt, then cleared.
+    pin_bonus_next_cover: list[int] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         if not self.health:
@@ -45,6 +47,8 @@ class MatchState:
             self.momentum = [0, 0]
         if not self.bloodied:
             self.bloodied = [False, False]
+        if not self.pin_bonus_next_cover:
+            self.pin_bonus_next_cover = [0, 0]
 
     def valid_rules(self, actor_idx: int) -> list[tuple[int, MoveRule]]:
         actor = self.wrestlers[actor_idx]
@@ -58,6 +62,7 @@ class MatchState:
                 self.position[actor_idx],
                 self.position[1 - actor_idx],
                 self.rebound[actor_idx],
+                self.momentum[actor_idx],
             ):
                 out.append((i, rule))
         return out
@@ -92,6 +97,8 @@ def hit_probability(state: MatchState, actor_idx: int, rule: MoveRule) -> float:
     if m.id == "get_up":
         # Easier than strikes, but not free — beat-down wrestlers struggle more (low att_hp).
         p += 0.12
+    if m.is_finisher:
+        p += 0.05
     return max(_HIT_P_MIN, min(_HIT_P_MAX, p))
 
 
@@ -175,6 +182,9 @@ def apply_move(
 
     gain = min(5, state.momentum[actor_idx] + m.momentum_gain)
     state.momentum[actor_idx] = gain
+    if m.is_finisher and m.base_damage > 0:
+        state.pin_bonus_next_cover[actor_idx] = m.finisher_pin_bonus
+        lines.append("  — FINISHER — the next cover packs extra heat.")
     if actor_idx == 1:
         state.cpu_last_move_id = m.id
     text = "\n".join(lines) if lines else f"  {actor.nickname}: {m.name}."
@@ -233,6 +243,10 @@ def _resolve_pin(state: MatchState, actor_idx: int, rng: random.Random | None) -
     lines: list[str] = []
     hp_frac = state.health[tgt] / max(1, defender.max_health)
     mom = state.momentum[actor_idx]
+    fin_bonus = state.pin_bonus_next_cover[actor_idx]
+    state.pin_bonus_next_cover[actor_idx] = 0
+    if fin_bonus > 0:
+        lines.append(f"  The finisher still echoes — +{fin_bonus} on the cover!")
 
     for count in (1, 2, 3):
         att = (
@@ -240,6 +254,7 @@ def _resolve_pin(state: MatchState, actor_idx: int, rng: random.Random | None) -
             + _rand_int(rng, 1, 10)
             + mom * 2
             + int((1.0 - hp_frac) * 12)
+            + fin_bonus
         )
         defe = defender.endurance + _rand_int(rng, 1, 10) + int(hp_frac * 18)
         lines.append(f"  Referee: {count}…")
@@ -273,6 +288,7 @@ def cpu_choose_rule(state: MatchState, cpu_idx: int) -> MoveRule:
                 s += 80
             if opp_hp >= 0.35:
                 s -= 40
+            s += float(state.pin_bonus_next_cover[cpu_idx]) * 3.0
             return s + random.uniform(0, 4)
 
         if move_needs_hit_roll(m):
@@ -296,6 +312,10 @@ def cpu_choose_rule(state: MatchState, cpu_idx: int) -> MoveRule:
             s += 100
         if state.cpu_last_move_id is not None and m.id == state.cpu_last_move_id:
             s -= _CPU_VARIETY_PENALTY
+        if m.is_finisher:
+            s += float(m.base_damage) * 0.35 + float(m.finisher_pin_bonus)
+            if opp_hp < 0.45:
+                s += 25
         return s + random.uniform(0, 4)
 
     return max(rules_list, key=score)
