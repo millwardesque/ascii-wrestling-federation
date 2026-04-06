@@ -53,6 +53,8 @@ class Move:
     difficulty: int = 3
     # If True, move always resolves (no hit roll); pins use separate pin logic
     skip_hit_roll: bool = False
+    # Head-targeting strikes (easter egg: rare "bloodied" state on successful hit)
+    targets_head: bool = False
 
 
 def _always(_a: Wrestler, _t: Wrestler) -> bool:
@@ -92,6 +94,7 @@ def all_move_rules() -> list[MoveRule]:
                 base_damage=6,
                 momentum_gain=1,
                 difficulty=2,
+                targets_head=True,
             )
         ),
         MoveRule(
@@ -103,6 +106,7 @@ def all_move_rules() -> list[MoveRule]:
                 base_damage=8,
                 momentum_gain=1,
                 difficulty=3,
+                targets_head=True,
             )
         ),
         MoveRule(
@@ -151,6 +155,7 @@ def all_move_rules() -> list[MoveRule]:
                 base_damage=10,
                 momentum_gain=2,
                 difficulty=3,
+                targets_head=True,
             )
         ),
         MoveRule(
@@ -187,6 +192,7 @@ def all_move_rules() -> list[MoveRule]:
                 target_after=BodyPosition.GROUNDED,
                 momentum_gain=3,
                 difficulty=4,
+                targets_head=True,
             )
         ),
         MoveRule(
@@ -223,6 +229,7 @@ def all_move_rules() -> list[MoveRule]:
                 target_after=BodyPosition.GROUNDED,
                 momentum_gain=3,
                 difficulty=5,
+                targets_head=True,
             )
         ),
         MoveRule(
@@ -235,6 +242,7 @@ def all_move_rules() -> list[MoveRule]:
                 target_after=BodyPosition.GROUNDED,
                 momentum_gain=3,
                 difficulty=4,
+                targets_head=True,
             )
         ),
         MoveRule(
@@ -261,6 +269,7 @@ def all_move_rules() -> list[MoveRule]:
                 actor_after=BodyPosition.STANDING,
                 momentum_gain=2,
                 difficulty=4,
+                targets_head=True,
             )
         ),
         MoveRule(
@@ -306,6 +315,7 @@ def all_move_rules() -> list[MoveRule]:
                 target_after=BodyPosition.GROUNDED,
                 momentum_gain=3,
                 difficulty=4,
+                targets_head=True,
             )
         ),
         MoveRule(
@@ -321,6 +331,7 @@ def all_move_rules() -> list[MoveRule]:
                 target_after=BodyPosition.GROUNDED,
                 momentum_gain=2,
                 difficulty=3,
+                targets_head=True,
             )
         ),
         MoveRule(
@@ -333,6 +344,7 @@ def all_move_rules() -> list[MoveRule]:
                 base_damage=0,
                 actor_after=BodyPosition.TOP_ROPE,
                 momentum_gain=2,
+                skip_hit_roll=True,
             )
         ),
         MoveRule(
@@ -376,6 +388,7 @@ def all_move_rules() -> list[MoveRule]:
                 target_after=BodyPosition.GROUNDED,
                 momentum_gain=4,
                 difficulty=5,
+                targets_head=True,
             )
         ),
         MoveRule(
@@ -387,6 +400,7 @@ def all_move_rules() -> list[MoveRule]:
                 base_damage=11,
                 momentum_gain=2,
                 difficulty=3,
+                targets_head=True,
             )
         ),
         MoveRule(
@@ -398,6 +412,7 @@ def all_move_rules() -> list[MoveRule]:
                 base_damage=10,
                 momentum_gain=2,
                 difficulty=3,
+                targets_head=True,
             )
         ),
         MoveRule(
@@ -409,6 +424,7 @@ def all_move_rules() -> list[MoveRule]:
                 base_damage=7,
                 momentum_gain=1,
                 difficulty=2,
+                targets_head=True,
             )
         ),
         MoveRule(

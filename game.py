@@ -19,6 +19,9 @@ _HIT_K_AGILITY_GAP = 0.12  # scales (defender.agility - actor.agility) / 10
 _HIT_P_MIN = 0.12
 _HIT_P_MAX = 0.94
 
+# Rare easter egg: successful head-targeting hit may blood the defender for the rest of the match
+_BLOODIED_CHANCE = 0.018
+
 
 @dataclass
 class MatchState:
@@ -27,6 +30,7 @@ class MatchState:
     position: list[BodyPosition] = field(default_factory=list)
     rebound: list[bool] = field(default_factory=list)
     momentum: list[int] = field(default_factory=list)
+    bloodied: list[bool] = field(default_factory=list)
     rules: list[MoveRule] = field(default_factory=all_move_rules)
     cpu_last_move_id: str | None = None
 
@@ -39,6 +43,8 @@ class MatchState:
             self.rebound = [False, False]
         if not self.momentum:
             self.momentum = [0, 0]
+        if not self.bloodied:
+            self.bloodied = [False, False]
 
     def valid_rules(self, actor_idx: int) -> list[tuple[int, MoveRule]]:
         actor = self.wrestlers[actor_idx]
@@ -147,6 +153,11 @@ def apply_move(
         )
         state.health[tgt] = max(0, state.health[tgt] - dmg)
         lines.append(f"  {actor.nickname} deals {dmg} damage with {m.name.lower()}.")
+        if m.targets_head and not state.bloodied[tgt] and _rand_float(rng) < _BLOODIED_CHANCE:
+            state.bloodied[tgt] = True
+            lines.append(
+                f"  The crowd gasps — {target.nickname} is busted open; blood streams down their face."
+            )
 
     if m.actor_after is not None:
         state.position[actor_idx] = m.actor_after

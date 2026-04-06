@@ -15,6 +15,7 @@ from game import (
     outcome_label,
 )
 from moves import BodyPosition, MoveRule, all_move_rules
+from render import health_bar
 from wrestlers import ROSTER
 
 
@@ -133,7 +134,8 @@ class TestApplyMoveStochastic(unittest.TestCase):
         st = MatchState(wrestlers=(ROSTER["ace"], ROSTER["vulture"]))
         punch = _rule_by_id("punch")
         p = hit_probability(st, 1, punch)
-        rng = _SeqRng([max(0.0, p - 0.2)])
+        # Hit roll, then bloodied roll (high value = no blood)
+        rng = _SeqRng([max(0.0, p - 0.2), 0.5])
         apply_move(st, 1, punch, rng)
         self.assertEqual(st.cpu_last_move_id, "punch")
 
@@ -174,6 +176,34 @@ class TestCpuExpectedValue(unittest.TestCase):
         st = MatchState(wrestlers=(ROSTER["ace"], ROSTER["vulture"]))
         r = cpu_choose_rule(st, 1)
         self.assertIsInstance(r, MoveRule)
+
+
+class TestBloodiedEasterEgg(unittest.TestCase):
+    def test_match_state_initializes_bloodied(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["ace"], ROSTER["vulture"]))
+        self.assertEqual(st.bloodied, [False, False])
+
+    def test_head_hit_can_trigger_bloodied_log(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["ace"], ROSTER["vulture"]))
+        punch = _rule_by_id("punch")
+        p = hit_probability(st, 0, punch)
+        rng = _SeqRng([max(0.0, p - 0.2), 0.001])
+        log, _ = apply_move(st, 0, punch, rng)
+        self.assertTrue(st.bloodied[1])
+        self.assertIn("busted open", log)
+
+    def test_non_head_move_does_not_consume_blood_roll(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["ace"], ROSTER["vulture"]))
+        sup = _rule_by_id("suplex")
+        p = hit_probability(st, 0, sup)
+        rng = _SeqRng([max(0.0, p - 0.2)])
+        apply_move(st, 0, sup, rng)
+        self.assertFalse(st.bloodied[1])
+
+    def test_health_bar_red_when_bloodied_and_color(self) -> None:
+        s = health_bar(40, 100, bloodied=True, use_color=True)
+        self.assertTrue(s.startswith("\033[91m"))
+        self.assertIn("]", s)
 
 
 if __name__ == "__main__":

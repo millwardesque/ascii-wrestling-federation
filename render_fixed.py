@@ -91,14 +91,23 @@ class FixedLayoutRenderer:
         if self._state is not None and self._names is not None:
             st = self._state
             nm = self._names
+            use_bar_color = bool(c.player)
             for i in range(2):
                 wrestler = st.wrestlers[i]
                 col = c.player if i == 0 else c.cpu
-                hb = health_bar(st.health[i], wrestler.max_health)
+                hb = health_bar(
+                    st.health[i],
+                    wrestler.max_health,
+                    bloodied=st.bloodied[i],
+                    use_color=use_bar_color,
+                )
+                blood_note = (
+                    f" {c.dim}(bloodied){c.reset}" if st.bloodied[i] and not use_bar_color else ""
+                )
                 rb = f" {c.warn}[Ropes: hot]{c.reset}" if st.rebound[i] else ""
                 line1 = (
                     f"{col}{nm[i]:<18}{c.reset} "
-                    f"HP {st.health[i]:3}/{wrestler.max_health:<3} {hb}{rb}"
+                    f"HP {st.health[i]:3}/{wrestler.max_health:<3} {hb}{blood_note}{rb}"
                 )
                 line2 = (
                     f"     {c.dim}└─ {position_label(st.position[i])}  ·  "

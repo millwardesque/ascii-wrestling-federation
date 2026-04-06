@@ -19,13 +19,28 @@ def _default_input(prompt: str) -> str:
     return input(prompt)
 
 
-def health_bar(current: int, maximum: int, width: int = 20) -> str:
-    """Shared helper: plain text bar. Renderers may wrap or replace."""
+_ANSI_BLOOD = "\033[91m"
+_ANSI_BAR_RESET = "\033[0m"
+
+
+def health_bar(
+    current: int,
+    maximum: int,
+    width: int = 20,
+    *,
+    bloodied: bool = False,
+    use_color: bool = False,
+) -> str:
+    """Plain text bar; when ``bloodied`` and ``use_color``, render the bar in red (TTY easter egg)."""
     if maximum <= 0:
-        return "[" + "?" * width + "]"
-    filled = int(round(width * current / maximum))
-    filled = max(0, min(width, filled))
-    return "[" + "█" * filled + "·" * (width - filled) + "]"
+        bar = "[" + "?" * width + "]"
+    else:
+        filled = int(round(width * current / maximum))
+        filled = max(0, min(width, filled))
+        bar = "[" + "█" * filled + "·" * (width - filled) + "]"
+    if bloodied and use_color:
+        return f"{_ANSI_BLOOD}{bar}{_ANSI_BAR_RESET}"
+    return bar
 
 
 def position_label(p: BodyPosition) -> str:
@@ -168,10 +183,17 @@ class ScrollRenderer:
     def show_status(self, state: MatchState, display_names: tuple[str, str]) -> None:
         w0, w1 = state.wrestlers
         print()
+        use_bar_color = sys.stdout.isatty()
         for i, w in enumerate((w0, w1)):
-            hb = health_bar(state.health[i], w.max_health)
+            hb = health_bar(
+                state.health[i],
+                w.max_health,
+                bloodied=state.bloodied[i],
+                use_color=use_bar_color,
+            )
+            blood_note = " (bloodied)" if state.bloodied[i] and not use_bar_color else ""
             rb = " [Ropes: hot]" if state.rebound[i] else ""
-            print(f"  {display_names[i]:16} HP {state.health[i]:3}/{w.max_health:<3} {hb}{rb}")
+            print(f"  {display_names[i]:16} HP {state.health[i]:3}/{w.max_health:<3} {hb}{blood_note}{rb}")
             print(f"    └─ {position_label(state.position[i])}  ·  momentum {state.momentum[i]}")
         print()
 
