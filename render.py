@@ -122,6 +122,10 @@ class MatchRenderer(Protocol):
         """Outcome lines from the game layer (no per-turn move selection lines)."""
         ...
 
+    def wait_after_exchange_step(self) -> None:
+        """After a move result is shown; block until the player continues to the next beat."""
+        ...
+
     def show_round_summary(self, line: str) -> None:
         """One line after each full exchange (you + CPU); shown below Last action in fixed UI."""
         ...
@@ -215,6 +219,9 @@ class ScrollRenderer:
         for line in text.splitlines():
             if line.strip():
                 print(colorize_nicknames(line, player_nickname, cpu_nickname, use_ansi=use))
+
+    def wait_after_exchange_step(self) -> None:
+        self._input("\nPress Enter to continue… ")
 
     def show_round_summary(self, line: str) -> None:
         print(f"\n  Round recap · {line}\n")

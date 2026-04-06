@@ -59,6 +59,8 @@ class Move:
     is_finisher: bool = False
     finisher_pin_bonus: int = 0  # added to each pin count roll; consumed on next pin attempt
     min_momentum: int = 0  # 0 = always allowed if other gates pass
+    # After a successful damaging hit, immediately resolve a pin (finisher bonus applies to that pin)
+    triggers_pin_after_hit: bool = False
 
 
 def _always(_a: Wrestler, _t: Wrestler) -> bool:
@@ -492,18 +494,18 @@ def all_move_rules() -> list[MoveRule]:
         ),
         MoveRule(
             Move(
-                id="sweet_chin_music",
-                name="Sweet Chin Music",
-                description="Superkick out of nowhere. FINISHER (Mr. Perfect only).",
+                id="perfect_plex",
+                name="Perfect Plex",
+                description="Suplex into a bridging pin — FINISHER (Mr. Perfect only).",
                 target_standing=True,
                 base_damage=17,
                 target_after=BodyPosition.GROUNDED,
                 momentum_gain=3,
                 difficulty=5,
-                targets_head=True,
                 is_finisher=True,
                 finisher_pin_bonus=11,
                 min_momentum=3,
+                triggers_pin_after_hit=True,
             ),
             extra=_only_wrestler("mr_perfect"),
         ),

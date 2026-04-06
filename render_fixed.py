@@ -222,6 +222,8 @@ class FixedLayoutRenderer:
         self._player_turn = is_player_turn
         if round_num >= 2:
             self._header_extra = ""
+        if is_player_turn:
+            self._round_summary = None
         if self._state is not None:
             self._redraw_match()
 
@@ -237,12 +239,20 @@ class FixedLayoutRenderer:
         self._cpu_nick = cpu_nickname
         if actor_is_player:
             self._last_player_log = text
+            self._last_cpu_log = None
         else:
             self._last_cpu_log = text
         self._redraw_match()
 
+    def wait_after_exchange_step(self) -> None:
+        c = self._c
+        self._redraw_match(bottom_extra=[f"{c.dim}Press Enter to continue…{c.reset}"])
+        self._input("")
+
     def show_round_summary(self, line: str) -> None:
         self._round_summary = line
+        if self._state is not None:
+            self._redraw_match()
 
     def show_match_result_player_wins(self) -> None:
         self._end_screen("You win the match.", win=True)

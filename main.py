@@ -6,7 +6,13 @@ from __future__ import annotations
 import argparse
 import random
 
-from game import MatchState, apply_move, cpu_choose_rule, format_round_summary
+from game import (
+    MatchState,
+    apply_move,
+    cpu_choose_rule,
+    format_round_summary,
+    format_round_summary_after_player,
+)
 from render import MatchRenderer, ScrollRenderer
 from render_fixed import FixedLayoutRenderer
 from wrestlers import ROSTER, list_roster
@@ -21,38 +27,29 @@ def run_match(player_id: str, cpu_id: str, ui: MatchRenderer) -> None:
     ui.match_start_banner()
     ui.show_status(state, names)
 
-    turn = 0  # player first
     round_num = 1
-    player_move = ""
-    player_log = ""
-    cpu_move = ""
-    cpu_log = ""
 
     while True:
-        is_player = turn == 0
-        ui.round_header(round_num, is_player)
+        ui.round_header(round_num, is_player_turn=True)
+        ui.show_status(state, names)
 
-        if is_player:
-            opts = state.valid_rules(0)
-            idx = ui.prompt_move_choice(opts)
-            rule = state.rules[idx]
-        else:
-            rule = cpu_choose_rule(state, 1)
+        opts = state.valid_rules(0)
+        idx = ui.prompt_move_choice(opts)
+        player_rule = state.rules[idx]
+        ui.show_status(state, names)
 
-        log, winner = apply_move(state, turn, rule)
+        log, winner = apply_move(state, 0, player_rule)
+        player_move = player_rule.move.name
+        player_log = log
+        ui.show_status(state, names)
         ui.show_move_log(
             log,
             player_nickname=pw.nickname,
             cpu_nickname=cw.nickname,
-            actor_is_player=is_player,
+            actor_is_player=True,
         )
-
-        if is_player:
-            player_move = rule.move.name
-            player_log = log
-        else:
-            cpu_move = rule.move.name
-            cpu_log = log
+        ui.show_round_summary(format_round_summary_after_player(player_move, player_log))
+        ui.wait_after_exchange_step()
 
         if winner is not None:
             if winner == 0:
@@ -65,10 +62,35 @@ def run_match(player_id: str, cpu_id: str, ui: MatchRenderer) -> None:
             ui.show_double_exhaustion()
             return
 
-        turn = 1 - turn
-        if turn == 0:
-            round_num += 1
-            ui.show_round_summary(format_round_summary(player_move, player_log, cpu_move, cpu_log))
+        cpu_rule = cpu_choose_rule(state, 1)
+
+        ui.round_header(round_num, is_player_turn=False)
+
+        log, winner = apply_move(state, 1, cpu_rule)
+        cpu_move = cpu_rule.move.name
+        cpu_log = log
+        ui.show_status(state, names)
+        ui.show_move_log(
+            log,
+            player_nickname=pw.nickname,
+            cpu_nickname=cw.nickname,
+            actor_is_player=False,
+        )
+        ui.show_round_summary(format_round_summary(player_move, player_log, cpu_move, cpu_log))
+        ui.wait_after_exchange_step()
+
+        if winner is not None:
+            if winner == 0:
+                ui.show_match_result_player_wins()
+            else:
+                ui.show_match_result_cpu_wins()
+            return
+
+        if state.health[0] <= 0 or state.health[1] <= 0:
+            ui.show_double_exhaustion()
+            return
+
+        round_num += 1
         ui.show_status(state, names)
 
 

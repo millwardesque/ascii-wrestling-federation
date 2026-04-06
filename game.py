@@ -9,15 +9,16 @@ from moves import BodyPosition, Move, MoveRule, all_move_rules, move_valid
 from wrestlers import Wrestler
 
 # Hit probability: p = clamp(BASE + k_mom*momentum - k_diff*difficulty + ... , P_MIN, P_MAX)
-# Tuned so high-difficulty moves fail more at low momentum / healthy defender.
-_HIT_BASE = 0.58
+# Tuned so high-difficulty moves fail more at low momentum / healthy defender — but clean hits
+# stay common enough that reversals/whiffs don't dominate the match.
+_HIT_BASE = 0.66
 _HIT_K_MOMENTUM = 0.065
-_HIT_K_DIFFICULTY = 0.072
+_HIT_K_DIFFICULTY = 0.052
 _HIT_K_ATTACKER_HP = 0.055
-_HIT_K_DEFENDER_HP = 0.085
-_HIT_K_AGILITY_GAP = 0.12  # scales (defender.agility - actor.agility) / 10
-_HIT_P_MIN = 0.12
-_HIT_P_MAX = 0.94
+_HIT_K_DEFENDER_HP = 0.058
+_HIT_K_AGILITY_GAP = 0.09  # scales (defender.agility - actor.agility) / 10
+_HIT_P_MIN = 0.20
+_HIT_P_MAX = 0.95
 
 # Rare easter egg: successful head-targeting hit may blood the defender for the rest of the match
 _BLOODIED_CHANCE = 0.018
@@ -184,9 +185,16 @@ def apply_move(
     state.momentum[actor_idx] = gain
     if m.is_finisher and m.base_damage > 0:
         state.pin_bonus_next_cover[actor_idx] = m.finisher_pin_bonus
-        lines.append("  — FINISHER — the next cover packs extra heat.")
+        if m.triggers_pin_after_hit:
+            lines.append("  — FINISHER — the bridge is hooked — pinfall attempt!")
+        else:
+            lines.append("  — FINISHER — the next cover packs extra heat.")
     if actor_idx == 1:
         state.cpu_last_move_id = m.id
+    if m.triggers_pin_after_hit and m.base_damage > 0:
+        pin_text, won = _resolve_pin(state, actor_idx, rng)
+        lines.append(pin_text)
+        return "\n".join(lines), (actor_idx if won else None)
     text = "\n".join(lines) if lines else f"  {actor.nickname}: {m.name}."
     return text, None
 
@@ -316,6 +324,8 @@ def cpu_choose_rule(state: MatchState, cpu_idx: int) -> MoveRule:
             s += float(m.base_damage) * 0.35 + float(m.finisher_pin_bonus)
             if opp_hp < 0.45:
                 s += 25
+        if m.triggers_pin_after_hit:
+            s += 40.0 if opp_hp < 0.38 else 12.0
         return s + random.uniform(0, 4)
 
     return max(rules_list, key=score)
@@ -348,3 +358,8 @@ def format_round_summary(player_move: str, player_log: str, cpu_move: str, cpu_l
         f"You: {player_move} — {outcome_label(player_log)} · "
         f"CPU: {cpu_move} — {outcome_label(cpu_log)}"
     )
+
+
+def format_round_summary_after_player(player_move: str, player_log: str) -> str:
+    """Recap after your move only; opponent line cleared until CPU acts."""
+    return f"You: {player_move} — {outcome_label(player_log)} · CPU: —"
