@@ -42,6 +42,9 @@ def run_match(player_id: str, cpu_id: str, ui: MatchRenderer) -> None:
         player_move = player_rule.move.name
         player_log = log
         ui.show_status(state, names)
+        play_anim = getattr(ui, "play_move_animation", None)
+        if play_anim is not None:
+            play_anim(player_rule, actor_is_player=True)
         ui.show_move_log(
             log,
             player_nickname=pw.nickname,
@@ -70,6 +73,9 @@ def run_match(player_id: str, cpu_id: str, ui: MatchRenderer) -> None:
         cpu_move = cpu_rule.move.name
         cpu_log = log
         ui.show_status(state, names)
+        play_anim = getattr(ui, "play_move_animation", None)
+        if play_anim is not None:
+            play_anim(cpu_rule, actor_is_player=False)
         ui.show_move_log(
             log,
             player_nickname=pw.nickname,
@@ -115,5 +121,16 @@ if __name__ == "__main__":
         action="store_true",
         help="Fixed layout: full-screen redraw (ANSI), colors when supported",
     )
+    ap.add_argument(
+        "--no-anim",
+        action="store_true",
+        help="Fixed mode: skip ASCII ring move animations",
+    )
     args = ap.parse_args()
-    main(ui=FixedLayoutRenderer() if args.fixed else None)
+    main(
+        ui=(
+            FixedLayoutRenderer(animations=not args.no_anim)
+            if args.fixed
+            else None
+        )
+    )
