@@ -20,6 +20,11 @@ _HIT_K_AGILITY_GAP = 0.09  # scales (defender.agility - actor.agility) / 10
 _HIT_P_MIN = 0.20
 _HIT_P_MAX = 0.95
 
+# "Fight to your feet" — extra modifiers on top of the global hit formula (get_up only)
+_GET_UP_BASE_BONUS = 0.06  # small edge vs strikes; beatdown / finisher shock do most of the work
+_GET_UP_BEATDOWN_PENALTY = 0.42  # multiplied by (1 - HP fraction); worse when badly hurt
+_GET_UP_FINISH_SHOCK_K = 0.072  # per stack; stacks when you eat a finisher's damage
+
 # Rare easter egg: successful head-targeting hit may blood the defender for the rest of the match
 _BLOODIED_CHANCE = 0.018
 
@@ -36,6 +41,8 @@ class MatchState:
     cpu_last_move_id: str | None = None
     # Set when a finisher lands; added to each count on the attacker's next pin attempt, then cleared.
     pin_bonus_next_cover: list[int] = field(default_factory=list)
+    # Taking finisher damage adds stacks; makes get_up harder until you shake it off (successful stand).
+    finisher_shock: list[int] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         if not self.health:
@@ -50,6 +57,8 @@ class MatchState:
             self.bloodied = [False, False]
         if not self.pin_bonus_next_cover:
             self.pin_bonus_next_cover = [0, 0]
+        if not self.finisher_shock:
+            self.finisher_shock = [0, 0]
 
     def valid_rules(self, actor_idx: int) -> list[tuple[int, MoveRule]]:
         actor = self.wrestlers[actor_idx]
@@ -96,8 +105,9 @@ def hit_probability(state: MatchState, actor_idx: int, rule: MoveRule) -> float:
         - _HIT_K_AGILITY_GAP * agi_gap
     )
     if m.id == "get_up":
-        # Easier than strikes, but not free — beat-down wrestlers struggle more (low att_hp).
-        p += 0.12
+        p += _GET_UP_BASE_BONUS
+        p -= _GET_UP_BEATDOWN_PENALTY * (1.0 - att_hp)
+        p -= _GET_UP_FINISH_SHOCK_K * float(state.finisher_shock[actor_idx])
     if m.is_finisher:
         p += 0.05
     return max(_HIT_P_MIN, min(_HIT_P_MAX, p))
@@ -161,6 +171,8 @@ def apply_move(
         )
         state.health[tgt] = max(0, state.health[tgt] - dmg)
         lines.append(f"  {actor.nickname} deals {dmg} damage with {m.name.lower()}.")
+        if m.is_finisher:
+            state.finisher_shock[tgt] = min(5, state.finisher_shock[tgt] + 2)
         if m.targets_head and not state.bloodied[tgt] and _rand_float(rng) < _BLOODIED_CHANCE:
             state.bloodied[tgt] = True
             lines.append(
@@ -171,6 +183,9 @@ def apply_move(
         state.position[actor_idx] = m.actor_after
     if m.target_after is not None:
         state.position[tgt] = m.target_after
+
+    if m.id == "get_up" and state.position[actor_idx] == BodyPosition.STANDING:
+        state.finisher_shock[actor_idx] = max(0, state.finisher_shock[actor_idx] - 1)
 
     if m.id == "recover":
         heal = max(3, actor.max_health // 25)

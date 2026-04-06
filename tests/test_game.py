@@ -73,6 +73,16 @@ class TestHitProbability(unittest.TestCase):
         punch = _rule_by_id("punch")
         self.assertLess(hit_probability(self.state, 0, sup), hit_probability(self.state, 0, punch))
 
+    def test_get_up_harder_when_beaten_and_after_finisher(self) -> None:
+        gu = _rule_by_id("get_up")
+        healthy = hit_probability(self.state, 0, gu)
+        self.state.health[0] = max(1, self.state.wrestlers[0].max_health // 5)
+        beaten = hit_probability(self.state, 0, gu)
+        self.assertLess(beaten, healthy)
+        self.state.finisher_shock[0] = 2
+        shocked = hit_probability(self.state, 0, gu)
+        self.assertLess(shocked, beaten)
+
 
 class TestApplyMoveStochastic(unittest.TestCase):
     def setUp(self) -> None:
