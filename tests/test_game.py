@@ -11,6 +11,7 @@ from game import (
     cpu_choose_rule,
     format_round_summary,
     hit_probability,
+    move_landing_probability_label,
     move_needs_hit_roll,
     outcome_label,
 )
@@ -82,6 +83,12 @@ class TestHitProbability(unittest.TestCase):
         self.state.finisher_shock[0] = 2
         shocked = hit_probability(self.state, 0, gu)
         self.assertLess(shocked, beaten)
+
+    def test_move_landing_probability_label(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        self.assertEqual(move_landing_probability_label(st, 0, _rule_by_id("pin")), "pin")
+        self.assertEqual(move_landing_probability_label(st, 0, _rule_by_id("climb")), "auto")
+        self.assertTrue(move_landing_probability_label(st, 0, _rule_by_id("punch")).endswith("%"))
 
 
 class TestApplyMoveStochastic(unittest.TestCase):

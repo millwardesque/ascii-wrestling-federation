@@ -8,7 +8,7 @@ import sys
 import textwrap
 from typing import Sequence
 
-from game import MatchState
+from game import MatchState, move_landing_probability_label
 from moves import MoveRule
 from render import InputFn, _default_input, colorize_nicknames, health_bar, position_label
 from wrestlers import Wrestler
@@ -289,7 +289,12 @@ class FixedLayoutRenderer:
         sys.stdout.flush()
         self._input("")
 
-    def prompt_move_choice(self, options: Sequence[tuple[int, MoveRule]]) -> int:
+    def prompt_move_choice(
+        self,
+        state: MatchState,
+        actor_idx: int,
+        options: Sequence[tuple[int, MoveRule]],
+    ) -> int:
         if not options:
             self.fatal_no_valid_moves()
             raise SystemExit(1)
@@ -304,7 +309,10 @@ class FixedLayoutRenderer:
             for j, (_ix, rule) in enumerate(options, start=1):
                 m = rule.move
                 hint = f" — {m.description}" if len(m.description) < 60 else ""
-                lines.append(f"  {c.accent}{j}.{c.reset} {m.name}{hint}")
+                lbl = move_landing_probability_label(state, actor_idx, rule)
+                lines.append(
+                    f"  {c.accent}{j}.{c.reset} {m.name}{hint}  {c.dim}[{lbl}]{c.reset}"
+                )
             lines.append("")
             if err:
                 lines.append(f"{c.warn}{err}{c.reset}")

@@ -34,7 +34,7 @@ def run_match(player_id: str, cpu_id: str, ui: MatchRenderer) -> None:
         ui.show_status(state, names)
 
         opts = state.valid_rules(0)
-        idx = ui.prompt_move_choice(opts)
+        idx = ui.prompt_move_choice(state, 0, opts)
         player_rule = state.rules[idx]
         ui.show_status(state, names)
 

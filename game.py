@@ -85,6 +85,17 @@ def move_needs_hit_roll(m: Move) -> bool:
     return not m.skip_hit_roll
 
 
+def move_landing_probability_label(state: MatchState, actor_idx: int, rule: MoveRule) -> str:
+    """Short UI label: P(land) for moves that use the hit roll; ``pin`` / ``auto`` otherwise."""
+    m = rule.move
+    if m.is_pin:
+        return "pin"
+    if not move_needs_hit_roll(m):
+        return "auto"
+    p = hit_probability(state, actor_idx, rule)
+    return f"{p * 100:.0f}%"
+
+
 def hit_probability(state: MatchState, actor_idx: int, rule: MoveRule) -> float:
     """Deterministic P(land) for the current snapshot — shared by runtime roll and CPU EV."""
     m = rule.move

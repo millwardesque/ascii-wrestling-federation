@@ -7,7 +7,7 @@ from __future__ import annotations
 import sys
 from typing import Callable, Protocol, Sequence, runtime_checkable
 
-from game import MatchState
+from game import MatchState, move_landing_probability_label
 from moves import BodyPosition, MoveRule
 from wrestlers import Wrestler
 
@@ -143,8 +143,13 @@ class MatchRenderer(Protocol):
         """After win/lose/draw; block until user continues (then main returns to wrestler select)."""
         ...
 
-    def prompt_move_choice(self, options: Sequence[tuple[int, MoveRule]]) -> int:
-        """Show numbered moves; return the chosen `rules` index (first element of tuple)."""
+    def prompt_move_choice(
+        self,
+        state: MatchState,
+        actor_idx: int,
+        options: Sequence[tuple[int, MoveRule]],
+    ) -> int:
+        """Show numbered moves with landing odds; return the chosen `rules` index."""
         ...
 
     def fatal_no_valid_moves(self) -> None:
@@ -238,7 +243,12 @@ class ScrollRenderer:
     def wait_after_match(self) -> None:
         self._input("\nPress Enter to continue to wrestler select… ")
 
-    def prompt_move_choice(self, options: Sequence[tuple[int, MoveRule]]) -> int:
+    def prompt_move_choice(
+        self,
+        state: MatchState,
+        actor_idx: int,
+        options: Sequence[tuple[int, MoveRule]],
+    ) -> int:
         if not options:
             self.fatal_no_valid_moves()
             raise SystemExit(1)
@@ -246,7 +256,8 @@ class ScrollRenderer:
         for j, (_rule_idx, rule) in enumerate(options, start=1):
             m = rule.move
             hint = f" — {m.description}" if len(m.description) < 70 else ""
-            print(f"  {j}. {m.name}{hint}")
+            lbl = move_landing_probability_label(state, actor_idx, rule)
+            print(f"  {j}. {m.name}{hint}  [{lbl}]")
         n_opts = len(options)
         while True:
             raw = self._input(f"Choose move (1–{n_opts}): ").strip()
