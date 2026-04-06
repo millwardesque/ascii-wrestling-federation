@@ -12,7 +12,7 @@ from wrestlers import ROSTER
 
 class TestPositionPairCoverage(unittest.TestCase):
     def test_each_actor_target_pair_has_a_move(self) -> None:
-        w1, w2 = ROSTER["ace"], ROSTER["vulture"]
+        w1, w2 = ROSTER["bret_hart"], ROSTER["cm_punk"]
         for actor_pos, target_pos in product(BodyPosition, BodyPosition):
             ok = False
             for rebound in (False, True):

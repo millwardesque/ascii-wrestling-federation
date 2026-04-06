@@ -117,6 +117,7 @@ class MatchRenderer(Protocol):
         *,
         player_nickname: str,
         cpu_nickname: str,
+        actor_is_player: bool,
     ) -> None:
         """Outcome lines from the game layer (no per-turn move selection lines)."""
         ...
@@ -165,12 +166,12 @@ class ScrollRenderer:
                 f"CHA {w.charisma}  (HP {w.max_health})"
             )
         while True:
-            raw = self._input("Enter number (1–4): ").strip()
+            raw = self._input(f"Enter number (1–{len(roster)}): ").strip()
             if raw.isdigit():
                 n = int(raw)
                 if 1 <= n <= len(roster):
                     return roster[n - 1].id
-            print("  Try again — pick 1, 2, 3, or 4.")
+            print(f"  Try again — pick 1–{len(roster)}.")
 
     def show_opponent_chosen(self, opponent: Wrestler) -> None:
         print(f"\nYour opponent: {opponent.name}")
@@ -207,7 +208,9 @@ class ScrollRenderer:
         *,
         player_nickname: str,
         cpu_nickname: str,
+        actor_is_player: bool,
     ) -> None:
+        del actor_is_player  # scrolling UI prints full history; actor not needed
         use = sys.stdout.isatty()
         for line in text.splitlines():
             if line.strip():

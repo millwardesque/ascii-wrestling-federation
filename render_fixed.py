@@ -6,7 +6,6 @@ import re
 import shutil
 import sys
 import textwrap
-from collections import deque
 from typing import Sequence
 
 from game import MatchState
@@ -21,7 +20,8 @@ def _strip_ansi(s: str) -> str:
 
 class FixedLayoutRenderer:
     """
-    Full-screen redraw using ANSI clear + home. Keeps a ring buffer of log lines.
+    Full-screen redraw using ANSI clear + home. Last action shows each wrestler's
+    most recent move narrative only.
 
     Set ``use_color=False`` for dumb terminals; color is auto-disabled when stdout
     is not a TTY.
@@ -31,11 +31,11 @@ class FixedLayoutRenderer:
         self,
         input_fn: InputFn | None = None,
         *,
-        log_lines: int = 10,
         use_color: bool | None = None,
     ) -> None:
         self._input = input_fn or _default_input
-        self._log = deque[str](maxlen=log_lines)
+        self._last_player_log: str | None = None
+        self._last_cpu_log: str | None = None
         self._state: MatchState | None = None
         self._names: tuple[str, str] | None = None
         self._round_num = 1
@@ -120,20 +120,29 @@ class FixedLayoutRenderer:
 
         print(c.dim + self._rule("─") + c.reset)
         print(f"{c.bold}Last action{c.reset}")
-        if not self._log:
-            print(f"  {c.dim}(none yet){c.reset}")
-        else:
-            inner = w - 4
-            use_ansi = bool(self._c.player)
-            for raw in self._log:
-                for part in textwrap.wrap(raw, width=inner, break_long_words=True):
+        inner = w - 4
+        wrap_w = max(20, inner - 4)
+        use_ansi = bool(self._c.player)
+
+        def emit_side(label: str, col: str, block: str | None) -> None:
+            print(f"  {col}{label}{c.reset}")
+            if not block or not block.strip():
+                print(f"    {c.dim}(none yet){c.reset}")
+                return
+            for raw in block.splitlines():
+                if not raw.strip():
+                    continue
+                for part in textwrap.wrap(raw, width=wrap_w, break_long_words=True):
                     colored = colorize_nicknames(
                         part,
                         self._player_nick,
                         self._cpu_nick,
                         use_ansi=use_ansi,
                     )
-                    print(f"  {colored}")
+                    print(f"    {colored}")
+
+        emit_side("You", c.player, self._last_player_log)
+        emit_side("CPU", c.cpu, self._last_cpu_log)
         print(c.dim + self._rule("─") + c.reset)
         print(f"{c.bold}Round recap{c.reset}")
         if self._round_summary:
@@ -179,7 +188,7 @@ class FixedLayoutRenderer:
                 n = int(raw)
                 if 1 <= n <= len(roster):
                     return roster[n - 1].id
-            err = "Invalid — pick 1, 2, 3, or 4."
+            err = f"Invalid — pick 1–{len(roster)}."
 
     def show_opponent_chosen(self, opponent: Wrestler) -> None:
         c = self._c
@@ -197,7 +206,8 @@ class FixedLayoutRenderer:
     def match_start_banner(self) -> None:
         self._banner = "BELL RINGS — singles match, pinfall only"
         self._header_extra = self._banner
-        self._log.clear()
+        self._last_player_log = None
+        self._last_cpu_log = None
         self._round_summary = None
         self._player_nick = ""
         self._cpu_nick = ""
@@ -221,12 +231,14 @@ class FixedLayoutRenderer:
         *,
         player_nickname: str,
         cpu_nickname: str,
+        actor_is_player: bool,
     ) -> None:
         self._player_nick = player_nickname
         self._cpu_nick = cpu_nickname
-        for line in text.splitlines():
-            if line.strip():
-                self._log.append(line)
+        if actor_is_player:
+            self._last_player_log = text
+        else:
+            self._last_cpu_log = text
         self._redraw_match()
 
     def show_round_summary(self, line: str) -> None:

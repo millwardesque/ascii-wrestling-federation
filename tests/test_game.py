@@ -53,7 +53,7 @@ class TestHitRollMetadata(unittest.TestCase):
 
 class TestHitProbability(unittest.TestCase):
     def setUp(self) -> None:
-        self.state = MatchState(wrestlers=(ROSTER["ace"], ROSTER["vulture"]))
+        self.state = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
 
     def test_hit_probability_in_bounds(self) -> None:
         sup = _rule_by_id("suplex")
@@ -76,10 +76,10 @@ class TestHitProbability(unittest.TestCase):
 
 class TestApplyMoveStochastic(unittest.TestCase):
     def setUp(self) -> None:
-        self.state = MatchState(wrestlers=(ROSTER["ace"], ROSTER["vulture"]))
+        self.state = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
 
     def test_get_up_miss_stays_grounded(self) -> None:
-        st = MatchState(wrestlers=(ROSTER["ace"], ROSTER["vulture"]))
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
         st.position[0] = BodyPosition.GROUNDED
         gu = _rule_by_id("get_up")
         p = hit_probability(st, 0, gu)
@@ -115,14 +115,14 @@ class TestApplyMoveStochastic(unittest.TestCase):
         high_misses = 0
         trials = 400
         for i in range(trials):
-            st = MatchState(wrestlers=(ROSTER["ace"], ROSTER["vulture"]))
+            st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
             st.momentum[0] = 0
             rng = random.Random(i)
             log, _ = apply_move(st, 0, sup, rng)
             if "reverses" in log or "whiffs" in log:
                 low_misses += 1
         for i in range(trials):
-            st = MatchState(wrestlers=(ROSTER["ace"], ROSTER["vulture"]))
+            st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
             st.momentum[0] = 5
             rng = random.Random(i + 10_000)
             log, _ = apply_move(st, 0, sup, rng)
@@ -131,7 +131,7 @@ class TestApplyMoveStochastic(unittest.TestCase):
         self.assertGreater(low_misses, high_misses)
 
     def test_cpu_last_move_id_set_on_cpu_turn(self) -> None:
-        st = MatchState(wrestlers=(ROSTER["ace"], ROSTER["vulture"]))
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
         punch = _rule_by_id("punch")
         p = hit_probability(st, 1, punch)
         # Hit roll, then bloodied roll (high value = no blood)
@@ -142,7 +142,7 @@ class TestApplyMoveStochastic(unittest.TestCase):
 
 class TestPinUnchanged(unittest.TestCase):
     def test_pin_uses_resolve_pin_not_hit_roll(self) -> None:
-        st = MatchState(wrestlers=(ROSTER["ace"], ROSTER["vulture"]))
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
         st.position[0] = BodyPosition.GROUNDED
         st.position[1] = BodyPosition.STANDING
         pin = _rule_by_id("pin")
@@ -173,18 +173,18 @@ class TestRoundSummary(unittest.TestCase):
 
 class TestCpuExpectedValue(unittest.TestCase):
     def test_cpu_choose_rule_returns_valid_rule(self) -> None:
-        st = MatchState(wrestlers=(ROSTER["ace"], ROSTER["vulture"]))
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
         r = cpu_choose_rule(st, 1)
         self.assertIsInstance(r, MoveRule)
 
 
 class TestBloodiedEasterEgg(unittest.TestCase):
     def test_match_state_initializes_bloodied(self) -> None:
-        st = MatchState(wrestlers=(ROSTER["ace"], ROSTER["vulture"]))
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
         self.assertEqual(st.bloodied, [False, False])
 
     def test_head_hit_can_trigger_bloodied_log(self) -> None:
-        st = MatchState(wrestlers=(ROSTER["ace"], ROSTER["vulture"]))
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
         punch = _rule_by_id("punch")
         p = hit_probability(st, 0, punch)
         rng = _SeqRng([max(0.0, p - 0.2), 0.001])
@@ -193,7 +193,7 @@ class TestBloodiedEasterEgg(unittest.TestCase):
         self.assertIn("busted open", log)
 
     def test_non_head_move_does_not_consume_blood_roll(self) -> None:
-        st = MatchState(wrestlers=(ROSTER["ace"], ROSTER["vulture"]))
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
         sup = _rule_by_id("suplex")
         p = hit_probability(st, 0, sup)
         rng = _SeqRng([max(0.0, p - 0.2)])

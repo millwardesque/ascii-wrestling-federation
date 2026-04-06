@@ -40,7 +40,12 @@ def run_match(player_id: str, cpu_id: str, ui: MatchRenderer) -> None:
             rule = cpu_choose_rule(state, 1)
 
         log, winner = apply_move(state, turn, rule)
-        ui.show_move_log(log, player_nickname=pw.nickname, cpu_nickname=cw.nickname)
+        ui.show_move_log(
+            log,
+            player_nickname=pw.nickname,
+            cpu_nickname=cw.nickname,
+            actor_is_player=is_player,
+        )
 
         if is_player:
             player_move = rule.move.name
