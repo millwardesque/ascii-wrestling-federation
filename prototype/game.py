@@ -180,7 +180,7 @@ def apply_move(
         dmg = _damage_with_stats(
             m.base_damage, actor, target, agility_bonus=top or m.actor_rebound or m.actor_running_ropes_only
         )
-        state.health[tgt] = max(0, state.health[tgt] - dmg)
+        state.health[tgt] = max(1, state.health[tgt] - dmg)
         lines.append(f"  {actor.nickname} deals {dmg} damage with {m.name.lower()}.")
         if m.is_finisher:
             state.finisher_shock[tgt] = min(5, state.finisher_shock[tgt] + 2)
@@ -257,7 +257,7 @@ def _resolve_miss(
                 chip, actor, target, agility_bonus=top or m.actor_rebound or m.actor_running_ropes_only
             ),
         )
-        state.health[tgt] = max(0, state.health[tgt] - dmg)
+        state.health[tgt] = max(1, state.health[tgt] - dmg)
         lines.append(f"  {target.nickname} reverses the {m.name.lower()} — only {dmg} damage.")
 
     if _rand_float(rng) < 0.5:

@@ -49,6 +49,7 @@ class FixedLayoutRenderer:
         self._round_summary: str | None = None
         self._player_nick = ""
         self._cpu_nick = ""
+        self._match_seed: int | None = None
         if use_color is None:
             use_color = sys.stdout.isatty()
         self._c = _Palette(enabled=use_color)
@@ -95,6 +96,8 @@ class FixedLayoutRenderer:
         )
         if self._header_extra:
             hdr += f"\n{c.dim}{self._header_extra}{c.reset}"
+        if self._match_seed is not None:
+            hdr += f"\n{c.dim}Match seed: {self._match_seed}{c.reset}"
         print(hdr)
         print(c.dim + self._rule("─") + c.reset)
 
@@ -220,9 +223,10 @@ class FixedLayoutRenderer:
         )
         self._input("")
 
-    def match_start_banner(self) -> None:
+    def match_start_banner(self, *, match_seed: int | None = None) -> None:
         self._banner = "BELL RINGS — singles match, pinfall only"
         self._header_extra = self._banner
+        self._match_seed = match_seed
         self._last_player_log = None
         self._last_cpu_log = None
         self._round_summary = None
@@ -285,9 +289,6 @@ class FixedLayoutRenderer:
 
     def show_match_result_cpu_wins(self) -> None:
         self._end_screen("The CPU wins the match.", win=False)
-
-    def show_double_exhaustion(self) -> None:
-        self._end_screen("The referee waves it off — double exhaustion.", win=None)
 
     def wait_after_match(self) -> None:
         """End screens already block in ``_end_screen``."""

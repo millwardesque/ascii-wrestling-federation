@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import random
+import secrets
 
 from game import (
     MatchState,
@@ -13,7 +14,7 @@ from game import (
     format_round_summary,
     format_round_summary_after_player,
 )
-from render import MatchRenderer, ScrollRenderer
+from render import MatchRenderer
 from render_fixed import FixedLayoutRenderer
 from wrestlers import ROSTER, list_roster
 
@@ -21,10 +22,12 @@ from wrestlers import ROSTER, list_roster
 def run_match(player_id: str, cpu_id: str, ui: MatchRenderer) -> None:
     pw = ROSTER[player_id]
     cw = ROSTER[cpu_id]
+    match_seed = secrets.randbits(63)
+    random.seed(match_seed)
     state = MatchState(wrestlers=(pw, cw))
     names = ("YOU (" + pw.nickname + ")", "CPU (" + cw.nickname + ")")
 
-    ui.match_start_banner()
+    ui.match_start_banner(match_seed=match_seed)
     ui.show_status(state, names)
 
     round_num = 1
@@ -61,10 +64,6 @@ def run_match(player_id: str, cpu_id: str, ui: MatchRenderer) -> None:
                 ui.show_match_result_cpu_wins()
             return
 
-        if state.health[0] <= 0 or state.health[1] <= 0:
-            ui.show_double_exhaustion()
-            return
-
         cpu_rule = cpu_choose_rule(state, 1)
 
         ui.round_header(round_num, is_player_turn=False)
@@ -92,16 +91,12 @@ def run_match(player_id: str, cpu_id: str, ui: MatchRenderer) -> None:
                 ui.show_match_result_cpu_wins()
             return
 
-        if state.health[0] <= 0 or state.health[1] <= 0:
-            ui.show_double_exhaustion()
-            return
-
         round_num += 1
         ui.show_status(state, names)
 
 
 def main(ui: MatchRenderer | None = None) -> None:
-    renderer = ui or ScrollRenderer()
+    renderer = ui if ui is not None else FixedLayoutRenderer()
     while True:
         renderer.show_title()
         roster = list_roster()
@@ -118,21 +113,19 @@ if __name__ == "__main__":
         description="ASCII Wrestling Federation — pro-wrestling simulator"
     )
     ap.add_argument(
-        "-f",
-        "--fixed",
+        "--scroll",
         action="store_true",
-        help="Fixed layout: full-screen redraw (ANSI), colors when supported",
+        help="Legacy scrolling output instead of fixed layout",
     )
     ap.add_argument(
         "--no-anim",
         action="store_true",
-        help="Fixed mode: skip ASCII ring move animations",
+        help="Fixed layout: skip ASCII ring move animations",
     )
     args = ap.parse_args()
-    main(
-        ui=(
-            FixedLayoutRenderer(animations=not args.no_anim)
-            if args.fixed
-            else None
-        )
-    )
+    if args.scroll:
+        from render_scroll_archived import ScrollRenderer
+
+        main(ui=ScrollRenderer())
+    else:
+        main(ui=FixedLayoutRenderer(animations=not args.no_anim))
