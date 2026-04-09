@@ -21,6 +21,11 @@ _HIT_K_AGILITY_GAP = 0.09  # scales (defender.agility - actor.agility) / 10
 _HIT_P_MIN = 0.20
 _HIT_P_MAX = 0.95
 
+# Finisher-only bonus (on top of the shared hit formula): scales from 0 at the bell to
+# _FINISHER_HIT_BONUS_MAX once combined damage reaches this fraction of combined max HP.
+_FINISHER_HIT_BONUS_MAX = 0.05
+_FINISHER_WEAR_FULL_AT_DAMAGE_FRAC = 0.32  # e.g. ~32% of combined pool lost → full bonus
+
 # "Fight to your feet" — extra modifiers on top of the global hit formula (get_up only)
 _GET_UP_BASE_BONUS = 0.06  # small edge vs strikes; beatdown / finisher shock do most of the work
 _GET_UP_BEATDOWN_PENALTY = 0.42  # multiplied by (1 - HP fraction); worse when badly hurt
@@ -79,6 +84,16 @@ class MatchState:
         return out
 
 
+def _finisher_wear_fraction(state: MatchState) -> float:
+    """0 at full health both sides → 1 once enough total damage has been dealt (match has worn on)."""
+    w0, w1 = state.wrestlers
+    h0, h1 = state.health
+    total_max = max(1, w0.max_health + w1.max_health)
+    damage_dealt = max(0, (w0.max_health - h0) + (w1.max_health - h1))
+    cap = total_max * _FINISHER_WEAR_FULL_AT_DAMAGE_FRAC
+    return min(1.0, damage_dealt / max(1e-9, cap))
+
+
 def move_needs_hit_roll(m: Move) -> bool:
     """Pins use _resolve_pin; utility moves skip the offensive roll."""
     if m.is_pin:
@@ -121,7 +136,7 @@ def hit_probability(state: MatchState, actor_idx: int, rule: MoveRule) -> float:
         p -= _GET_UP_BEATDOWN_PENALTY * (1.0 - att_hp)
         p -= _GET_UP_FINISH_SHOCK_K * float(state.finisher_shock[actor_idx])
     if m.is_finisher:
-        p += 0.05
+        p += _FINISHER_HIT_BONUS_MAX * _finisher_wear_fraction(state)
     return max(_HIT_P_MIN, min(_HIT_P_MAX, p))
 
 

@@ -85,6 +85,22 @@ class TestHitProbability(unittest.TestCase):
         shocked = hit_probability(self.state, 0, gu)
         self.assertLess(shocked, beaten)
 
+    def test_finisher_lands_more_often_after_match_wear(self) -> None:
+        """Finisher-only hit bonus scales with combined damage — not a flat bonus at the bell."""
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        st.position[0] = BodyPosition.STANDING
+        st.position[1] = BodyPosition.GROUNDED
+        st.momentum[0] = 5
+        fin = _rule_by_id("sharp_shooter")
+        p_fresh = hit_probability(st, 0, fin)
+        w0, w1 = st.wrestlers
+        total_max = w0.max_health + w1.max_health
+        dmg = int(total_max * 0.34)
+        st.health[0] = max(1, w0.max_health - dmg // 2)
+        st.health[1] = max(1, w1.max_health - dmg // 2)
+        p_worn = hit_probability(st, 0, fin)
+        self.assertGreater(p_worn, p_fresh)
+
     def test_move_landing_probability_label(self) -> None:
         st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
         self.assertEqual(move_landing_probability_label(st, 0, _rule_by_id("pin")), "pin")
