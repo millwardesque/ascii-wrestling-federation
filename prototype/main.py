@@ -113,19 +113,9 @@ if __name__ == "__main__":
         description="ASCII Wrestling Federation — pro-wrestling simulator"
     )
     ap.add_argument(
-        "--scroll",
-        action="store_true",
-        help="Legacy scrolling output instead of fixed layout",
-    )
-    ap.add_argument(
         "--no-anim",
         action="store_true",
-        help="Fixed layout: skip ASCII ring move animations",
+        help="Skip ASCII ring move animations",
     )
     args = ap.parse_args()
-    if args.scroll:
-        from render_scroll_archived import ScrollRenderer
-
-        main(ui=ScrollRenderer())
-    else:
-        main(ui=FixedLayoutRenderer(animations=not args.no_anim))
+    main(ui=FixedLayoutRenderer(animations=not args.no_anim))

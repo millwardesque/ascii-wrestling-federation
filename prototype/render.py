@@ -1,7 +1,6 @@
 """UI rendering — shared helpers and the ``MatchRenderer`` protocol.
 
-Game rules live in `game.py`. The default terminal UI is `render_fixed.FixedLayoutRenderer`;
-legacy scrolling output lives in `render_scroll_archived`."""
+Game rules live in `game.py`. The terminal UI is `render_fixed.FixedLayoutRenderer`."""
 
 from __future__ import annotations
 
@@ -87,7 +86,7 @@ def colorize_nicknames(
 
 @runtime_checkable
 class MatchRenderer(Protocol):
-    """Contract for match UI. Implement with scrolling output, curses, rich, etc."""
+    """Contract for match UI. Implement with fixed layout, curses, rich, etc."""
 
     def show_title(self) -> None:
         """Opening banner before roster selection."""
