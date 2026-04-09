@@ -1,12 +1,15 @@
 # TODO
 
+## Recently completed
+
+- **Random seed per match** — `secrets.randbits(63)` and `random.seed()` at match start; seed shown in the fixed-layout match header (scroll UI removed).
+- **Fixed layout default** — `FixedLayoutRenderer` only; legacy scroll renderer deleted (`--scroll` removed).
+- **No exhaustion draw** — Damage floors HP at 1; matches end by pinfall only; double-exhaustion path removed.
+
 ## Product direction
 
-- Purposely set random seed value at the start of each match
-- Default to fixed mode
 - Remove stick figures and animations
 - Add an “AWF (ASCII Wrestling Federation)” start screen
-- Remove the exhaustion draw; let the match run in perpetuity
 - Pause menu (e.g. ESC) with option to return to the start screen
 - Hide the round number; remove from UI and from code unless still required internally
 
@@ -29,8 +32,7 @@
 ### Platform & architecture
 
 - Investigate porting to Electrobun
-- Document API seams / game modules (e.g. renderer, CPU AI, game logic)for different systems to use in production-ready version
-- After fixed mode is default: drop or archive the scroll renderer if nothing else needs it
+- Document API seams / game modules (e.g. renderer, CPU AI, game logic) for different systems to use in production-ready version
 
 ### Content & polish
 
