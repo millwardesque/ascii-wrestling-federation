@@ -13,6 +13,7 @@ from game import MatchState, move_landing_probability_label
 from moves import MoveRule
 from render import InputFn, ReturnToTitle, _default_input, colorize_nicknames, health_bar, position_label
 from terminal_keys import (
+    read_any_key,
     read_digit_1_or_2,
     read_move_choice_line,
     read_title_key,
@@ -260,10 +261,10 @@ class FixedLayoutRenderer:
                 "",
                 f"  {c.cpu}{opponent.name}{c.reset}",
                 "",
-                f"{c.dim}Press Enter to start the match…{c.reset}",
+                f"{c.dim}Press any key to start the match…{c.reset}",
             ]
         )
-        self._input("")
+        read_any_key()
 
     def match_start_banner(self, *, match_seed: int | None = None) -> None:
         self._banner = "BELL RINGS — singles match, pinfall only"
