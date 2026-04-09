@@ -7,6 +7,7 @@ import unittest
 
 from game import (
     MatchState,
+    _softmax_sample_index,
     apply_move,
     cpu_choose_rule,
     format_exchange_summary,
@@ -186,6 +187,15 @@ class TestExchangeSummary(unittest.TestCase):
         self.assertIn("CPU: Suplex", s)
         self.assertIn("hit", s)
         self.assertIn("miss", s)
+
+
+class TestSoftmaxSample(unittest.TestCase):
+    def test_softmax_temperature_zero_is_argmax(self) -> None:
+        scores = [1.0, 5.0, 3.0]
+        self.assertEqual(_softmax_sample_index(scores, 0.0), 1)
+
+    def test_softmax_single_option(self) -> None:
+        self.assertEqual(_softmax_sample_index([42.0], 12.0), 0)
 
 
 class TestCpuExpectedValue(unittest.TestCase):

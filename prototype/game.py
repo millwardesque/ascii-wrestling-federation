@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import random
 from dataclasses import dataclass, field
 
@@ -303,6 +304,74 @@ def _resolve_pin(state: MatchState, actor_idx: int, rng: random.Random | None) -
 
 _CPU_VARIETY_PENALTY = 18.0
 
+# Softmax temperature for CPU move choice: higher → more exploration, lower → greedier.
+# Scaled for heuristic scores roughly in ~0–150.
+_CPU_SOFTMAX_TEMPERATURE = 12.0
+
+
+def _cpu_rule_score(state: MatchState, cpu_idx: int, r: MoveRule) -> float:
+    """Deterministic preference score for a legal CPU move (softmax input)."""
+    m = r.move
+    opp = 1 - cpu_idx
+    opp_hp = state.health[opp] / max(1, state.wrestlers[opp].max_health)
+
+    if m.is_pin:
+        s = 0.0
+        if opp_hp < 0.35:
+            s += 80
+        if opp_hp >= 0.35:
+            s -= 40
+        s += float(state.pin_bonus_next_cover[cpu_idx]) * 3.0
+        return s
+
+    if move_needs_hit_roll(m):
+        p = hit_probability(state, cpu_idx, r)
+        ev_damage = p * float(m.base_damage)
+        s = ev_damage + p * m.momentum_gain * 1.5
+    else:
+        s = float(m.base_damage) + m.momentum_gain * 1.5
+
+    if m.actor_top and m.target_grounded:
+        s += 15
+    if m.actor_rebound:
+        s += 6
+    if m.id == "dismount_top":
+        s -= 5
+    if m.id == "recover" and state.health[cpu_idx] > state.wrestlers[cpu_idx].max_health * 0.6:
+        s -= 10
+    if m.id == "get_up":
+        s += 100
+    if m.id == "escape_corner":
+        s += 100
+    if state.cpu_last_move_id is not None and m.id == state.cpu_last_move_id:
+        s -= _CPU_VARIETY_PENALTY
+    if m.is_finisher:
+        s += float(m.base_damage) * 0.35 + float(m.finisher_pin_bonus)
+        if opp_hp < 0.45:
+            s += 25
+    if m.triggers_pin_after_hit:
+        s += 40.0 if opp_hp < 0.38 else 12.0
+    return s
+
+
+def _softmax_sample_index(scores: list[float], temperature: float) -> int:
+    """Sample an index with probabilities ∝ softmax(scores / temperature)."""
+    if not scores:
+        raise ValueError("scores must be non-empty")
+    if temperature <= 0:
+        return max(range(len(scores)), key=lambda i: scores[i])
+    m = max(scores)
+    exps = [math.exp((s - m) / temperature) for s in scores]
+    total = sum(exps)
+    probs = [e / total for e in exps]
+    u = random.random()
+    c = 0.0
+    for i, p in enumerate(probs):
+        c += p
+        if u <= c:
+            return i
+    return len(scores) - 1
+
 
 def cpu_choose_rule(state: MatchState, cpu_idx: int) -> MoveRule:
     options = state.valid_rules(cpu_idx)
@@ -310,51 +379,9 @@ def cpu_choose_rule(state: MatchState, cpu_idx: int) -> MoveRule:
         raise RuntimeError("CPU has no valid moves — state bug.")
     _, rules = zip(*options)
     rules_list = list(rules)
-
-    opp = 1 - cpu_idx
-    opp_hp = state.health[opp] / max(1, state.wrestlers[opp].max_health)
-
-    def score(r: MoveRule) -> float:
-        m = r.move
-        if m.is_pin:
-            s = 0.0
-            if opp_hp < 0.35:
-                s += 80
-            if opp_hp >= 0.35:
-                s -= 40
-            s += float(state.pin_bonus_next_cover[cpu_idx]) * 3.0
-            return s + random.uniform(0, 4)
-
-        if move_needs_hit_roll(m):
-            p = hit_probability(state, cpu_idx, r)
-            ev_damage = p * float(m.base_damage)
-            s = ev_damage + p * m.momentum_gain * 1.5
-        else:
-            s = float(m.base_damage) + m.momentum_gain * 1.5
-
-        if m.actor_top and m.target_grounded:
-            s += 15
-        if m.actor_rebound:
-            s += 6
-        if m.id == "dismount_top":
-            s -= 5
-        if m.id == "recover" and state.health[cpu_idx] > state.wrestlers[cpu_idx].max_health * 0.6:
-            s -= 10
-        if m.id == "get_up":
-            s += 100
-        if m.id == "escape_corner":
-            s += 100
-        if state.cpu_last_move_id is not None and m.id == state.cpu_last_move_id:
-            s -= _CPU_VARIETY_PENALTY
-        if m.is_finisher:
-            s += float(m.base_damage) * 0.35 + float(m.finisher_pin_bonus)
-            if opp_hp < 0.45:
-                s += 25
-        if m.triggers_pin_after_hit:
-            s += 40.0 if opp_hp < 0.38 else 12.0
-        return s + random.uniform(0, 4)
-
-    return max(rules_list, key=score)
+    scores = [_cpu_rule_score(state, cpu_idx, r) for r in rules_list]
+    idx = _softmax_sample_index(scores, _CPU_SOFTMAX_TEMPERATURE)
+    return rules_list[idx]
 
 
 def outcome_label(log: str) -> str:
