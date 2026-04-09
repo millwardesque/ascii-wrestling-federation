@@ -47,6 +47,12 @@ def health_bar(
     return bar
 
 
+def momentum_stars(level: int, *, width: int = 5) -> str:
+    """Bracketed star row for momentum (0–width), e.g. ``[★★☆☆☆]``."""
+    m = max(0, min(width, int(level)))
+    return f"[{'★' * m}{'☆' * (width - m)}]"
+
+
 def position_label(p: BodyPosition) -> str:
     return {
         BodyPosition.STANDING: "standing",

@@ -17,7 +17,15 @@ from typing import Sequence
 from awf_logo import AWF_LOGO_LINES, INTRO_LINES, PROMPT_LINE
 from game import MatchState, move_landing_probability_label
 from moves import MoveRule
-from render import InputFn, ReturnToTitle, _default_input, colorize_nicknames, health_bar, position_label
+from render import (
+    InputFn,
+    ReturnToTitle,
+    _default_input,
+    colorize_nicknames,
+    health_bar,
+    momentum_stars,
+    position_label,
+)
 from terminal_keys import (
     read_any_key,
     read_digit_1_or_2,
@@ -88,6 +96,78 @@ class FixedLayoutRenderer:
         w = self._width()
         return char * w
 
+    def _pad_cell_visible(self, s: str, width: int) -> str:
+        plain = _strip_ansi(s)
+        if len(plain) > width:
+            return plain[: max(0, width - 1)] + "…"
+        return s + (" " * (width - len(plain)))
+
+    def _print_wrestler_header_panel(
+        self,
+        st: MatchState,
+        nm: tuple[str, str],
+        w: int,
+        c: _Palette,
+    ) -> None:
+        """Boxed two-column header: names, HP bar, momentum stars, status (labels left on both sides)."""
+        use_bar_color = bool(c.player)
+        inner = w - 3
+        a = inner // 2
+        b = inner - a
+
+        def row(left: str, right: str) -> None:
+            L = self._pad_cell_visible(left, a)
+            R = self._pad_cell_visible(right, b)
+            print(
+                f"{c.dim}│{c.reset}{L}{c.dim}│{c.reset}{R}{c.dim}│{c.reset}"
+            )
+
+        top = f"{c.dim}┌{('─' * a)}┬{('─' * b)}┐{c.reset}"
+        bottom = f"{c.dim}└{('─' * a)}┴{('─' * b)}┘{c.reset}"
+        print(top)
+
+        def cell_line(row_idx: int, i: int) -> str:
+            col = c.player if i == 0 else c.cpu
+            cell_w = a if i == 0 else b
+            if row_idx == 0:
+                return f"{col}{nm[i]}{c.reset}"
+            if row_idx == 1:
+                wrestler = st.wrestlers[i]
+                nums = f"{st.health[i]}/{wrestler.max_health}"
+                blood_note = (
+                    f" {c.dim}(bloodied){c.reset}"
+                    if st.bloodied[i] and not use_bar_color
+                    else ""
+                )
+                extra_vis = len(_strip_ansi(blood_note))
+                nums_vis = len(nums)
+                # "HP: " + sp + [bar] + sp + nums + extras
+                reserve = 4 + 1 + 1 + nums_vis + extra_vis + 2
+                bw = max(6, min(14, cell_w - reserve))
+                hb = health_bar(
+                    st.health[i],
+                    wrestler.max_health,
+                    width=bw,
+                    bloodied=st.bloodied[i],
+                    use_color=use_bar_color,
+                )
+                return (
+                    f"{c.dim}HP:{c.reset} "
+                    f"{hb} "
+                    f"{col}{nums}{c.reset}"
+                    f"{blood_note}"
+                )
+            if row_idx == 2:
+                ms = momentum_stars(st.momentum[i])
+                return f"{c.dim}MOM:{c.reset} {col}{ms}{c.reset}"
+            pos = position_label(st.position[i]).title()
+            return f"{c.dim}STATUS:{c.reset} {col}{pos}{c.reset}"
+
+        for row_idx in range(4):
+            row(cell_line(row_idx, 0), cell_line(row_idx, 1))
+
+        print(bottom)
+
     def _on_sigwinch(self, signum: int, frame: object | None) -> None:
         """Redraw the current full-screen layout when the terminal is resized (POSIX)."""
         if self._sigwinch_busy:
@@ -140,34 +220,7 @@ class FixedLayoutRenderer:
         print(c.dim + self._rule("─") + c.reset)
 
         if self._state is not None and self._names is not None:
-            st = self._state
-            nm = self._names
-            use_bar_color = bool(c.player)
-            for i in range(2):
-                wrestler = st.wrestlers[i]
-                col = c.player if i == 0 else c.cpu
-                hb = health_bar(
-                    st.health[i],
-                    wrestler.max_health,
-                    bloodied=st.bloodied[i],
-                    use_color=use_bar_color,
-                )
-                blood_note = (
-                    f" {c.dim}(bloodied){c.reset}" if st.bloodied[i] and not use_bar_color else ""
-                )
-                rb = f" {c.warn}[Ropes: hot]{c.reset}" if st.rebound[i] else ""
-                line1 = (
-                    f"{col}{nm[i]:<18}{c.reset} "
-                    f"HP {st.health[i]:3}/{wrestler.max_health:<3} {hb}{blood_note}{rb}"
-                )
-                line2 = (
-                    f"     {c.dim}└─ {position_label(st.position[i])}  ·  "
-                    f"momentum {st.momentum[i]}{c.reset}"
-                )
-                print(line1)
-                print(line2)
-                if i == 0:
-                    print(c.dim + self._rule("·") + c.reset)
+            self._print_wrestler_header_panel(self._state, self._names, w, c)
 
         print(c.dim + self._rule("─") + c.reset)
         print(f"{c.bold}Last action{c.reset}")
