@@ -1,9 +1,15 @@
-"""Fixed-layout terminal UI: clears and redraws the screen instead of scrolling."""
+"""Fixed-layout terminal UI: clears and redraws the screen instead of scrolling.
+
+On POSIX terminals, ``SIGWINCH`` triggers a redraw at the new width while the UI is
+waiting for input. Windows consoles do not provide ``SIGWINCH``; resize takes effect
+on the next full redraw after a keypress.
+"""
 
 from __future__ import annotations
 
 import re
 import shutil
+import signal
 import sys
 import textwrap
 from typing import Sequence
@@ -54,9 +60,19 @@ class FixedLayoutRenderer:
         self._player_nick = ""
         self._cpu_nick = ""
         self._match_seed: int | None = None
+        self._ui_layer: str = "none"
+        self._last_match_bottom_extra: list[str] | None = None
+        self._last_pre_match_body: list[str] | None = None
+        self._sigwinch_busy = False
         if use_color is None:
             use_color = sys.stdout.isatty()
         self._c = _Palette(enabled=use_color)
+        if (
+            hasattr(signal, "SIGWINCH")
+            and sys.stdin.isatty()
+            and sys.stdout.isatty()
+        ):
+            signal.signal(signal.SIGWINCH, self._on_sigwinch)
 
     def _width(self) -> int:
         try:
@@ -72,7 +88,28 @@ class FixedLayoutRenderer:
         w = self._width()
         return char * w
 
+    def _on_sigwinch(self, signum: int, frame: object | None) -> None:
+        """Redraw the current full-screen layout when the terminal is resized (POSIX)."""
+        if self._sigwinch_busy:
+            return
+        self._sigwinch_busy = True
+        try:
+            if self._ui_layer == "pause":
+                self._paint_pause_menu()
+            elif self._ui_layer == "title":
+                self._paint_awf_title_screen()
+            elif self._ui_layer == "match" and self._state is not None:
+                self._redraw_match(self._last_match_bottom_extra)
+            elif self._ui_layer == "pre_match" and self._last_pre_match_body is not None:
+                self._redraw_pre_match(self._last_pre_match_body)
+        except Exception:
+            pass
+        finally:
+            self._sigwinch_busy = False
+
     def _redraw_pre_match(self, body: list[str]) -> None:
+        self._last_pre_match_body = list(body)
+        self._ui_layer = "pre_match"
         self._clear()
         w = self._width()
         title = (
@@ -86,6 +123,8 @@ class FixedLayoutRenderer:
         sys.stdout.flush()
 
     def _redraw_match(self, bottom_extra: list[str] | None = None) -> None:
+        self._last_match_bottom_extra = bottom_extra
+        self._ui_layer = "match"
         self._clear()
         c = self._c
         w = self._width()
@@ -184,7 +223,8 @@ class FixedLayoutRenderer:
             print(" " * pad + f"{c.accent}{line}{c.reset}")
         print()
 
-    def _draw_awf_title_screen(self) -> None:
+    def _paint_awf_title_screen(self) -> None:
+        """Title screen pixels only (no input). Used for initial draw and SIGWINCH."""
         self._clear()
         self._print_awf_logo()
         c = self._c
@@ -196,11 +236,18 @@ class FixedLayoutRenderer:
         pad = max(0, (w - len(PROMPT_LINE)) // 2)
         print(" " * pad + f"{c.bold}{PROMPT_LINE}{c.reset}")
         sys.stdout.flush()
+
+    def _draw_awf_title_screen(self) -> None:
+        self._paint_awf_title_screen()
+        self._ui_layer = "title"
         if read_title_key() == "quit":
             self._clear()
+            self._ui_layer = "none"
             raise SystemExit(0)
+        self._ui_layer = "none"
 
-    def _pause_menu(self) -> None:
+    def _paint_pause_menu(self) -> None:
+        """Pause menu pixels only (no input). Used for initial draw and SIGWINCH."""
         c = self._c
         self._clear()
         self._print_awf_logo()
@@ -216,6 +263,10 @@ class FixedLayoutRenderer:
         print()
         print(f"{c.dim}Press 1 or 2{c.reset}")
         sys.stdout.flush()
+
+    def _pause_menu(self) -> None:
+        self._ui_layer = "pause"
+        self._paint_pause_menu()
         choice = read_digit_1_or_2()
         if choice == "2":
             raise ReturnToTitle()
@@ -268,6 +319,7 @@ class FixedLayoutRenderer:
         read_any_key()
 
     def match_start_banner(self, *, match_seed: int | None = None) -> None:
+        self._last_pre_match_body = None
         self._banner = "BELL RINGS — singles match, pinfall only"
         self._header_extra = self._banner
         self._match_seed = match_seed
@@ -336,6 +388,7 @@ class FixedLayoutRenderer:
         return
 
     def _end_screen(self, message: str, win: bool | None) -> None:
+        self._ui_layer = "end"
         c = self._c
         self._clear()
         w = self._width()
