@@ -197,6 +197,7 @@ class FixedLayoutRenderer:
         print(" " * pad + f"{c.bold}{PROMPT_LINE}{c.reset}")
         sys.stdout.flush()
         if read_title_key() == "quit":
+            self._clear()
             raise SystemExit(0)
 
     def _pause_menu(self) -> None:
