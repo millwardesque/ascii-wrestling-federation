@@ -9,6 +9,7 @@ __all__ = [
     "tty_interactive",
     "read_any_key",
     "read_key_or_esc",
+    "read_title_key",
     "read_move_choice_line",
     "read_digit_1_or_2",
     "wait_enter_or_esc",
@@ -46,6 +47,16 @@ def read_any_key() -> None:
         msvcrt.getch()
     else:
         sys.stdin.readline()
+
+
+def read_title_key() -> Literal["start", "quit"]:
+    """
+    Title screen: any key continues; Escape exits (caller should ``sys.exit(0)``).
+    """
+    k = read_key_or_esc()
+    if k == "ESC":
+        return "quit"
+    return "start"
 
 
 def _read_any_key_posix() -> None:

@@ -20,4 +20,4 @@ INTRO_LINES: tuple[str, ...] = (
     "Pick your fighter, trade holds and strikes, fight until the three-count.",
 )
 
-PROMPT_LINE = "Press any key to start"
+PROMPT_LINE = "Press any key to start  ·  ESC to exit"

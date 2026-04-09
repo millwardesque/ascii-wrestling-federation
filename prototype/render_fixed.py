@@ -13,9 +13,9 @@ from game import MatchState, move_landing_probability_label
 from moves import MoveRule
 from render import InputFn, ReturnToTitle, _default_input, colorize_nicknames, health_bar, position_label
 from terminal_keys import (
-    read_any_key,
     read_digit_1_or_2,
     read_move_choice_line,
+    read_title_key,
     wait_enter_or_esc,
 )
 from wrestlers import Wrestler
@@ -195,7 +195,8 @@ class FixedLayoutRenderer:
         pad = max(0, (w - len(PROMPT_LINE)) // 2)
         print(" " * pad + f"{c.bold}{PROMPT_LINE}{c.reset}")
         sys.stdout.flush()
-        read_any_key()
+        if read_title_key() == "quit":
+            raise SystemExit(0)
 
     def _pause_menu(self) -> None:
         c = self._c
