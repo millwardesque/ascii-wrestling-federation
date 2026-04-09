@@ -108,7 +108,7 @@ class MatchRenderer(Protocol):
         """HP, position, momentum, rebound — called each update."""
         ...
 
-    def round_header(self, round_num: int, is_player_turn: bool) -> None:
+    def round_header(self, is_player_turn: bool) -> None:
         ...
 
     def show_move_log(
@@ -126,7 +126,7 @@ class MatchRenderer(Protocol):
         """After a move result is shown; block until the player continues to the next beat."""
         ...
 
-    def show_round_summary(self, line: str) -> None:
+    def show_exchange_recap(self, line: str) -> None:
         """One line after each full exchange (you + CPU); shown below Last action in fixed UI."""
         ...
 

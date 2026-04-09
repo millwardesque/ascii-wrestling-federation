@@ -358,7 +358,7 @@ def cpu_choose_rule(state: MatchState, cpu_idx: int) -> MoveRule:
 
 
 def outcome_label(log: str) -> str:
-    """Short label derived from apply_move / pin log text for round recap."""
+    """Short label derived from apply_move / pin log text for exchange recap."""
     if not log.strip():
         return "—"
     if "PINFALL" in log or "pinfall" in log.lower():
@@ -378,7 +378,7 @@ def outcome_label(log: str) -> str:
     return "ok"
 
 
-def format_round_summary(player_move: str, player_log: str, cpu_move: str, cpu_log: str) -> str:
+def format_exchange_summary(player_move: str, player_log: str, cpu_move: str, cpu_log: str) -> str:
     """Single line: your move/outcome, then CPU move/outcome."""
     return (
         f"You: {player_move} — {outcome_label(player_log)} · "
@@ -386,6 +386,6 @@ def format_round_summary(player_move: str, player_log: str, cpu_move: str, cpu_l
     )
 
 
-def format_round_summary_after_player(player_move: str, player_log: str) -> str:
+def format_exchange_summary_after_player(player_move: str, player_log: str) -> str:
     """Recap after your move only; opponent line cleared until CPU acts."""
     return f"You: {player_move} — {outcome_label(player_log)} · CPU: —"

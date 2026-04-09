@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-import argparse
 import random
 import secrets
 
@@ -11,8 +10,8 @@ from game import (
     MatchState,
     apply_move,
     cpu_choose_rule,
-    format_round_summary,
-    format_round_summary_after_player,
+    format_exchange_summary,
+    format_exchange_summary_after_player,
 )
 from render import MatchRenderer
 from render_fixed import FixedLayoutRenderer
@@ -30,10 +29,8 @@ def run_match(player_id: str, cpu_id: str, ui: MatchRenderer) -> None:
     ui.match_start_banner(match_seed=match_seed)
     ui.show_status(state, names)
 
-    round_num = 1
-
     while True:
-        ui.round_header(round_num, is_player_turn=True)
+        ui.round_header(is_player_turn=True)
         ui.show_status(state, names)
 
         opts = state.valid_rules(0)
@@ -45,16 +42,15 @@ def run_match(player_id: str, cpu_id: str, ui: MatchRenderer) -> None:
         player_move = player_rule.move.name
         player_log = log
         ui.show_status(state, names)
-        play_anim = getattr(ui, "play_move_animation", None)
-        if play_anim is not None:
-            play_anim(player_rule, actor_is_player=True)
         ui.show_move_log(
             log,
             player_nickname=pw.nickname,
             cpu_nickname=cw.nickname,
             actor_is_player=True,
         )
-        ui.show_round_summary(format_round_summary_after_player(player_move, player_log))
+        ui.show_exchange_recap(
+            format_exchange_summary_after_player(player_move, player_log)
+        )
         ui.wait_after_exchange_step()
 
         if winner is not None:
@@ -66,22 +62,21 @@ def run_match(player_id: str, cpu_id: str, ui: MatchRenderer) -> None:
 
         cpu_rule = cpu_choose_rule(state, 1)
 
-        ui.round_header(round_num, is_player_turn=False)
+        ui.round_header(is_player_turn=False)
 
         log, winner = apply_move(state, 1, cpu_rule)
         cpu_move = cpu_rule.move.name
         cpu_log = log
         ui.show_status(state, names)
-        play_anim = getattr(ui, "play_move_animation", None)
-        if play_anim is not None:
-            play_anim(cpu_rule, actor_is_player=False)
         ui.show_move_log(
             log,
             player_nickname=pw.nickname,
             cpu_nickname=cw.nickname,
             actor_is_player=False,
         )
-        ui.show_round_summary(format_round_summary(player_move, player_log, cpu_move, cpu_log))
+        ui.show_exchange_recap(
+            format_exchange_summary(player_move, player_log, cpu_move, cpu_log)
+        )
         ui.wait_after_exchange_step()
 
         if winner is not None:
@@ -91,7 +86,6 @@ def run_match(player_id: str, cpu_id: str, ui: MatchRenderer) -> None:
                 ui.show_match_result_cpu_wins()
             return
 
-        round_num += 1
         ui.show_status(state, names)
 
 
@@ -109,13 +103,4 @@ def main(ui: MatchRenderer | None = None) -> None:
 
 
 if __name__ == "__main__":
-    ap = argparse.ArgumentParser(
-        description="ASCII Wrestling Federation — pro-wrestling simulator"
-    )
-    ap.add_argument(
-        "--no-anim",
-        action="store_true",
-        help="Skip ASCII ring move animations",
-    )
-    args = ap.parse_args()
-    main(ui=FixedLayoutRenderer(animations=not args.no_anim))
+    main()

@@ -9,7 +9,7 @@ from game import (
     MatchState,
     apply_move,
     cpu_choose_rule,
-    format_round_summary,
+    format_exchange_summary,
     hit_probability,
     move_landing_probability_label,
     move_needs_hit_roll,
@@ -169,14 +169,14 @@ class TestPinUnchanged(unittest.TestCase):
         self.assertTrue(winner is None or winner == 1)
 
 
-class TestRoundSummary(unittest.TestCase):
+class TestExchangeSummary(unittest.TestCase):
     def test_outcome_label_hit_miss_pin(self) -> None:
         self.assertEqual(outcome_label("  Ace deals 10 damage"), "hit")
         self.assertEqual(outcome_label("  Foo whiffs"), "miss")
         self.assertEqual(outcome_label("  *** PINFALL — Ace wins ***"), "pinfall")
 
-    def test_format_round_summary_line(self) -> None:
-        s = format_round_summary(
+    def test_format_exchange_summary_line(self) -> None:
+        s = format_exchange_summary(
             "Punch",
             "  deals 5",
             "Suplex",

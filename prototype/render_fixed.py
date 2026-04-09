@@ -6,12 +6,10 @@ import re
 import shutil
 import sys
 import textwrap
-import time
 from typing import Sequence
 
 from game import MatchState, move_landing_probability_label
 from moves import MoveRule
-from ring_art import RING_HEADER_LINE, frames_for_move, idle_ring_lines
 from render import InputFn, _default_input, colorize_nicknames, health_bar, position_label
 from wrestlers import Wrestler
 
@@ -34,19 +32,17 @@ class FixedLayoutRenderer:
         input_fn: InputFn | None = None,
         *,
         use_color: bool | None = None,
-        animations: bool = True,
     ) -> None:
         self._input = input_fn or _default_input
-        self._animations = animations
         self._last_player_log: str | None = None
         self._last_cpu_log: str | None = None
         self._state: MatchState | None = None
         self._names: tuple[str, str] | None = None
-        self._round_num = 1
         self._player_turn = True
+        self._player_turn_starts = 0
         self._banner = "BELL RINGS — singles match, pinfall only"
         self._header_extra = ""
-        self._round_summary: str | None = None
+        self._exchange_summary: str | None = None
         self._player_nick = ""
         self._cpu_nick = ""
         self._match_seed: int | None = None
@@ -81,17 +77,12 @@ class FixedLayoutRenderer:
             print(line)
         sys.stdout.flush()
 
-    def _redraw_match(
-        self,
-        bottom_extra: list[str] | None = None,
-        ring_lines: list[str] | None = None,
-    ) -> None:
+    def _redraw_match(self, bottom_extra: list[str] | None = None) -> None:
         self._clear()
         c = self._c
         w = self._width()
         hdr = (
             f"{c.bold}{c.accent}AWF{c.reset}  {c.dim}·{c.reset}  "
-            f"Round {self._round_num}  {c.dim}·{c.reset}  "
             f"{c.highlight}{'Your turn' if self._player_turn else 'CPU turn'}{c.reset}"
         )
         if self._header_extra:
@@ -131,11 +122,6 @@ class FixedLayoutRenderer:
                 if i == 0:
                     print(c.dim + self._rule("·") + c.reset)
 
-        if self._state is not None:
-            rl = ring_lines if ring_lines is not None else idle_ring_lines(self._state)
-            print(f"{c.bold}Ring{c.reset}")
-            for line in rl:
-                print(f"{c.dim}{line}{c.reset}")
         print(c.dim + self._rule("─") + c.reset)
         print(f"{c.bold}Last action{c.reset}")
         inner = w - 4
@@ -162,10 +148,10 @@ class FixedLayoutRenderer:
         emit_side("You", c.player, self._last_player_log)
         emit_side("CPU", c.cpu, self._last_cpu_log)
         print(c.dim + self._rule("─") + c.reset)
-        print(f"{c.bold}Round recap{c.reset}")
-        if self._round_summary:
+        print(f"{c.bold}Exchange recap{c.reset}")
+        if self._exchange_summary:
             inner = w - 4
-            for part in textwrap.wrap(self._round_summary, width=inner, break_long_words=True):
+            for part in textwrap.wrap(self._exchange_summary, width=inner, break_long_words=True):
                 print(f"  {part}")
         else:
             print(f"  {c.dim}(after you and CPU both act){c.reset}")
@@ -227,9 +213,10 @@ class FixedLayoutRenderer:
         self._banner = "BELL RINGS — singles match, pinfall only"
         self._header_extra = self._banner
         self._match_seed = match_seed
+        self._player_turn_starts = 0
         self._last_player_log = None
         self._last_cpu_log = None
-        self._round_summary = None
+        self._exchange_summary = None
         self._player_nick = ""
         self._cpu_nick = ""
 
@@ -238,13 +225,13 @@ class FixedLayoutRenderer:
         self._names = display_names
         self._redraw_match()
 
-    def round_header(self, round_num: int, is_player_turn: bool) -> None:
-        self._round_num = round_num
+    def round_header(self, is_player_turn: bool) -> None:
         self._player_turn = is_player_turn
-        if round_num >= 2:
-            self._header_extra = ""
         if is_player_turn:
-            self._round_summary = None
+            self._player_turn_starts += 1
+            if self._player_turn_starts >= 2:
+                self._header_extra = ""
+            self._exchange_summary = None
         if self._state is not None:
             self._redraw_match()
 
@@ -270,17 +257,8 @@ class FixedLayoutRenderer:
         self._redraw_match(bottom_extra=[f"{c.dim}Press Enter to continue…{c.reset}"])
         self._input("")
 
-    def play_move_animation(self, rule: MoveRule, *, actor_is_player: bool) -> None:
-        """Short ASCII ring animation after a move resolves (fixed mode only)."""
-        if not self._animations or self._state is None:
-            return
-        for frame_body in frames_for_move(rule.move.id, rule.move, actor_is_player=actor_is_player):
-            full = [RING_HEADER_LINE, *frame_body]
-            self._redraw_match(ring_lines=full)
-            time.sleep(0.14)
-
-    def show_round_summary(self, line: str) -> None:
-        self._round_summary = line
+    def show_exchange_recap(self, line: str) -> None:
+        self._exchange_summary = line
         if self._state is not None:
             self._redraw_match()
 

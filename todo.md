@@ -1,17 +1,9 @@
 # TODO
 
-## Recently completed
-
-- **Random seed per match** — `secrets.randbits(63)` and `random.seed()` at match start; seed shown in the fixed-layout match header (scroll UI removed).
-- **Fixed layout default** — `FixedLayoutRenderer` only; legacy scroll renderer deleted (`--scroll` removed).
-- **No exhaustion draw** — Damage floors HP at 1; matches end by pinfall only; double-exhaustion path removed.
-
 ## Product direction
 
-- Remove stick figures and animations
 - Add an “AWF (ASCII Wrestling Federation)” start screen
 - Pause menu (e.g. ESC) with option to return to the start screen
-- Hide the round number; remove from UI and from code unless still required internally
 
 ## Backlog
 
