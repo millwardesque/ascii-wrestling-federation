@@ -12,6 +12,10 @@ from moves import BodyPosition, MoveRule
 from wrestlers import Wrestler
 
 
+class ReturnToTitle(Exception):
+    """User left the match (pause menu) to return to the title screen."""
+
+
 InputFn = Callable[[str], str]
 
 

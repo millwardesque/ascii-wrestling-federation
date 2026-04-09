@@ -8,9 +8,16 @@ import sys
 import textwrap
 from typing import Sequence
 
+from awf_title import INTRO_LINES, LOGO_LINES, PROMPT_LINE
 from game import MatchState, move_landing_probability_label
 from moves import MoveRule
-from render import InputFn, _default_input, colorize_nicknames, health_bar, position_label
+from render import InputFn, ReturnToTitle, _default_input, colorize_nicknames, health_bar, position_label
+from terminal_keys import (
+    read_any_key,
+    read_digit_1_or_2,
+    read_move_choice_line,
+    wait_enter_or_esc,
+)
 from wrestlers import Wrestler
 
 
@@ -165,9 +172,43 @@ class FixedLayoutRenderer:
     # --- MatchRenderer API ---
 
     def show_title(self) -> None:
-        self._redraw_pre_match(
-            [f"{self._c.dim}Pro-wrestling simulator — pinfall only{self._c.reset}", ""]
-        )
+        self._draw_awf_title_screen()
+
+    def _draw_awf_title_screen(self) -> None:
+        self._clear()
+        c = self._c
+        w = self._width()
+        for line in LOGO_LINES:
+            pad = max(0, (w - len(line)) // 2)
+            print(" " * pad + f"{c.accent}{line}{c.reset}")
+        print()
+        for line in INTRO_LINES:
+            pad = max(0, (w - len(line)) // 2)
+            print(" " * pad + f"{c.dim}{line}{c.reset}")
+        print()
+        pad = max(0, (w - len(PROMPT_LINE)) // 2)
+        print(" " * pad + f"{c.bold}{PROMPT_LINE}{c.reset}")
+        sys.stdout.flush()
+        read_any_key()
+
+    def _pause_menu(self) -> None:
+        c = self._c
+        self._clear()
+        w = self._width()
+        title = "PAUSED"
+        pad = max(0, (w - len(title)) // 2)
+        print(" " * pad + f"{c.bold}{title}{c.reset}")
+        print()
+        opt1 = "1. Resume"
+        opt2 = "2. Exit to title screen"
+        print(" " * max(0, (w - len(opt1)) // 2) + opt1)
+        print(" " * max(0, (w - len(opt2)) // 2) + opt2)
+        print()
+        print(f"{c.dim}Press 1 or 2{c.reset}")
+        sys.stdout.flush()
+        choice = read_digit_1_or_2()
+        if choice == "2":
+            raise ReturnToTitle()
 
     def choose_wrestler(self, roster: Sequence[Wrestler]) -> str:
         c = self._c
@@ -254,8 +295,13 @@ class FixedLayoutRenderer:
 
     def wait_after_exchange_step(self) -> None:
         c = self._c
-        self._redraw_match(bottom_extra=[f"{c.dim}Press Enter to continue…{c.reset}"])
-        self._input("")
+        while True:
+            self._redraw_match(
+                bottom_extra=[f"{c.dim}Enter: continue  ·  ESC: pause{c.reset}"]
+            )
+            if wait_enter_or_esc() == "enter":
+                return
+            self._pause_menu()
 
     def show_exchange_recap(self, line: str) -> None:
         self._exchange_summary = line
@@ -322,7 +368,13 @@ class FixedLayoutRenderer:
             if err:
                 lines.append(f"{c.warn}{err}{c.reset}")
             self._redraw_match(bottom_extra=lines)
-            raw = self._input(f"{c.bold}Choose move (1–{n_opts}):{c.reset} ").strip()
+            sys.stdout.write(f"{c.bold}Choose move (1–{n_opts}):{c.reset} ")
+            sys.stdout.flush()
+            raw = read_move_choice_line()
+            if raw == "ESC":
+                self._pause_menu()
+                continue
+            raw = raw.strip()
             if raw.isdigit():
                 n = int(raw)
                 if 1 <= n <= n_opts:

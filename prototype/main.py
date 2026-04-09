@@ -13,7 +13,7 @@ from game import (
     format_exchange_summary,
     format_exchange_summary_after_player,
 )
-from render import MatchRenderer
+from render import MatchRenderer, ReturnToTitle
 from render_fixed import FixedLayoutRenderer
 from wrestlers import ROSTER, list_roster
 
@@ -93,12 +93,15 @@ def main(ui: MatchRenderer | None = None) -> None:
     renderer = ui if ui is not None else FixedLayoutRenderer()
     while True:
         renderer.show_title()
-        roster = list_roster()
-        pid = renderer.choose_wrestler(roster)
-        cpu_keys = [k for k in ROSTER if k != pid]
-        cid = random.choice(cpu_keys)
-        renderer.show_opponent_chosen(ROSTER[cid])
-        run_match(pid, cid, renderer)
+        try:
+            roster = list_roster()
+            pid = renderer.choose_wrestler(roster)
+            cpu_keys = [k for k in ROSTER if k != pid]
+            cid = random.choice(cpu_keys)
+            renderer.show_opponent_chosen(ROSTER[cid])
+            run_match(pid, cid, renderer)
+        except ReturnToTitle:
+            continue
         renderer.wait_after_match()
 
 

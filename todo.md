@@ -1,10 +1,5 @@
 # TODO
 
-## Product direction
-
-- Add an “AWF (ASCII Wrestling Federation)” start screen
-- Pause menu (e.g. ESC) with option to return to the start screen
-
 ## Backlog
 
 ### Gameplay & rules
