@@ -306,7 +306,7 @@ _CPU_VARIETY_PENALTY = 18.0
 
 # Softmax temperature for CPU move choice: higher → more exploration, lower → greedier.
 # Scaled for heuristic scores roughly in ~0–150.
-_CPU_SOFTMAX_TEMPERATURE = 12.0
+_CPU_SOFTMAX_TEMPERATURE = 10.0
 
 
 def _cpu_rule_score(state: MatchState, cpu_idx: int, r: MoveRule) -> float:
