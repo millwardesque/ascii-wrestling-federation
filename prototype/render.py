@@ -164,7 +164,7 @@ class ScrollRenderer:
         self._input = input_fn or _default_input
 
     def show_title(self) -> None:
-        print("\n*** WRESTLETERM — text ring simulator ***\n")
+        print("\n*** ASCII Wrestling Federation — pro-wrestling simulator ***\n")
 
     def choose_wrestler(self, roster: Sequence[Wrestler]) -> str:
         print("\nChoose YOUR wrestler:")

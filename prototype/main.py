@@ -114,7 +114,9 @@ def main(ui: MatchRenderer | None = None) -> None:
 
 
 if __name__ == "__main__":
-    ap = argparse.ArgumentParser(description="Wrestleterm — text ring simulator")
+    ap = argparse.ArgumentParser(
+        description="ASCII Wrestling Federation — pro-wrestling simulator"
+    )
     ap.add_argument(
         "-f",
         "--fixed",

@@ -70,7 +70,9 @@ class FixedLayoutRenderer:
     def _redraw_pre_match(self, body: list[str]) -> None:
         self._clear()
         w = self._width()
-        title = f"{self._c.bold}{self._c.accent}WRESTLETERM{self._c.reset}"
+        title = (
+            f"{self._c.bold}{self._c.accent}ASCII Wrestling Federation{self._c.reset}"
+        )
         pad = max(0, (w - _strip_ansi(title).__len__()) // 2)
         print(" " * pad + title)
         print(self._c.dim + self._rule("─") + self._c.reset)
@@ -87,7 +89,7 @@ class FixedLayoutRenderer:
         c = self._c
         w = self._width()
         hdr = (
-            f"{c.bold}{c.accent}WRESTLETERM{c.reset}  {c.dim}·{c.reset}  "
+            f"{c.bold}{c.accent}AWF{c.reset}  {c.dim}·{c.reset}  "
             f"Round {self._round_num}  {c.dim}·{c.reset}  "
             f"{c.highlight}{'Your turn' if self._player_turn else 'CPU turn'}{c.reset}"
         )
@@ -174,7 +176,9 @@ class FixedLayoutRenderer:
     # --- MatchRenderer API ---
 
     def show_title(self) -> None:
-        self._redraw_pre_match([f"{self._c.dim}Text ring simulator — pinfall only{self._c.reset}", ""])
+        self._redraw_pre_match(
+            [f"{self._c.dim}Pro-wrestling simulator — pinfall only{self._c.reset}", ""]
+        )
 
     def choose_wrestler(self, roster: Sequence[Wrestler]) -> str:
         c = self._c
