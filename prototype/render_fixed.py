@@ -235,9 +235,16 @@ class FixedLayoutRenderer:
             if err:
                 lines.append(f"{c.warn}{err}{c.reset}")
                 lines.append("")
-            lines.append(f"{c.dim}Enter number 1–{len(roster)}{c.reset}")
+            lines.append(
+                f"{c.dim}Enter number 1–{len(roster)}  ·  ESC: main menu{c.reset}"
+            )
             self._redraw_pre_match(lines)
-            raw = self._input(f"{c.bold}Choice:{c.reset} ").strip()
+            sys.stdout.write(f"{c.bold}Choice:{c.reset} ")
+            sys.stdout.flush()
+            raw = read_move_choice_line()
+            if raw == "ESC":
+                raise ReturnToTitle()
+            raw = raw.strip()
             if raw.isdigit():
                 n = int(raw)
                 if 1 <= n <= len(roster):
