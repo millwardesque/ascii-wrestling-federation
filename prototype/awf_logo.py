@@ -1,10 +1,13 @@
-"""ASCII art and copy for the AWF title screen."""
+"""Single source for the AWF block ASCII logo and title-screen copy.
+
+The logo is used on the title screen and on the in-match pause menu.
+"""
 
 from __future__ import annotations
 
 # Block-style “AWF” (reads as one logo; fits ~40–48 column terminals)
-LOGO_LINES: tuple[str, ...] = (
-    " █████╗ ██╗    ██╗███████╗ ",
+AWF_LOGO_LINES: tuple[str, ...] = (
+    "  █████╗ ██╗    ██╗███████╗ ",
     " ██╔══██╗██║    ██║██╔════╝ ",
     " ███████║██║ █╗ ██║█████╗  ",
     " ██╔══██║██║███╗██║██╔══╝  ",

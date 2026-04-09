@@ -8,7 +8,7 @@ import sys
 import textwrap
 from typing import Sequence
 
-from awf_title import INTRO_LINES, LOGO_LINES, PROMPT_LINE
+from awf_logo import AWF_LOGO_LINES, INTRO_LINES, PROMPT_LINE
 from game import MatchState, move_landing_probability_label
 from moves import MoveRule
 from render import InputFn, ReturnToTitle, _default_input, colorize_nicknames, health_bar, position_label
@@ -174,14 +174,20 @@ class FixedLayoutRenderer:
     def show_title(self) -> None:
         self._draw_awf_title_screen()
 
-    def _draw_awf_title_screen(self) -> None:
-        self._clear()
+    def _print_awf_logo(self) -> None:
+        """Centered AWF block logo (accent); shared by title and pause screens."""
         c = self._c
         w = self._width()
-        for line in LOGO_LINES:
+        for line in AWF_LOGO_LINES:
             pad = max(0, (w - len(line)) // 2)
             print(" " * pad + f"{c.accent}{line}{c.reset}")
         print()
+
+    def _draw_awf_title_screen(self) -> None:
+        self._clear()
+        self._print_awf_logo()
+        c = self._c
+        w = self._width()
         for line in INTRO_LINES:
             pad = max(0, (w - len(line)) // 2)
             print(" " * pad + f"{c.dim}{line}{c.reset}")
@@ -194,6 +200,7 @@ class FixedLayoutRenderer:
     def _pause_menu(self) -> None:
         c = self._c
         self._clear()
+        self._print_awf_logo()
         w = self._width()
         title = "PAUSED"
         pad = max(0, (w - len(title)) // 2)
