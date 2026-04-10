@@ -161,6 +161,8 @@ class FixedLayoutRenderer:
                 ms = momentum_stars(st.momentum[i])
                 return f"{c.dim}MOM:{c.reset} {col}{ms}{c.reset}"
             pos = position_label(st.position[i]).title()
+            if st.groggy[i]:
+                pos = f"Groggy — {pos.lower()}"
             return f"{c.dim}STATUS:{c.reset} {col}{pos}{c.reset}"
 
         for row_idx in range(4):

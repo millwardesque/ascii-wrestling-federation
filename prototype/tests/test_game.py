@@ -52,6 +52,10 @@ class TestHitRollMetadata(unittest.TestCase):
         gu = _rule_by_id("get_up").move
         self.assertTrue(move_needs_hit_roll(gu))
 
+    def test_shake_groggy_uses_hit_roll(self) -> None:
+        sg = _rule_by_id("shake_groggy").move
+        self.assertTrue(move_needs_hit_roll(sg))
+
 
 class TestHitProbability(unittest.TestCase):
     def setUp(self) -> None:
@@ -169,7 +173,7 @@ class TestApplyMoveStochastic(unittest.TestCase):
         punch = _rule_by_id("punch")
         p = hit_probability(st, 1, punch)
         # Hit roll, then bloodied roll (high value = no blood)
-        rng = _SeqRng([max(0.0, p - 0.2), 0.5])
+        rng = _SeqRng([max(0.0, p - 0.2), 0.5, 0.99])
         apply_move(st, 1, punch, rng)
         self.assertEqual(st.cpu_last_move_id, "punch")
 
@@ -221,6 +225,89 @@ class TestCpuExpectedValue(unittest.TestCase):
         self.assertIsInstance(r, MoveRule)
 
 
+class TestGroggy(unittest.TestCase):
+    def test_punch_hit_applies_groggy_to_target(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        punch = _rule_by_id("punch")
+        p = hit_probability(st, 0, punch)
+        # hit roll, bloodied roll, groggy proc roll (0.0 → success)
+        rng = _SeqRng([max(0.0, p - 0.2), 0.5, 0.0])
+        apply_move(st, 0, punch, rng)
+        self.assertTrue(st.groggy[1])
+        self.assertEqual(st.groggy_opponent_actions_left[1], 2)
+
+    def test_punch_hit_may_not_proc_groggy(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        punch = _rule_by_id("punch")
+        p = hit_probability(st, 0, punch)
+        rng = _SeqRng([max(0.0, p - 0.2), 0.5, 0.99])
+        apply_move(st, 0, punch, rng)
+        self.assertFalse(st.groggy[1])
+
+    def test_offensive_miss_chip_clears_groggy(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        st.groggy[1] = True
+        st.groggy_opponent_actions_left[1] = 2
+        punch = _rule_by_id("punch")
+        p = hit_probability(st, 0, punch)
+        rng = _SeqRng([min(1.0, p + 0.2), 0.0])
+        apply_move(st, 0, punch, rng)
+        self.assertFalse(st.groggy[1])
+
+    def test_groggy_timer_counts_opponent_actions_only(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        st.groggy[1] = True
+        st.groggy_opponent_actions_left[1] = 2
+        recover = _rule_by_id("recover")
+        apply_move(st, 0, recover, random.Random(0))
+        self.assertTrue(st.groggy[1])
+        self.assertEqual(st.groggy_opponent_actions_left[1], 1)
+        apply_move(st, 0, recover, random.Random(1))
+        self.assertFalse(st.groggy[1])
+
+    def test_shake_success_clears_groggy(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        st.groggy[0] = True
+        st.groggy_opponent_actions_left[0] = 2
+        shake = _rule_by_id("shake_groggy")
+        p = hit_probability(st, 0, shake)
+        rng = _SeqRng([max(0.0, p - 0.2)])
+        apply_move(st, 0, shake, rng)
+        self.assertFalse(st.groggy[0])
+
+    def test_desperation_success_clears_actor_groggy(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        st.groggy[0] = True
+        st.groggy_opponent_actions_left[0] = 2
+        des = _rule_by_id("desperation_strike")
+        p = hit_probability(st, 0, des)
+        rng = _SeqRng([max(0.0, p - 0.2)])
+        apply_move(st, 0, des, rng)
+        self.assertFalse(st.groggy[0])
+
+    def test_body_slam_pending_groggy_on_stand(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        slam = _rule_by_id("body_slam")
+        p = hit_probability(st, 0, slam)
+        # hit roll, groggy-on-stand proc (0.0 → pending)
+        rng = _SeqRng([max(0.0, p - 0.2), 0.0])
+        apply_move(st, 0, slam, rng)
+        self.assertTrue(st.pending_groggy[1])
+        self.assertEqual(st.position[1], BodyPosition.GROUNDED)
+        gu = _rule_by_id("get_up")
+        p2 = hit_probability(st, 1, gu)
+        rng2 = _SeqRng([max(0.0, p2 - 0.2)])
+        apply_move(st, 1, gu, rng2)
+        self.assertTrue(st.groggy[1])
+        self.assertFalse(st.pending_groggy[1])
+
+    def test_groggy_actor_valid_moves_are_shake_and_desperation(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        st.groggy[0] = True
+        ids = {r.move.id for _, r in st.valid_rules(0)}
+        self.assertEqual(ids, {"shake_groggy", "desperation_strike"})
+
+
 class TestBloodiedEasterEgg(unittest.TestCase):
     def test_match_state_initializes_bloodied(self) -> None:
         st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
@@ -230,7 +317,7 @@ class TestBloodiedEasterEgg(unittest.TestCase):
         st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
         punch = _rule_by_id("punch")
         p = hit_probability(st, 0, punch)
-        rng = _SeqRng([max(0.0, p - 0.2), 0.001])
+        rng = _SeqRng([max(0.0, p - 0.2), 0.001, 0.99])
         log, _ = apply_move(st, 0, punch, rng)
         self.assertTrue(st.bloodied[1])
         self.assertIn("busted open", log)
@@ -239,7 +326,7 @@ class TestBloodiedEasterEgg(unittest.TestCase):
         st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
         sup = _rule_by_id("suplex")
         p = hit_probability(st, 0, sup)
-        rng = _SeqRng([max(0.0, p - 0.2)])
+        rng = _SeqRng([max(0.0, p - 0.2), 0.99])
         apply_move(st, 0, sup, rng)
         self.assertFalse(st.bloodied[1])
 

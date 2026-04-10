@@ -61,6 +61,9 @@ class Move:
     min_momentum: int = 0  # 0 = always allowed if other gates pass
     # After a successful damaging hit, immediately resolve a pin (finisher bonus applies to that pin)
     triggers_pin_after_hit: bool = False
+    # On successful damaging hit: apply groggy to standing target, or pending groggy when they stand (slams).
+    causes_groggy: bool = False
+    causes_groggy_on_stand: bool = False
 
 
 def _always(_a: Wrestler, _t: Wrestler) -> bool:
@@ -110,6 +113,7 @@ def all_move_rules() -> list[MoveRule]:
                 momentum_gain=1,
                 difficulty=2,
                 targets_head=True,
+                causes_groggy=True,
             )
         ),
         MoveRule(
@@ -122,6 +126,7 @@ def all_move_rules() -> list[MoveRule]:
                 momentum_gain=1,
                 difficulty=3,
                 targets_head=True,
+                causes_groggy=True,
             )
         ),
         MoveRule(
@@ -220,6 +225,7 @@ def all_move_rules() -> list[MoveRule]:
                 target_after=BodyPosition.GROUNDED,
                 momentum_gain=2,
                 difficulty=4,
+                causes_groggy_on_stand=True,
             )
         ),
         MoveRule(
@@ -232,6 +238,7 @@ def all_move_rules() -> list[MoveRule]:
                 target_after=BodyPosition.GROUNDED,
                 momentum_gain=3,
                 difficulty=5,
+                causes_groggy_on_stand=True,
             )
         ),
         MoveRule(
@@ -456,6 +463,7 @@ def all_move_rules() -> list[MoveRule]:
                 is_finisher=True,
                 finisher_pin_bonus=10,
                 min_momentum=3,
+                causes_groggy_on_stand=True,
             ),
             extra=_only_wrestler("stone_cold"),
         ),
@@ -472,6 +480,7 @@ def all_move_rules() -> list[MoveRule]:
                 is_finisher=True,
                 finisher_pin_bonus=12,
                 min_momentum=3,
+                causes_groggy_on_stand=True,
             ),
             extra=_only_wrestler("the_rock"),
         ),
@@ -489,6 +498,7 @@ def all_move_rules() -> list[MoveRule]:
                 is_finisher=True,
                 finisher_pin_bonus=10,
                 min_momentum=3,
+                causes_groggy_on_stand=True,
             ),
             extra=_only_wrestler("cm_punk"),
         ),
@@ -506,6 +516,7 @@ def all_move_rules() -> list[MoveRule]:
                 finisher_pin_bonus=11,
                 min_momentum=3,
                 triggers_pin_after_hit=True,
+                causes_groggy_on_stand=True,
             ),
             extra=_only_wrestler("mr_perfect"),
         ),
@@ -521,6 +532,7 @@ def all_move_rules() -> list[MoveRule]:
                 is_finisher=True,
                 finisher_pin_bonus=14,
                 min_momentum=2,
+                causes_groggy_on_stand=True,
             ),
             extra=_only_wrestler("bret_hart"),
         ),
@@ -541,6 +553,7 @@ def all_move_rules() -> list[MoveRule]:
                 is_finisher=True,
                 finisher_pin_bonus=9,
                 min_momentum=2,
+                causes_groggy_on_stand=True,
             ),
             extra=_only_wrestler("macho_man"),
         ),
@@ -557,6 +570,7 @@ def all_move_rules() -> list[MoveRule]:
                 is_finisher=True,
                 finisher_pin_bonus=12,
                 min_momentum=3,
+                causes_groggy_on_stand=True,
             ),
             extra=_only_wrestler("scott_hall"),
         ),
@@ -572,6 +586,7 @@ def all_move_rules() -> list[MoveRule]:
                 is_finisher=True,
                 finisher_pin_bonus=14,
                 min_momentum=2,
+                causes_groggy_on_stand=True,
             ),
             extra=_only_wrestler("ric_flair"),
         ),
@@ -588,6 +603,7 @@ def all_move_rules() -> list[MoveRule]:
                 is_finisher=True,
                 finisher_pin_bonus=11,
                 min_momentum=3,
+                causes_groggy_on_stand=True,
             ),
             extra=_only_wrestler("arn_anderson"),
         ),
@@ -605,6 +621,7 @@ def all_move_rules() -> list[MoveRule]:
                 is_finisher=True,
                 finisher_pin_bonus=11,
                 min_momentum=3,
+                causes_groggy_on_stand=True,
             ),
             extra=_only_wrestler("andre"),
         ),
@@ -621,6 +638,7 @@ def all_move_rules() -> list[MoveRule]:
                 is_finisher=True,
                 finisher_pin_bonus=10,
                 min_momentum=2,
+                causes_groggy_on_stand=True,
             ),
             extra=_only_wrestler("hulk_hogan"),
         ),
@@ -676,6 +694,27 @@ def all_move_rules() -> list[MoveRule]:
         ),
         MoveRule(
             Move(
+                id="shake_groggy",
+                name="Shake the cobwebs",
+                description="Fight to clear your head — end the groggy state if you find your legs.",
+                base_damage=0,
+                momentum_gain=0,
+                difficulty=1,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="desperation_strike",
+                name="Desperation strike",
+                description="A wild shot — minor damage; clears your groggy state if it lands.",
+                target_standing=True,
+                base_damage=3,
+                momentum_gain=0,
+                difficulty=2,
+            )
+        ),
+        MoveRule(
+            Move(
                 id="recover",
                 name="Catch your breath",
                 description="Reset stance — small recovery.",
@@ -695,8 +734,15 @@ def move_valid(
     target_pos: BodyPosition,
     actor_has_rebound: bool,
     actor_momentum: int = 0,
+    *,
+    actor_groggy: bool = False,
 ) -> bool:
     m = rule.move
+    if actor_groggy:
+        if m.id not in ("shake_groggy", "desperation_strike"):
+            return False
+    elif m.id in ("shake_groggy", "desperation_strike"):
+        return False
     if m.min_momentum > 0 and actor_momentum < m.min_momentum:
         return False
     if m.actor_corner_only:

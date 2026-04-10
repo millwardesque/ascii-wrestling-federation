@@ -34,6 +34,10 @@ _GET_UP_FINISH_SHOCK_K = 0.072  # per stack; stacks when you eat a finisher's da
 # Rare easter egg: successful head-targeting hit may blood the defender for the rest of the match
 _BLOODIED_CHANCE = 0.018
 
+# Groggy procs on qualifying hits (separate rolls for strikes vs. slams / pending-on-stand)
+_GROGGY_STANDING_CHANCE = 0.42  # punch / kick — immediate standing groggy
+_GROGGY_ON_STAND_CHANCE = 0.48  # slams & finishers — pending until they stand
+
 
 @dataclass
 class MatchState:
@@ -49,6 +53,12 @@ class MatchState:
     pin_bonus_next_cover: list[int] = field(default_factory=list)
     # Taking finisher damage adds stacks; makes get_up harder until you shake it off (successful stand).
     finisher_shock: list[int] = field(default_factory=list)
+    # Standing wobbly — cleared by opponent damage, timer, shake-off, or desperation strike.
+    groggy: list[bool] = field(default_factory=list)
+    # When groggy[v]: opponent (1-v) has this many actions before auto-clear (starts at 2).
+    groggy_opponent_actions_left: list[int] = field(default_factory=list)
+    # After certain slams/finishers while grounded; applies groggy when victim next stands (get_up or pickup).
+    pending_groggy: list[bool] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         if not self.health:
@@ -65,6 +75,12 @@ class MatchState:
             self.pin_bonus_next_cover = [0, 0]
         if not self.finisher_shock:
             self.finisher_shock = [0, 0]
+        if not self.groggy:
+            self.groggy = [False, False]
+        if not self.groggy_opponent_actions_left:
+            self.groggy_opponent_actions_left = [0, 0]
+        if not self.pending_groggy:
+            self.pending_groggy = [False, False]
 
     def valid_rules(self, actor_idx: int) -> list[tuple[int, MoveRule]]:
         actor = self.wrestlers[actor_idx]
@@ -79,6 +95,7 @@ class MatchState:
                 self.position[1 - actor_idx],
                 self.rebound[actor_idx],
                 self.momentum[actor_idx],
+                actor_groggy=self.groggy[actor_idx],
             ):
                 out.append((i, rule))
         return out
@@ -131,7 +148,7 @@ def hit_probability(state: MatchState, actor_idx: int, rule: MoveRule) -> float:
         - _HIT_K_DEFENDER_HP * def_hp
         - _HIT_K_AGILITY_GAP * agi_gap
     )
-    if m.id == "get_up":
+    if m.id == "get_up" or m.id == "shake_groggy":
         p += _GET_UP_BASE_BONUS
         p -= _GET_UP_BEATDOWN_PENALTY * (1.0 - att_hp)
         p -= _GET_UP_FINISH_SHOCK_K * float(state.finisher_shock[actor_idx])
@@ -160,6 +177,57 @@ def _damage_with_stats(base: int, actor: Wrestler, target: Wrestler, agility_bon
     return max(1, raw - mitigation)
 
 
+def _tick_groggy_timer(
+    state: MatchState,
+    actor_idx: int,
+    *,
+    skip_victim_tick: int | None = None,
+) -> None:
+    """After each completed action by `actor_idx`, count down groggy timer for victims they can exploit.
+
+    ``skip_victim_tick`` is the victim index when this same action just applied *immediate* standing
+    groggy (the stun move itself must not consume the first timer action).
+    """
+    for v in (0, 1):
+        if not state.groggy[v]:
+            continue
+        if actor_idx != 1 - v:
+            continue
+        if skip_victim_tick is not None and v == skip_victim_tick:
+            continue
+        state.groggy_opponent_actions_left[v] -= 1
+        if state.groggy_opponent_actions_left[v] <= 0:
+            state.groggy[v] = False
+            state.groggy_opponent_actions_left[v] = 0
+
+
+def _clear_groggy_from_opponent_damage(state: MatchState, victim_idx: int, m: Move) -> None:
+    """Any damaging offensive move from the opponent clears groggy (desperation strike exempted for victim)."""
+    if m.id == "desperation_strike":
+        return
+    if m.base_damage > 0 and state.groggy[victim_idx]:
+        state.groggy[victim_idx] = False
+        state.groggy_opponent_actions_left[victim_idx] = 0
+
+
+def _try_apply_groggy_after_damage(
+    state: MatchState, m: Move, tgt: int, rng: random.Random | None
+) -> bool:
+    """Maybe apply groggy from a successful damaging hit (caller ensures victim was not groggy before this hit)."""
+    if m.causes_groggy_on_stand:
+        if _rand_float(rng) >= _GROGGY_ON_STAND_CHANCE:
+            return False
+        state.pending_groggy[tgt] = True
+        return True
+    if m.causes_groggy and state.position[tgt] == BodyPosition.STANDING:
+        if _rand_float(rng) >= _GROGGY_STANDING_CHANCE:
+            return False
+        state.groggy[tgt] = True
+        state.groggy_opponent_actions_left[tgt] = 2
+        return True
+    return False
+
+
 def apply_move(
     state: MatchState,
     actor_idx: int,
@@ -178,6 +246,7 @@ def apply_move(
         lines.append(pin_text)
         if actor_idx == 1:
             state.cpu_last_move_id = m.id
+        _tick_groggy_timer(state, actor_idx)
         return "\n".join(lines), (actor_idx if won else None)
 
     if move_needs_hit_roll(m):
@@ -186,7 +255,22 @@ def apply_move(
             lines.extend(_resolve_miss(state, actor_idx, rule, rng))
             if actor_idx == 1:
                 state.cpu_last_move_id = m.id
+            _tick_groggy_timer(state, actor_idx)
             return "\n".join(lines), None
+
+    if m.id == "shake_groggy":
+        state.groggy[actor_idx] = False
+        state.groggy_opponent_actions_left[actor_idx] = 0
+        lines.append(f"  {actor.nickname} steadies themselves — they're back!")
+        gain = min(5, state.momentum[actor_idx] + m.momentum_gain)
+        state.momentum[actor_idx] = gain
+        if actor_idx == 1:
+            state.cpu_last_move_id = m.id
+        _tick_groggy_timer(state, actor_idx)
+        text = "\n".join(lines) if lines else f"  {actor.nickname}: {m.name}."
+        return text, None
+
+    was_groggy_before_hit = state.groggy[tgt]
 
     if m.grants_rebound:
         state.rebound[actor_idx] = True
@@ -198,6 +282,7 @@ def apply_move(
         )
         state.health[tgt] = max(1, state.health[tgt] - dmg)
         lines.append(f"  {actor.nickname} deals {dmg} damage with {m.name.lower()}.")
+        _clear_groggy_from_opponent_damage(state, tgt, m)
         if m.is_finisher:
             state.finisher_shock[tgt] = min(5, state.finisher_shock[tgt] + 2)
         if m.targets_head and not state.bloodied[tgt] and _rand_float(rng) < _BLOODIED_CHANCE:
@@ -211,8 +296,31 @@ def apply_move(
     if m.target_after is not None:
         state.position[tgt] = m.target_after
 
+    if m.base_damage > 0 and not was_groggy_before_hit:
+        _try_apply_groggy_after_damage(state, m, tgt, rng)
+
+    if m.id == "desperation_strike":
+        state.groggy[actor_idx] = False
+        state.groggy_opponent_actions_left[actor_idx] = 0
+        lines.append(f"  {actor.nickname} fights through — the groggy haze lifts!")
+
+    immediate_groggy_from_stand_victim: int | None = None
     if m.id == "get_up" and state.position[actor_idx] == BodyPosition.STANDING:
         state.finisher_shock[actor_idx] = max(0, state.finisher_shock[actor_idx] - 1)
+        if state.pending_groggy[actor_idx]:
+            state.pending_groggy[actor_idx] = False
+            state.groggy[actor_idx] = True
+            state.groggy_opponent_actions_left[actor_idx] = 2
+            immediate_groggy_from_stand_victim = actor_idx
+            lines.append(f"  {actor.nickname} rises — still groggy from the impact!")
+
+    if m.id == "pickup" and state.position[tgt] == BodyPosition.STANDING:
+        if state.pending_groggy[tgt]:
+            state.pending_groggy[tgt] = False
+            state.groggy[tgt] = True
+            state.groggy_opponent_actions_left[tgt] = 2
+            immediate_groggy_from_stand_victim = tgt
+            lines.append(f"  {target.nickname} is yanked up — their legs aren't under them yet!")
 
     if m.id == "recover":
         heal = max(3, actor.max_health // 25)
@@ -233,11 +341,25 @@ def apply_move(
             lines.append("  — FINISHER — the next cover packs extra heat.")
     if actor_idx == 1:
         state.cpu_last_move_id = m.id
+
+    skip_victim_tick = immediate_groggy_from_stand_victim
+    if skip_victim_tick is None:
+        if (
+            m.base_damage > 0
+            and not was_groggy_before_hit
+            and m.causes_groggy
+            and not m.causes_groggy_on_stand
+            and state.groggy[tgt]
+        ):
+            skip_victim_tick = tgt
+
     if m.triggers_pin_after_hit and m.base_damage > 0:
         pin_text, won = _resolve_pin(state, actor_idx, rng)
         lines.append(pin_text)
+        _tick_groggy_timer(state, actor_idx, skip_victim_tick=skip_victim_tick)
         return "\n".join(lines), (actor_idx if won else None)
     text = "\n".join(lines) if lines else f"  {actor.nickname}: {m.name}."
+    _tick_groggy_timer(state, actor_idx, skip_victim_tick=skip_victim_tick)
     return text, None
 
 
@@ -261,6 +383,20 @@ def _resolve_miss(
         state.momentum[actor_idx] = max(0, state.momentum[actor_idx] - 1)
         return lines
 
+    if m.id == "shake_groggy":
+        lines.append(
+            f"  {actor.nickname} tries to clear their head but they're still wobbly!"
+        )
+        state.momentum[actor_idx] = max(0, state.momentum[actor_idx] - 1)
+        return lines
+
+    if m.id == "desperation_strike":
+        lines.append(
+            f"  {actor.nickname} lunges wildly but can't connect — still groggy!"
+        )
+        state.momentum[actor_idx] = max(0, state.momentum[actor_idx] - 1)
+        return lines
+
     if m.actor_rebound:
         state.rebound[actor_idx] = False
 
@@ -275,6 +411,7 @@ def _resolve_miss(
         )
         state.health[tgt] = max(1, state.health[tgt] - dmg)
         lines.append(f"  {target.nickname} reverses the {m.name.lower()} — only {dmg} damage.")
+        _clear_groggy_from_opponent_damage(state, tgt, m)
 
     if _rand_float(rng) < 0.5:
         lines.append(f"  {target.nickname} turns the tables!")
@@ -356,6 +493,10 @@ def _cpu_rule_score(state: MatchState, cpu_idx: int, r: MoveRule) -> float:
         s -= 10
     if m.id == "get_up":
         s += 100
+    if m.id == "shake_groggy":
+        s += 100
+    if m.id == "desperation_strike":
+        s += 45
     if m.id == "escape_corner":
         s += 100
     if state.cpu_last_move_id is not None and m.id == state.cpu_last_move_id:
