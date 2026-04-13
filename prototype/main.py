@@ -6,13 +6,7 @@ from __future__ import annotations
 import random
 import secrets
 
-from game import (
-    MatchState,
-    apply_move,
-    cpu_choose_rule,
-    format_exchange_summary,
-    format_exchange_summary_after_player,
-)
+from game import MatchState, apply_move, cpu_choose_rule
 from render import MatchRenderer, ReturnToTitle
 from render_fixed import FixedLayoutRenderer
 from wrestlers import ROSTER, list_roster
@@ -39,19 +33,14 @@ def run_match(player_id: str, cpu_id: str, ui: MatchRenderer) -> None:
         ui.show_status(state, names)
 
         log, winner = apply_move(state, 0, player_rule)
-        player_move = player_rule.move.name
-        player_log = log
         ui.show_status(state, names)
         ui.show_move_log(
             log,
             player_nickname=pw.nickname,
             cpu_nickname=cw.nickname,
             actor_is_player=True,
+            move_name=player_rule.move.name,
         )
-        ui.show_exchange_recap(
-            format_exchange_summary_after_player(player_move, player_log)
-        )
-        ui.wait_after_exchange_step()
 
         if winner is not None:
             if winner == 0:
@@ -65,19 +54,14 @@ def run_match(player_id: str, cpu_id: str, ui: MatchRenderer) -> None:
         ui.round_header(is_player_turn=False)
 
         log, winner = apply_move(state, 1, cpu_rule)
-        cpu_move = cpu_rule.move.name
-        cpu_log = log
         ui.show_status(state, names)
         ui.show_move_log(
             log,
             player_nickname=pw.nickname,
             cpu_nickname=cw.nickname,
             actor_is_player=False,
+            move_name=cpu_rule.move.name,
         )
-        ui.show_exchange_recap(
-            format_exchange_summary(player_move, player_log, cpu_move, cpu_log)
-        )
-        ui.wait_after_exchange_step()
 
         if winner is not None:
             if winner == 0:

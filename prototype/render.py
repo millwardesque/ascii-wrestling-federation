@@ -128,16 +128,9 @@ class MatchRenderer(Protocol):
         player_nickname: str,
         cpu_nickname: str,
         actor_is_player: bool,
+        move_name: str,
     ) -> None:
         """Outcome lines from the game layer (no per-turn move selection lines)."""
-        ...
-
-    def wait_after_exchange_step(self) -> None:
-        """After a move result is shown; block until the player continues to the next beat."""
-        ...
-
-    def show_exchange_recap(self, line: str) -> None:
-        """One line after each full exchange (you + CPU); shown below Last action in fixed UI."""
         ...
 
     def show_match_result_player_wins(self) -> None:

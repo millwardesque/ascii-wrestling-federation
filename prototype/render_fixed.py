@@ -12,7 +12,8 @@ import shutil
 import signal
 import sys
 import textwrap
-from typing import Sequence
+import time
+from typing import NamedTuple, Sequence
 
 from awf_logo import AWF_LOGO_LINES, INTRO_LINES, PROMPT_LINE
 from game import MatchState, move_landing_probability_label
@@ -31,7 +32,6 @@ from terminal_keys import (
     read_digit_1_or_2,
     read_move_choice_line,
     read_title_key,
-    wait_enter_or_esc,
 )
 from wrestlers import Wrestler
 
@@ -40,13 +40,58 @@ def _strip_ansi(s: str) -> str:
     return re.sub(r"\x1b\[[0-9;]*m", "", s)
 
 
+class _ActionBlock(NamedTuple):
+    is_player: bool
+    move_name: str
+    log_text: str
+
+
+# Multi-line riser: three rows; the arrow cluster climbs upward across frames.
+# Full redraw between frames; total duration scales with _SCROLL_RISER_FRAME_DELAY_SEC.
+_SCROLL_RISER_FRAME_DELAY_SEC = 0.09
+_SCROLL_RISER_PUSH_FRAMES = (
+    (
+        "                ",
+        "                ",
+        "           ↑↑↑  ",
+    ),
+    (
+        "                ",
+        "           ↑↑↑  ",
+        "                ",
+    ),
+    (
+        "           ↑↑↑  ",
+        "                ",
+        "                ",
+    ),
+)
+_SCROLL_RISER_FIRST_FRAMES = (
+    (
+        "                ",
+        "                ",
+        "            ↑   ",
+    ),
+    (
+        "                ",
+        "                ",
+        "           ↑↑↑  ",
+    ),
+)
+
+
 class FixedLayoutRenderer:
     """
-    Full-screen redraw using ANSI clear + home. Last action shows each wrestler's
-    most recent move narrative only.
+    Full-screen redraw using ANSI clear + home. The middle block shows an
+    instructional heading plus at most one recent result per wrestler (chronological,
+    newest at the bottom).
 
     Set ``use_color=False`` for dumb terminals; color is auto-disabled when stdout
     is not a TTY.
+
+    When ``animate_move_log`` is True (default), a short multi-line rising-arrow cue
+    plays above the action log after each move (skipped for non-TTY stdout). Pass
+    False to avoid extra redraws and sleeps (e.g. tests or slow links).
     """
 
     def __init__(
@@ -54,17 +99,19 @@ class FixedLayoutRenderer:
         input_fn: InputFn | None = None,
         *,
         use_color: bool | None = None,
+        animate_move_log: bool = True,
     ) -> None:
         self._input = input_fn or _default_input
-        self._last_player_log: str | None = None
-        self._last_cpu_log: str | None = None
+        self._animate_move_log = animate_move_log
+        self._action_chain: list[_ActionBlock] = []
+        self._instruction_heading = "Choose your move!"
+        self._move_log_riser_lines: tuple[str, ...] | None = None
         self._state: MatchState | None = None
         self._names: tuple[str, str] | None = None
         self._player_turn = True
         self._player_turn_starts = 0
         self._banner = "BELL RINGS — singles match, pinfall only"
         self._header_extra = ""
-        self._exchange_summary: str | None = None
         self._player_nick = ""
         self._cpu_nick = ""
         self._match_seed: int | None = None
@@ -170,6 +217,52 @@ class FixedLayoutRenderer:
 
         print(bottom)
 
+    def _push_action_block(
+        self, *, is_player: bool, move_name: str, log_text: str
+    ) -> None:
+        """Keep one block per wrestler; new move for that wrestler replaces their old
+        block and is appended at the bottom (older opponent block shifts up)."""
+        self._action_chain = [
+            b for b in self._action_chain if b.is_player != is_player
+        ]
+        self._action_chain.append(
+            _ActionBlock(is_player=is_player, move_name=move_name, log_text=log_text)
+        )
+
+    def _print_instruction_heading(self, c: _Palette) -> None:
+        h = self._instruction_heading
+        if h.startswith(">"):
+            print(f"{c.bold}{c.dim}{h}{c.reset}")
+        else:
+            print(f"{c.bold}{c.accent}{h}{c.reset}")
+
+    def _print_action_block(
+        self,
+        block: _ActionBlock,
+        wrap_w: int,
+        c: _Palette,
+        use_ansi: bool,
+    ) -> None:
+        col = c.player if block.is_player else c.cpu
+        if self._names is not None:
+            label = self._names[0] if block.is_player else self._names[1]
+        else:
+            label = "You" if block.is_player else "CPU"
+        print(f"  {col}{label} uses {block.move_name}!{c.reset}")
+        if not block.log_text or not block.log_text.strip():
+            return
+        for raw in block.log_text.splitlines():
+            if not raw.strip():
+                continue
+            for part in textwrap.wrap(raw, width=wrap_w, break_long_words=True):
+                colored = colorize_nicknames(
+                    part,
+                    self._player_nick,
+                    self._cpu_nick,
+                    use_ansi=use_ansi,
+                )
+                print(f"    {colored}")
+
     def _on_sigwinch(self, signum: int, frame: object | None) -> None:
         """Redraw the current full-screen layout when the terminal is resized (POSIX)."""
         if self._sigwinch_busy:
@@ -225,38 +318,19 @@ class FixedLayoutRenderer:
             self._print_wrestler_header_panel(self._state, self._names, w, c)
 
         print(c.dim + self._rule("─") + c.reset)
-        print(f"{c.bold}Last action{c.reset}")
         inner = w - 4
         wrap_w = max(20, inner - 4)
         use_ansi = bool(self._c.player)
-
-        def emit_side(label: str, col: str, block: str | None) -> None:
-            print(f"  {col}{label}{c.reset}")
-            if not block or not block.strip():
-                print(f"    {c.dim}(none yet){c.reset}")
-                return
-            for raw in block.splitlines():
-                if not raw.strip():
-                    continue
-                for part in textwrap.wrap(raw, width=wrap_w, break_long_words=True):
-                    colored = colorize_nicknames(
-                        part,
-                        self._player_nick,
-                        self._cpu_nick,
-                        use_ansi=use_ansi,
-                    )
-                    print(f"    {colored}")
-
-        emit_side("You", c.player, self._last_player_log)
-        emit_side("CPU", c.cpu, self._last_cpu_log)
-        print(c.dim + self._rule("─") + c.reset)
-        print(f"{c.bold}Exchange recap{c.reset}")
-        if self._exchange_summary:
-            inner = w - 4
-            for part in textwrap.wrap(self._exchange_summary, width=inner, break_long_words=True):
-                print(f"  {part}")
+        self._print_instruction_heading(c)
+        if self._move_log_riser_lines is not None:
+            for rl in self._move_log_riser_lines:
+                print(f"  {c.dim}{rl}{c.reset}")
+        if not self._action_chain:
+            print(f"  {c.dim}(no actions yet){c.reset}")
         else:
-            print(f"  {c.dim}(after you and CPU both act){c.reset}")
+            for block in self._action_chain:
+                self._print_action_block(block, wrap_w, c, use_ansi)
+                print()
         print(c.dim + self._rule("─") + c.reset)
 
         if bottom_extra:
@@ -379,9 +453,9 @@ class FixedLayoutRenderer:
         self._header_extra = self._banner
         self._match_seed = match_seed
         self._player_turn_starts = 0
-        self._last_player_log = None
-        self._last_cpu_log = None
-        self._exchange_summary = None
+        self._action_chain = []
+        self._instruction_heading = "Choose your move!"
+        self._move_log_riser_lines = None
         self._player_nick = ""
         self._cpu_nick = ""
 
@@ -396,7 +470,9 @@ class FixedLayoutRenderer:
             self._player_turn_starts += 1
             if self._player_turn_starts >= 2:
                 self._header_extra = ""
-            self._exchange_summary = None
+            self._instruction_heading = "Choose your move!"
+        else:
+            self._instruction_heading = "> CPU TURN..."
         if self._state is not None:
             self._redraw_match()
 
@@ -407,30 +483,36 @@ class FixedLayoutRenderer:
         player_nickname: str,
         cpu_nickname: str,
         actor_is_player: bool,
+        move_name: str,
     ) -> None:
         self._player_nick = player_nickname
         self._cpu_nick = cpu_nickname
-        if actor_is_player:
-            self._last_player_log = text
-            self._last_cpu_log = None
-        else:
-            self._last_cpu_log = text
-        self._redraw_match()
+        before_len = len(self._action_chain)
+        self._push_action_block(
+            is_player=actor_is_player, move_name=move_name, log_text=text
+        )
+        self._instruction_heading = (
+            "> CPU TURN..." if actor_is_player else "Choose your move!"
+        )
+        self._play_move_log_scroll_cue(before_len)
 
-    def wait_after_exchange_step(self) -> None:
-        c = self._c
-        while True:
-            self._redraw_match(
-                bottom_extra=[f"{c.dim}Enter: continue  ·  ESC: pause{c.reset}"]
-            )
-            if wait_enter_or_esc() == "enter":
-                return
-            self._pause_menu()
-
-    def show_exchange_recap(self, line: str) -> None:
-        self._exchange_summary = line
-        if self._state is not None:
+    def _play_move_log_scroll_cue(self, chain_len_before_push: int) -> None:
+        """Brief multi-line rising-arrow cue: stronger when an older block is on screen."""
+        if not self._animate_move_log or not sys.stdout.isatty():
+            self._move_log_riser_lines = None
             self._redraw_match()
+            return
+        frames = (
+            _SCROLL_RISER_PUSH_FRAMES
+            if chain_len_before_push >= 1
+            else _SCROLL_RISER_FIRST_FRAMES
+        )
+        for triple in frames:
+            self._move_log_riser_lines = triple
+            self._redraw_match()
+            time.sleep(_SCROLL_RISER_FRAME_DELAY_SEC)
+        self._move_log_riser_lines = None
+        self._redraw_match()
 
     def show_match_result_player_wins(self) -> None:
         self._end_screen("You win the match.", win=True)

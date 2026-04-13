@@ -96,6 +96,7 @@ class MatchState:
                 self.rebound[actor_idx],
                 self.momentum[actor_idx],
                 actor_groggy=self.groggy[actor_idx],
+                target_groggy=self.groggy[1 - actor_idx],
             ):
                 out.append((i, rule))
         return out
@@ -211,15 +212,21 @@ def _clear_groggy_from_opponent_damage(state: MatchState, victim_idx: int, m: Mo
 
 
 def _try_apply_groggy_after_damage(
-    state: MatchState, m: Move, tgt: int, rng: random.Random | None
+    state: MatchState,
+    m: Move,
+    tgt: int,
+    rng: random.Random | None,
+    was_groggy_before_hit: bool,
 ) -> bool:
-    """Maybe apply groggy from a successful damaging hit (caller ensures victim was not groggy before this hit)."""
+    """Maybe apply groggy / pending groggy after a successful damaging hit."""
     if m.causes_groggy_on_stand:
         if _rand_float(rng) >= _GROGGY_ON_STAND_CHANCE:
             return False
         state.pending_groggy[tgt] = True
         return True
     if m.causes_groggy and state.position[tgt] == BodyPosition.STANDING:
+        if was_groggy_before_hit:
+            return False
         if _rand_float(rng) >= _GROGGY_STANDING_CHANCE:
             return False
         state.groggy[tgt] = True
@@ -296,8 +303,8 @@ def apply_move(
     if m.target_after is not None:
         state.position[tgt] = m.target_after
 
-    if m.base_damage > 0 and not was_groggy_before_hit:
-        _try_apply_groggy_after_damage(state, m, tgt, rng)
+    if m.base_damage > 0 and (not was_groggy_before_hit or m.causes_groggy_on_stand):
+        _try_apply_groggy_after_damage(state, m, tgt, rng, was_groggy_before_hit)
 
     if m.id == "desperation_strike":
         state.groggy[actor_idx] = False
@@ -410,13 +417,22 @@ def _resolve_miss(
             ),
         )
         state.health[tgt] = max(1, state.health[tgt] - dmg)
-        lines.append(f"  {target.nickname} reverses the {m.name.lower()} — only {dmg} damage.")
         _clear_groggy_from_opponent_damage(state, tgt, m)
-
-    if _rand_float(rng) < 0.5:
-        lines.append(f"  {target.nickname} turns the tables!")
+        if _rand_float(rng) < 0.5:
+            lines.append(
+                f"  {target.nickname} reverses the {m.name.lower()} — only {dmg} damage, "
+                f"and turns the tables!"
+            )
+        else:
+            lines.append(
+                f"  {target.nickname} reverses the {m.name.lower()} — only {dmg} damage; "
+                f"{actor.nickname} whiffs — {target.nickname} shrugs it off."
+            )
     else:
-        lines.append(f"  {actor.nickname} whiffs — {target.nickname} shrugs it off.")
+        if _rand_float(rng) < 0.5:
+            lines.append(f"  {target.nickname} turns the tables!")
+        else:
+            lines.append(f"  {actor.nickname} whiffs — {target.nickname} shrugs it off.")
 
     state.momentum[actor_idx] = max(0, state.momentum[actor_idx] - 2)
     state.momentum[tgt] = min(5, state.momentum[tgt] + 1)
@@ -485,6 +501,8 @@ def _cpu_rule_score(state: MatchState, cpu_idx: int, r: MoveRule) -> float:
 
     if m.actor_top and m.target_grounded:
         s += 15
+    if m.actor_top and m.target_top:
+        s += 22
     if m.actor_rebound:
         s += 6
     if m.id == "dismount_top":

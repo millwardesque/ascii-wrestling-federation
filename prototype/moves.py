@@ -64,6 +64,8 @@ class Move:
     # On successful damaging hit: apply groggy to standing target, or pending groggy when they stand (slams).
     causes_groggy: bool = False
     causes_groggy_on_stand: bool = False
+    # Only legal when the opponent currently has standing groggy (not pending-on-stand).
+    requires_target_groggy: bool = False
 
 
 def _always(_a: Wrestler, _t: Wrestler) -> bool:
@@ -219,26 +221,28 @@ def all_move_rules() -> list[MoveRule]:
             Move(
                 id="body_slam",
                 name="Body slam",
-                description="Hoist and slam — canvas shakes.",
+                description="Hoist and slam — only when they're groggy on their feet.",
                 target_standing=True,
                 base_damage=12,
                 target_after=BodyPosition.GROUNDED,
                 momentum_gain=2,
                 difficulty=4,
                 causes_groggy_on_stand=True,
+                requires_target_groggy=True,
             )
         ),
         MoveRule(
             Move(
                 id="suplex",
                 name="Vertical suplex",
-                description="Arching throw — authority.",
+                description="Arching throw — exploit a groggy opponent.",
                 target_standing=True,
                 base_damage=15,
                 target_after=BodyPosition.GROUNDED,
                 momentum_gain=3,
                 difficulty=5,
                 causes_groggy_on_stand=True,
+                requires_target_groggy=True,
             )
         ),
         MoveRule(
@@ -415,6 +419,53 @@ def all_move_rules() -> list[MoveRule]:
         ),
         MoveRule(
             Move(
+                id="top_rope_punch",
+                name="Top-rope brawl shot",
+                description="Trade leather on the buckle — both fighting for balance.",
+                actor_top=True,
+                actor_standing=False,
+                target_top=True,
+                base_damage=7,
+                momentum_gain=2,
+                difficulty=4,
+                targets_head=True,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="top_rope_superplex",
+                name="Superplex",
+                description="Suplex from the top — the ring shakes with the impact.",
+                actor_top=True,
+                actor_standing=False,
+                target_top=True,
+                base_damage=26,
+                actor_after=BodyPosition.GROUNDED,
+                target_after=BodyPosition.GROUNDED,
+                momentum_gain=4,
+                difficulty=5,
+                causes_groggy_on_stand=True,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="hurricanrana",
+                name="Hurricanrana",
+                description="Headscissors through — you land on your feet, they eat canvas.",
+                actor_top=True,
+                actor_standing=False,
+                target_top=True,
+                base_damage=18,
+                actor_after=BodyPosition.STANDING,
+                target_after=BodyPosition.GROUNDED,
+                momentum_gain=3,
+                difficulty=5,
+                targets_head=True,
+                causes_groggy_on_stand=True,
+            )
+        ),
+        MoveRule(
+            Move(
                 id="elbow_drop",
                 name="Elbow drop",
                 description="Standard issue — drop the point on a grounded opponent.",
@@ -464,6 +515,7 @@ def all_move_rules() -> list[MoveRule]:
                 finisher_pin_bonus=10,
                 min_momentum=3,
                 causes_groggy_on_stand=True,
+                requires_target_groggy=True,
             ),
             extra=_only_wrestler("stone_cold"),
         ),
@@ -481,6 +533,7 @@ def all_move_rules() -> list[MoveRule]:
                 finisher_pin_bonus=12,
                 min_momentum=3,
                 causes_groggy_on_stand=True,
+                requires_target_groggy=True,
             ),
             extra=_only_wrestler("the_rock"),
         ),
@@ -499,6 +552,7 @@ def all_move_rules() -> list[MoveRule]:
                 finisher_pin_bonus=10,
                 min_momentum=3,
                 causes_groggy_on_stand=True,
+                requires_target_groggy=True,
             ),
             extra=_only_wrestler("cm_punk"),
         ),
@@ -517,6 +571,7 @@ def all_move_rules() -> list[MoveRule]:
                 min_momentum=3,
                 triggers_pin_after_hit=True,
                 causes_groggy_on_stand=True,
+                requires_target_groggy=True,
             ),
             extra=_only_wrestler("mr_perfect"),
         ),
@@ -571,6 +626,7 @@ def all_move_rules() -> list[MoveRule]:
                 finisher_pin_bonus=12,
                 min_momentum=3,
                 causes_groggy_on_stand=True,
+                requires_target_groggy=True,
             ),
             extra=_only_wrestler("scott_hall"),
         ),
@@ -604,6 +660,7 @@ def all_move_rules() -> list[MoveRule]:
                 finisher_pin_bonus=11,
                 min_momentum=3,
                 causes_groggy_on_stand=True,
+                requires_target_groggy=True,
             ),
             extra=_only_wrestler("arn_anderson"),
         ),
@@ -622,6 +679,7 @@ def all_move_rules() -> list[MoveRule]:
                 finisher_pin_bonus=11,
                 min_momentum=3,
                 causes_groggy_on_stand=True,
+                requires_target_groggy=True,
             ),
             extra=_only_wrestler("andre"),
         ),
@@ -736,12 +794,15 @@ def move_valid(
     actor_momentum: int = 0,
     *,
     actor_groggy: bool = False,
+    target_groggy: bool = False,
 ) -> bool:
     m = rule.move
     if actor_groggy:
         if m.id not in ("shake_groggy", "desperation_strike"):
             return False
     elif m.id in ("shake_groggy", "desperation_strike"):
+        return False
+    if m.requires_target_groggy and not target_groggy:
         return False
     if m.min_momentum > 0 and actor_momentum < m.min_momentum:
         return False

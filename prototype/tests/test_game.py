@@ -141,6 +141,8 @@ class TestApplyMoveStochastic(unittest.TestCase):
         self.assertFalse(self.state.rebound[0])
 
     def test_miss_does_not_apply_ground_transition(self) -> None:
+        self.state.groggy[1] = True
+        self.state.groggy_opponent_actions_left[1] = 2
         sup = _rule_by_id("suplex")
         p = hit_probability(self.state, 0, sup)
         rng = _SeqRng([min(1.0, p + 0.1), 0.0])
@@ -155,6 +157,8 @@ class TestApplyMoveStochastic(unittest.TestCase):
         for i in range(trials):
             st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
             st.momentum[0] = 0
+            st.groggy[1] = True
+            st.groggy_opponent_actions_left[1] = 2
             rng = random.Random(i)
             log, _ = apply_move(st, 0, sup, rng)
             if "reverses" in log or "whiffs" in log:
@@ -162,6 +166,8 @@ class TestApplyMoveStochastic(unittest.TestCase):
         for i in range(trials):
             st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
             st.momentum[0] = 5
+            st.groggy[1] = True
+            st.groggy_opponent_actions_left[1] = 2
             rng = random.Random(i + 10_000)
             log, _ = apply_move(st, 0, sup, rng)
             if "reverses" in log or "whiffs" in log:
@@ -287,6 +293,8 @@ class TestGroggy(unittest.TestCase):
 
     def test_body_slam_pending_groggy_on_stand(self) -> None:
         st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        st.groggy[1] = True
+        st.groggy_opponent_actions_left[1] = 2
         slam = _rule_by_id("body_slam")
         p = hit_probability(st, 0, slam)
         # hit roll, groggy-on-stand proc (0.0 → pending)
@@ -307,6 +315,27 @@ class TestGroggy(unittest.TestCase):
         ids = {r.move.id for _, r in st.valid_rules(0)}
         self.assertEqual(ids, {"shake_groggy", "desperation_strike"})
 
+    def test_body_slam_and_suplex_require_groggy_target(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        ids = {r.move.id for _, r in st.valid_rules(0)}
+        self.assertNotIn("body_slam", ids)
+        self.assertNotIn("suplex", ids)
+        st.groggy[1] = True
+        st.groggy_opponent_actions_left[1] = 2
+        ids_g = {r.move.id for _, r in st.valid_rules(0)}
+        self.assertIn("body_slam", ids_g)
+        self.assertIn("suplex", ids_g)
+
+    def test_standing_finisher_requires_groggy_target(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["stone_cold"], ROSTER["cm_punk"]))
+        st.momentum[0] = 5
+        ids = {r.move.id for _, r in st.valid_rules(0)}
+        self.assertNotIn("stunner", ids)
+        st.groggy[1] = True
+        st.groggy_opponent_actions_left[1] = 2
+        ids_g = {r.move.id for _, r in st.valid_rules(0)}
+        self.assertIn("stunner", ids_g)
+
 
 class TestBloodiedEasterEgg(unittest.TestCase):
     def test_match_state_initializes_bloodied(self) -> None:
@@ -324,6 +353,8 @@ class TestBloodiedEasterEgg(unittest.TestCase):
 
     def test_non_head_move_does_not_consume_blood_roll(self) -> None:
         st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        st.groggy[1] = True
+        st.groggy_opponent_actions_left[1] = 2
         sup = _rule_by_id("suplex")
         p = hit_probability(st, 0, sup)
         rng = _SeqRng([max(0.0, p - 0.2), 0.99])
