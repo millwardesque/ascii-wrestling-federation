@@ -7,7 +7,7 @@ from __future__ import annotations
 import sys
 from typing import Callable, Protocol, Sequence, runtime_checkable
 
-from game import MatchState, move_landing_probability_label
+from game import MatchState, PinSequence, move_landing_probability_label
 from moves import BodyPosition, MoveRule
 from wrestlers import Wrestler
 
@@ -131,6 +131,22 @@ class MatchRenderer(Protocol):
         move_name: str,
     ) -> None:
         """Outcome lines from the game layer (no per-turn move selection lines)."""
+        ...
+
+    def show_pin_sequence(
+        self,
+        sequence: PinSequence,
+        *,
+        player_nickname: str,
+        cpu_nickname: str,
+        actor_is_player: bool,
+        move_name: str,
+    ) -> None:
+        """Display a pinfall attempt with pauses between referee counts (see ``PinSequence``)."""
+        ...
+
+    def wait_between_moves(self) -> None:
+        """Pause after one wrestler's move resolves before the next move in the round."""
         ...
 
     def show_match_result_player_wins(self) -> None:

@@ -9,6 +9,10 @@ from dataclasses import dataclass, field
 from moves import BodyPosition, Move, MoveRule, all_move_rules, move_valid
 from wrestlers import Wrestler
 
+# Pin count pacing (UI); outcome is pre-computed before any delay.
+_PIN_DELAY_AFTER_COUNT_1_SEC = 1.0
+_PIN_DELAY_AFTER_COUNT_2_SEC = 1.5
+
 # Hit probability: p = clamp(BASE + k_mom*momentum - k_diff*difficulty + ... , P_MIN, P_MAX)
 # Tuned so high-difficulty moves fail more at low momentum / healthy defender — but clean hits
 # stay common enough that reversals/whiffs don't dominate the match.
@@ -37,6 +41,25 @@ _BLOODIED_CHANCE = 0.018
 # Groggy procs on qualifying hits (separate rolls for strikes vs. slams / pending-on-stand)
 _GROGGY_STANDING_CHANCE = 0.42  # punch / kick — immediate standing groggy
 _GROGGY_ON_STAND_CHANCE = 0.48  # slams & finishers — pending until they stand
+
+
+@dataclass
+class PinSequence:
+    """Pre-computed pin attempt: optional ``preamble_lines`` (e.g. damage + bridge text),
+    then each step adds lines and a ``delay_after_sec`` pause before the next step."""
+
+    won: bool
+    preamble_lines: list[str]
+    steps: list[tuple[list[str], float]]
+
+
+def pin_sequence_as_text(seq: PinSequence) -> str:
+    parts: list[str] = []
+    if seq.preamble_lines:
+        parts.extend(seq.preamble_lines)
+    for step_lines, _ in seq.steps:
+        parts.extend(step_lines)
+    return "\n".join(parts)
 
 
 @dataclass
@@ -240,8 +263,12 @@ def apply_move(
     actor_idx: int,
     rule: MoveRule,
     rng: random.Random | None = None,
-) -> tuple[str, int | None]:
-    """Mutates state. Returns (narrative, winner_index) — winner set only on 3-count."""
+) -> tuple[str, int | None, PinSequence | None]:
+    """Mutates state. Returns (narrative, winner_index, pin_sequence_or_none).
+
+    When the third element is not ``None``, the UI should play ``PinSequence`` with
+    timed steps; ``narrative`` is still the full concatenated text for logging/tests.
+    """
     m = rule.move
     tgt = 1 - actor_idx
     actor = state.wrestlers[actor_idx]
@@ -249,12 +276,12 @@ def apply_move(
     lines: list[str] = []
 
     if m.is_pin:
-        pin_text, won = _resolve_pin(state, actor_idx, rng)
-        lines.append(pin_text)
+        seq, won = _plan_pin(state, actor_idx, rng)
         if actor_idx == 1:
             state.cpu_last_move_id = m.id
         _tick_groggy_timer(state, actor_idx)
-        return "\n".join(lines), (actor_idx if won else None)
+        text = pin_sequence_as_text(seq)
+        return text, (actor_idx if won else None), seq
 
     if move_needs_hit_roll(m):
         p = hit_probability(state, actor_idx, rule)
@@ -263,7 +290,7 @@ def apply_move(
             if actor_idx == 1:
                 state.cpu_last_move_id = m.id
             _tick_groggy_timer(state, actor_idx)
-            return "\n".join(lines), None
+            return "\n".join(lines), None, None
 
     if m.id == "shake_groggy":
         state.groggy[actor_idx] = False
@@ -275,7 +302,7 @@ def apply_move(
             state.cpu_last_move_id = m.id
         _tick_groggy_timer(state, actor_idx)
         text = "\n".join(lines) if lines else f"  {actor.nickname}: {m.name}."
-        return text, None
+        return text, None, None
 
     was_groggy_before_hit = state.groggy[tgt]
 
@@ -361,13 +388,14 @@ def apply_move(
             skip_victim_tick = tgt
 
     if m.triggers_pin_after_hit and m.base_damage > 0:
-        pin_text, won = _resolve_pin(state, actor_idx, rng)
-        lines.append(pin_text)
+        pin_body, won = _plan_pin(state, actor_idx, rng)
+        seq = PinSequence(won=pin_body.won, preamble_lines=list(lines), steps=pin_body.steps)
+        full = pin_sequence_as_text(seq)
         _tick_groggy_timer(state, actor_idx, skip_victim_tick=skip_victim_tick)
-        return "\n".join(lines), (actor_idx if won else None)
+        return full, (actor_idx if won else None), seq
     text = "\n".join(lines) if lines else f"  {actor.nickname}: {m.name}."
     _tick_groggy_timer(state, actor_idx, skip_victim_tick=skip_victim_tick)
-    return text, None
+    return text, None, None
 
 
 def _resolve_miss(
@@ -439,17 +467,20 @@ def _resolve_miss(
     return lines
 
 
-def _resolve_pin(state: MatchState, actor_idx: int, rng: random.Random | None) -> tuple[str, bool]:
+def _plan_pin(state: MatchState, actor_idx: int, rng: random.Random | None) -> tuple[PinSequence, bool]:
+    """Resolve pinfall once: build timed steps for the UI; mutate state (momentum, pin bonus)."""
     tgt = 1 - actor_idx
     attacker = state.wrestlers[actor_idx]
     defender = state.wrestlers[tgt]
-    lines: list[str] = []
+    steps: list[tuple[list[str], float]] = []
     hp_frac = state.health[tgt] / max(1, defender.max_health)
     mom = state.momentum[actor_idx]
     fin_bonus = state.pin_bonus_next_cover[actor_idx]
     state.pin_bonus_next_cover[actor_idx] = 0
     if fin_bonus > 0:
-        lines.append(f"  The finisher still echoes — +{fin_bonus} on the cover!")
+        steps.append(
+            ([f"  The finisher still echoes — +{fin_bonus} on the cover!"], 0.0)
+        )
 
     for count in (1, 2, 3):
         att = (
@@ -460,14 +491,31 @@ def _resolve_pin(state: MatchState, actor_idx: int, rng: random.Random | None) -
             + fin_bonus
         )
         defe = defender.endurance + _rand_int(rng, 1, 10) + int(hp_frac * 18)
-        lines.append(f"  Referee: {count}…")
-        if att <= defe:
-            lines.append(f"  {defender.nickname} kicks out!")
-            state.momentum[actor_idx] = max(0, mom - 2)
-            return "\n".join(lines), False
+        kicks_out = att <= defe
 
-    lines.append(f"  *** PINFALL — {attacker.nickname} wins ***")
-    return "\n".join(lines), True
+        if count == 3:
+            if kicks_out:
+                # Near-fall: no "3" line — kickout appears after the post-2 delay only.
+                steps.append(([f"  {defender.nickname} kicks out!"], 0.0))
+                state.momentum[actor_idx] = max(0, mom - 2)
+                return PinSequence(won=False, preamble_lines=[], steps=steps), False
+            steps.append(([f"  Referee: 3!"], 0.0))
+            break
+
+        line = f"  Referee: {count}…"
+        delay_after = (
+            _PIN_DELAY_AFTER_COUNT_1_SEC
+            if count == 1
+            else _PIN_DELAY_AFTER_COUNT_2_SEC
+        )
+        steps.append(([line], delay_after))
+        if kicks_out:
+            steps.append(([f"  {defender.nickname} kicks out!"], 0.0))
+            state.momentum[actor_idx] = max(0, mom - 2)
+            return PinSequence(won=False, preamble_lines=[], steps=steps), False
+
+    steps.append(([f"  *** PINFALL — {attacker.nickname} wins ***"], 0.0))
+    return PinSequence(won=True, preamble_lines=[], steps=steps), True
 
 
 _CPU_VARIETY_PENALTY = 18.0

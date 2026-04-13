@@ -160,7 +160,7 @@ class TestApplyMoveStochastic(unittest.TestCase):
             st.groggy[1] = True
             st.groggy_opponent_actions_left[1] = 2
             rng = random.Random(i)
-            log, _ = apply_move(st, 0, sup, rng)
+            log, _, _ = apply_move(st, 0, sup, rng)
             if "reverses" in log or "whiffs" in log:
                 low_misses += 1
         for i in range(trials):
@@ -169,7 +169,7 @@ class TestApplyMoveStochastic(unittest.TestCase):
             st.groggy[1] = True
             st.groggy_opponent_actions_left[1] = 2
             rng = random.Random(i + 10_000)
-            log, _ = apply_move(st, 0, sup, rng)
+            log, _, _ = apply_move(st, 0, sup, rng)
             if "reverses" in log or "whiffs" in log:
                 high_misses += 1
         self.assertGreater(low_misses, high_misses)
@@ -191,7 +191,8 @@ class TestPinUnchanged(unittest.TestCase):
         st.position[1] = BodyPosition.STANDING
         pin = _rule_by_id("pin")
         rng = random.Random(12345)
-        log, winner = apply_move(st, 1, pin, rng)
+        log, winner, pin_seq = apply_move(st, 1, pin, rng)
+        self.assertIsNotNone(pin_seq)
         self.assertIn("Referee:", log)
         self.assertTrue(winner is None or winner == 1)
 
@@ -347,7 +348,7 @@ class TestBloodiedEasterEgg(unittest.TestCase):
         punch = _rule_by_id("punch")
         p = hit_probability(st, 0, punch)
         rng = _SeqRng([max(0.0, p - 0.2), 0.001, 0.99])
-        log, _ = apply_move(st, 0, punch, rng)
+        log, _, _ = apply_move(st, 0, punch, rng)
         self.assertTrue(st.bloodied[1])
         self.assertIn("busted open", log)
 

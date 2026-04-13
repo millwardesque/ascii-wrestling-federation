@@ -32,15 +32,24 @@ def run_match(player_id: str, cpu_id: str, ui: MatchRenderer) -> None:
         player_rule = state.rules[idx]
         ui.show_status(state, names)
 
-        log, winner = apply_move(state, 0, player_rule)
+        log, winner, pin_seq = apply_move(state, 0, player_rule)
         ui.show_status(state, names)
-        ui.show_move_log(
-            log,
-            player_nickname=pw.nickname,
-            cpu_nickname=cw.nickname,
-            actor_is_player=True,
-            move_name=player_rule.move.name,
-        )
+        if pin_seq is not None:
+            ui.show_pin_sequence(
+                pin_seq,
+                player_nickname=pw.nickname,
+                cpu_nickname=cw.nickname,
+                actor_is_player=True,
+                move_name=player_rule.move.name,
+            )
+        else:
+            ui.show_move_log(
+                log,
+                player_nickname=pw.nickname,
+                cpu_nickname=cw.nickname,
+                actor_is_player=True,
+                move_name=player_rule.move.name,
+            )
 
         if winner is not None:
             if winner == 0:
@@ -48,20 +57,31 @@ def run_match(player_id: str, cpu_id: str, ui: MatchRenderer) -> None:
             else:
                 ui.show_match_result_cpu_wins()
             return
+
+        ui.wait_between_moves()
 
         cpu_rule = cpu_choose_rule(state, 1)
 
         ui.round_header(is_player_turn=False)
 
-        log, winner = apply_move(state, 1, cpu_rule)
+        log, winner, pin_seq = apply_move(state, 1, cpu_rule)
         ui.show_status(state, names)
-        ui.show_move_log(
-            log,
-            player_nickname=pw.nickname,
-            cpu_nickname=cw.nickname,
-            actor_is_player=False,
-            move_name=cpu_rule.move.name,
-        )
+        if pin_seq is not None:
+            ui.show_pin_sequence(
+                pin_seq,
+                player_nickname=pw.nickname,
+                cpu_nickname=cw.nickname,
+                actor_is_player=False,
+                move_name=cpu_rule.move.name,
+            )
+        else:
+            ui.show_move_log(
+                log,
+                player_nickname=pw.nickname,
+                cpu_nickname=cw.nickname,
+                actor_is_player=False,
+                move_name=cpu_rule.move.name,
+            )
 
         if winner is not None:
             if winner == 0:
@@ -69,6 +89,8 @@ def run_match(player_id: str, cpu_id: str, ui: MatchRenderer) -> None:
             else:
                 ui.show_match_result_cpu_wins()
             return
+
+        ui.wait_between_moves()
 
         ui.show_status(state, names)
 

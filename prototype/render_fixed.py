@@ -16,7 +16,7 @@ import time
 from typing import NamedTuple, Sequence
 
 from awf_logo import AWF_LOGO_LINES, INTRO_LINES, PROMPT_LINE
-from game import MatchState, move_landing_probability_label
+from game import MatchState, PinSequence, move_landing_probability_label
 from moves import MoveRule
 from render import (
     InputFn,
@@ -78,6 +78,9 @@ _SCROLL_RISER_FIRST_FRAMES = (
         "           ↑↑↑  ",
     ),
 )
+
+# Pause between one wrestler's move and the next (same round).
+_MOVE_GAP_BETWEEN_TURNS_SEC = 1.0
 
 
 class FixedLayoutRenderer:
@@ -231,7 +234,9 @@ class FixedLayoutRenderer:
 
     def _print_instruction_heading(self, c: _Palette) -> None:
         h = self._instruction_heading
-        if h.startswith(">"):
+        if h == "Pinfall attempt…":
+            print(f"{c.dim}{h}{c.reset}")
+        elif h.startswith(">"):
             print(f"{c.bold}{c.dim}{h}{c.reset}")
         else:
             print(f"{c.bold}{c.accent}{h}{c.reset}")
@@ -496,6 +501,47 @@ class FixedLayoutRenderer:
         )
         self._play_move_log_scroll_cue(before_len)
 
+    def _pin_sleep(self, sec: float) -> None:
+        if sec > 0 and sys.stdout.isatty():
+            time.sleep(sec)
+
+    def show_pin_sequence(
+        self,
+        sequence: PinSequence,
+        *,
+        player_nickname: str,
+        cpu_nickname: str,
+        actor_is_player: bool,
+        move_name: str,
+    ) -> None:
+        """Pre-computed counts; pause after each step's ``delay_after`` before the next."""
+        self._player_nick = player_nickname
+        self._cpu_nick = cpu_nickname
+        acc: list[str] = []
+        if sequence.preamble_lines:
+            acc.extend(sequence.preamble_lines)
+            self._push_action_block(
+                is_player=actor_is_player,
+                move_name=move_name,
+                log_text="\n".join(acc),
+            )
+            self._instruction_heading = "Pinfall attempt…"
+            self._redraw_match()
+        for step_lines, delay_after in sequence.steps:
+            acc.extend(step_lines)
+            self._push_action_block(
+                is_player=actor_is_player,
+                move_name=move_name,
+                log_text="\n".join(acc),
+            )
+            self._instruction_heading = "Pinfall attempt…"
+            self._redraw_match()
+            self._pin_sleep(delay_after)
+        self._instruction_heading = (
+            "> CPU TURN..." if actor_is_player else "Choose your move!"
+        )
+        self._redraw_match()
+
     def _play_move_log_scroll_cue(self, chain_len_before_push: int) -> None:
         """Brief multi-line rising-arrow cue: stronger when an older block is on screen."""
         if not self._animate_move_log or not sys.stdout.isatty():
@@ -513,6 +559,10 @@ class FixedLayoutRenderer:
             time.sleep(_SCROLL_RISER_FRAME_DELAY_SEC)
         self._move_log_riser_lines = None
         self._redraw_match()
+
+    def wait_between_moves(self) -> None:
+        if sys.stdout.isatty():
+            time.sleep(_MOVE_GAP_BETWEEN_TURNS_SEC)
 
     def show_match_result_player_wins(self) -> None:
         self._end_screen("You win the match.", win=True)
