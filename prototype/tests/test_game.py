@@ -26,13 +26,18 @@ def _rule_by_id(move_id: str) -> MoveRule:
 
 
 class _SeqRng:
-    """Minimal RNG stub: only ``random()`` is used by hit / miss paths."""
+    """Minimal RNG stub for deterministic float and int rolls."""
 
-    def __init__(self, floats: list[float]) -> None:
+    def __init__(self, floats: list[float], ints: list[int] | None = None) -> None:
         self._it = iter(floats)
+        self._ints = iter(ints or [])
 
     def random(self) -> float:
         return next(self._it)
+
+    def randint(self, a: int, b: int) -> int:
+        value = next(self._ints)
+        return max(a, min(b, value))
 
 
 class TestHitRollMetadata(unittest.TestCase):
@@ -93,9 +98,9 @@ class TestHitProbability(unittest.TestCase):
         """Finisher-only hit bonus scales with combined damage — not a flat bonus at the bell."""
         st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
         st.position[0] = BodyPosition.STANDING
-        st.position[1] = BodyPosition.GROUNDED
+        st.position[1] = BodyPosition.STANDING
         st.momentum[0] = 5
-        fin = _rule_by_id("sharp_shooter")
+        fin = _rule_by_id("razors_edge")
         p_fresh = hit_probability(st, 0, fin)
         w0, w1 = st.wrestlers
         total_max = w0.max_health + w1.max_health
@@ -108,6 +113,7 @@ class TestHitProbability(unittest.TestCase):
     def test_move_landing_probability_label(self) -> None:
         st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
         self.assertEqual(move_landing_probability_label(st, 0, _rule_by_id("pin")), "pin")
+        self.assertTrue(move_landing_probability_label(st, 0, _rule_by_id("sharp_shooter")).endswith("%"))
         self.assertEqual(move_landing_probability_label(st, 0, _rule_by_id("climb")), "auto")
         self.assertTrue(move_landing_probability_label(st, 0, _rule_by_id("punch")).endswith("%"))
 
@@ -126,13 +132,15 @@ class TestApplyMoveStochastic(unittest.TestCase):
         self.assertEqual(st.position[0], BodyPosition.GROUNDED)
 
     def test_irish_whip_miss_does_not_send_opponent_running(self) -> None:
+        self.state.position[1] = BodyPosition.GRAPPLED
         whip = _rule_by_id("irish_whip")
         p = hit_probability(self.state, 0, whip)
         rng = _SeqRng([min(1.0, p + 0.2), 0.0])
         apply_move(self.state, 0, whip, rng)
-        self.assertEqual(self.state.position[1], BodyPosition.STANDING)
+        self.assertEqual(self.state.position[1], BodyPosition.GRAPPLED)
 
     def test_irish_whip_hit_puts_opponent_running_ropes(self) -> None:
+        self.state.position[1] = BodyPosition.GRAPPLED
         whip = _rule_by_id("irish_whip")
         p = hit_probability(self.state, 0, whip)
         rng = _SeqRng([max(0.0, p - 0.2)])
@@ -195,6 +203,35 @@ class TestPinUnchanged(unittest.TestCase):
         self.assertIsNotNone(pin_seq)
         self.assertIn("Referee:", log)
         self.assertTrue(winner is None or winner == 1)
+
+
+class TestSubmission(unittest.TestCase):
+    def test_submission_uses_timed_sequence_and_can_end_match(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        st.position[1] = BodyPosition.GROUNDED
+        st.health[1] = 1
+        st.momentum[0] = 5
+        p = hit_probability(st, 0, _rule_by_id("sharp_shooter"))
+        rng = _SeqRng([max(0.0, p - 0.2)], ints=[10, 1])
+        log, winner, seq = apply_move(st, 0, _rule_by_id("sharp_shooter"), rng)
+        self.assertIsNotNone(seq)
+        self.assertEqual(seq.heading, "Submission attempt…")
+        self.assertEqual(winner, 0)
+        self.assertIn("SUBMISSION", log)
+
+    def test_submission_can_miss_before_sequence(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        st.position[1] = BodyPosition.GROUNDED
+        st.momentum[0] = 5
+        p = hit_probability(st, 0, _rule_by_id("sharp_shooter"))
+        log, winner, seq = apply_move(
+            st, 0, _rule_by_id("sharp_shooter"), _SeqRng([min(1.0, p + 0.2), 0.0])
+        )
+        self.assertIsNone(seq)
+        self.assertIsNone(winner)
+        self.assertTrue(
+            "reverses" in log or "whiffs" in log or "turns the tables" in log
+        )
 
 
 class TestExchangeSummary(unittest.TestCase):
@@ -315,6 +352,14 @@ class TestGroggy(unittest.TestCase):
         st.groggy[0] = True
         ids = {r.move.id for _, r in st.valid_rules(0)}
         self.assertEqual(ids, {"shake_groggy", "desperation_strike"})
+
+    def test_groggy_grappled_actor_can_escape_or_counter(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        st.position[1] = BodyPosition.GRAPPLED
+        st.groggy[1] = True
+        st.groggy_opponent_actions_left[1] = 2
+        ids = {r.move.id for _, r in st.valid_rules(1)}
+        self.assertEqual(ids, {"break_grapple", "grapple_counter"})
 
     def test_body_slam_and_suplex_require_groggy_target(self) -> None:
         st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))

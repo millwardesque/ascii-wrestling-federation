@@ -399,7 +399,7 @@ class FixedLayoutRenderer:
 
     def _print_instruction_heading(self, c: _Palette) -> None:
         h = self._instruction_heading
-        if h == "Pinfall attempt…":
+        if h in {"Pinfall attempt…", "Submission attempt…"}:
             print(f"{c.dim}{h}{c.reset}")
         elif h.startswith(">"):
             print(f"{c.bold}{c.dim}{h}{c.reset}")
@@ -712,7 +712,7 @@ class FixedLayoutRenderer:
                 move_name=move_name,
                 log_text="\n".join(acc),
             )
-            self._instruction_heading = "Pinfall attempt…"
+            self._instruction_heading = sequence.heading
             self._redraw_match()
         for step_lines, delay_after in sequence.steps:
             acc.extend(step_lines)
@@ -721,7 +721,7 @@ class FixedLayoutRenderer:
                 move_name=move_name,
                 log_text="\n".join(acc),
             )
-            self._instruction_heading = "Pinfall attempt…"
+            self._instruction_heading = sequence.heading
             self._redraw_match()
             self._pin_sleep(delay_after)
         self._instruction_heading = (

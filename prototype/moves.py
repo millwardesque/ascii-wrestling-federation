@@ -40,6 +40,7 @@ class Move:
     # Effects
     base_damage: int = 0
     is_pin: bool = False
+    is_submission: bool = False
     # After move: where actor ends (if not specified, stays standing)
     actor_after: BodyPosition | None = None
     target_after: BodyPosition | None = None
@@ -697,13 +698,13 @@ def all_move_rules() -> list[MoveRule]:
                 name="Sharpshooter",
                 description="Legs hooked — torture rack for the back. FINISHER (Bret Hart only).",
                 target_grounded=True,
-                base_damage=15,
+                base_damage=0,
                 momentum_gain=3,
                 difficulty=4,
+                is_submission=True,
                 is_finisher=True,
                 finisher_pin_bonus=14,
                 min_momentum=2,
-                causes_groggy_on_stand=True,
             ),
             extra=_only_wrestler("bret_hart"),
         ),
@@ -752,13 +753,13 @@ def all_move_rules() -> list[MoveRule]:
                 name="Figure Four",
                 description="Leglock on the mat — snap the knee. FINISHER (Ric Flair only).",
                 target_grounded=True,
-                base_damage=14,
+                base_damage=0,
                 momentum_gain=3,
                 difficulty=4,
+                is_submission=True,
                 is_finisher=True,
                 finisher_pin_bonus=14,
                 min_momentum=2,
-                causes_groggy_on_stand=True,
             ),
             extra=_only_wrestler("ric_flair"),
         ),
@@ -941,7 +942,12 @@ def move_valid(
 ) -> bool:
     m = rule.move
     if actor_groggy:
-        if m.id not in ("shake_groggy", "desperation_strike"):
+        if m.id not in (
+            "shake_groggy",
+            "desperation_strike",
+            "break_grapple",
+            "grapple_counter",
+        ):
             return False
     elif m.id in ("shake_groggy", "desperation_strike"):
         return False

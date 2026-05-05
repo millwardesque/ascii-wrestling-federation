@@ -42,12 +42,13 @@ _GROGGY_ON_STAND_CHANCE = 0.48  # slams & finishers — pending until they stand
 
 @dataclass
 class PinSequence:
-    """Pre-computed pin attempt: optional ``preamble_lines`` (e.g. damage + bridge text),
+    """Pre-computed timed finish attempt: optional ``preamble_lines`` (e.g. damage + bridge text),
     then each step adds lines and a ``delay_after_sec`` pause before the next step."""
 
     won: bool
     preamble_lines: list[str]
     steps: list[tuple[list[str], float]]
+    heading: str = "Pinfall attempt…"
 
 
 def pin_sequence_as_text(seq: PinSequence) -> str:
@@ -289,6 +290,14 @@ def apply_move(
             _tick_groggy_timer(state, actor_idx)
             return "\n".join(lines), None, None
 
+    if m.is_submission:
+        seq, won = _plan_submission(state, actor_idx, rule, rng)
+        if actor_idx == 1:
+            state.cpu_last_move_id = m.id
+        _tick_groggy_timer(state, actor_idx)
+        text = pin_sequence_as_text(seq)
+        return text, (actor_idx if won else None), seq
+
     if m.id == "shake_groggy":
         state.groggy[actor_idx] = False
         state.groggy_opponent_actions_left[actor_idx] = 0
@@ -519,6 +528,75 @@ def _plan_pin(state: MatchState, actor_idx: int, rng: random.Random | None) -> t
     return PinSequence(won=True, preamble_lines=[], steps=steps), True
 
 
+def _plan_submission(
+    state: MatchState,
+    actor_idx: int,
+    rule: MoveRule,
+    rng: random.Random | None,
+) -> tuple[PinSequence, bool]:
+    """Resolve a submission once: reveal pressure beats, then escape or tap-out."""
+    m = rule.move
+    tgt = 1 - actor_idx
+    attacker = state.wrestlers[actor_idx]
+    defender = state.wrestlers[tgt]
+    hp_frac = state.health[tgt] / max(1, defender.max_health)
+    mom = state.momentum[actor_idx]
+    timing = get_config().timing
+    steps: list[tuple[list[str], float]] = [
+        (
+            [
+                f"  {attacker.nickname} hooks in {m.name.lower()}!",
+                f"  {defender.nickname} reaches for daylight…",
+            ],
+            timing.pin_delay_after_count_1_sec,
+        ),
+        (
+            [f"  The hold is cinched in deeper!"],
+            timing.pin_delay_after_count_2_sec,
+        ),
+    ]
+
+    pressure = (
+        attacker.strength
+        + _rand_int(rng, 1, 10)
+        + mom * 2
+        + int((1.0 - hp_frac) * 18)
+        + m.finisher_pin_bonus
+    )
+    escape = defender.endurance + _rand_int(rng, 1, 10) + int(hp_frac * 22)
+    if pressure <= escape:
+        steps.append(([f"  {defender.nickname} claws free and breaks the hold!"], 0.0))
+        state.momentum[actor_idx] = max(0, mom - 2)
+        return (
+            PinSequence(
+                won=False,
+                preamble_lines=[],
+                steps=steps,
+                heading="Submission attempt…",
+            ),
+            False,
+        )
+
+    steps.append(
+        (
+            [
+                f"  {defender.nickname} taps out!",
+                f"  *** SUBMISSION — {attacker.nickname} wins ***",
+            ],
+            0.0,
+        )
+    )
+    return (
+        PinSequence(
+            won=True,
+            preamble_lines=[],
+            steps=steps,
+            heading="Submission attempt…",
+        ),
+        True,
+    )
+
+
 _CPU_VARIETY_PENALTY = 18.0
 
 # Softmax temperature for CPU move choice: higher → more exploration, lower → greedier.
@@ -531,6 +609,16 @@ def _cpu_rule_score(state: MatchState, cpu_idx: int, r: MoveRule) -> float:
     m = r.move
     opp = 1 - cpu_idx
     opp_hp = state.health[opp] / max(1, state.wrestlers[opp].max_health)
+
+    if m.is_submission:
+        p = hit_probability(state, cpu_idx, r)
+        s = 25.0
+        if opp_hp < 0.45:
+            s += 75
+        if opp_hp >= 0.45:
+            s -= 25
+        s += float(m.finisher_pin_bonus) * 2.5
+        return p * s
 
     if m.is_pin:
         s = 0.0
@@ -615,6 +703,8 @@ def outcome_label(log: str) -> str:
     """Short label derived from apply_move / pin log text for exchange recap."""
     if not log.strip():
         return "—"
+    if "SUBMISSION" in log or "taps out" in log:
+        return "submission"
     if "PINFALL" in log or "pinfall" in log.lower():
         return "pinfall"
     if "kicks out" in log:
