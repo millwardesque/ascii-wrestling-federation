@@ -315,7 +315,10 @@ def apply_move(
             m.base_damage, actor, target, agility_bonus=top or m.actor_rebound or m.actor_running_ropes_only
         )
         state.health[tgt] = max(1, state.health[tgt] - dmg)
-        lines.append(f"  {actor.nickname} deals {dmg} damage with {m.name.lower()}.")
+        lines.append(
+            f"  {actor.nickname} snaps off {m.name.lower()} — "
+            f"{target.nickname} takes {dmg} damage."
+        )
         _clear_groggy_from_opponent_damage(state, tgt, m)
         if m.is_finisher:
             state.finisher_shock[tgt] = min(5, state.finisher_shock[tgt] + 2)
@@ -620,7 +623,7 @@ def outcome_label(log: str) -> str:
         return "miss"
     if "reverses" in log or "whiffs" in log:
         return "miss"
-    if "deals" in log:
+    if "deals" in log or "takes" in log:
         return "hit"
     if "recovers" in log:
         return "recover"

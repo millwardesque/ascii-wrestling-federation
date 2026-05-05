@@ -17,7 +17,7 @@ from typing import NamedTuple, Sequence
 
 from awf_logo import AWF_LOGO_LINES, INTRO_LINES, PROMPT_LINE
 from game import MatchState, PinSequence, move_landing_probability_label
-from moves import MoveRule
+from moves import BodyPosition, MoveRule
 from render import (
     InputFn,
     ReturnToTitle,
@@ -46,41 +46,192 @@ class _ActionBlock(NamedTuple):
     log_text: str
 
 
-# Multi-line riser: three rows; the arrow cluster climbs upward across frames.
-# Full redraw between frames; total duration scales with _SCROLL_RISER_FRAME_DELAY_SEC.
-_SCROLL_RISER_FRAME_DELAY_SEC = 0.09
-_SCROLL_RISER_PUSH_FRAMES = (
-    (
-        "                ",
-        "                ",
-        "           ↑↑↑  ",
-    ),
-    (
-        "                ",
-        "           ↑↑↑  ",
-        "                ",
-    ),
-    (
-        "           ↑↑↑  ",
-        "                ",
-        "                ",
-    ),
-)
-_SCROLL_RISER_FIRST_FRAMES = (
-    (
-        "                ",
-        "                ",
-        "            ↑   ",
-    ),
-    (
-        "                ",
-        "                ",
-        "           ↑↑↑  ",
-    ),
+class _MoveChoice(NamedTuple):
+    rule_index: int
+    rule: MoveRule
+    intent: str
+    note: str
+    score: float
+
+
+_MOVE_INTENT_ORDER = (
+    "Finish",
+    "Big swing",
+    "Set up position",
+    "Safe offense",
+    "Reset / recover",
+    "Pressure",
 )
 
+
+def _move_choice_details(
+    state: MatchState, actor_idx: int, rule_index: int, rule: MoveRule
+) -> _MoveChoice:
+    m = rule.move
+    target_idx = 1 - actor_idx
+    hp_frac = state.health[actor_idx] / max(1, state.wrestlers[actor_idx].max_health)
+    target_hp_frac = state.health[target_idx] / max(
+        1, state.wrestlers[target_idx].max_health
+    )
+    score = float(m.base_damage * 2 + m.momentum_gain * 7 - m.difficulty * 2)
+
+    if m.is_pin:
+        return _MoveChoice(
+            rule_index,
+            rule,
+            "Finish",
+            "try to end it now; stronger when they're worn down",
+            120.0 + (1.0 - target_hp_frac) * 40.0,
+        )
+    if m.is_finisher:
+        return _MoveChoice(
+            rule_index,
+            rule,
+            "Finish",
+            "cash in momentum for a match-ending swing",
+            105.0 + score,
+        )
+
+    if m.id in {"shake_groggy", "desperation_strike"}:
+        return _MoveChoice(
+            rule_index,
+            rule,
+            "Reset / recover",
+            "clear the haze before they punish you",
+            100.0,
+        )
+    if m.id in {"get_up", "escape_corner", "feet_plant", "dismount_top"}:
+        return _MoveChoice(
+            rule_index,
+            rule,
+            "Reset / recover",
+            "get back to a safer ring position",
+            85.0,
+        )
+    if m.id == "recover":
+        return _MoveChoice(
+            rule_index,
+            rule,
+            "Reset / recover",
+            "small stamina recovery; low risk, low tempo",
+            20.0 + (1.0 - hp_frac) * 35.0,
+        )
+
+    if (
+        m.target_after in (BodyPosition.CORNER, BodyPosition.RUNNING_ROPES)
+        or m.actor_after in (BodyPosition.TOP_ROPE, BodyPosition.RUNNING_ROPES)
+        or m.is_climb
+        or m.is_hit_ropes
+        or m.grants_rebound
+        or m.id in {"pickup", "drag_to_center", "pull_off_top"}
+    ):
+        return _MoveChoice(
+            rule_index,
+            rule,
+            "Set up position",
+            "changes ring position to unlock a stronger follow-up",
+            65.0 + score,
+        )
+
+    if m.requires_target_groggy or m.difficulty >= 5 or m.base_damage >= 17:
+        return _MoveChoice(
+            rule_index,
+            rule,
+            "Big swing",
+            "riskier hit, but it can flip the match",
+            70.0 + score,
+        )
+
+    if m.difficulty <= 3 and m.base_damage <= 10:
+        return _MoveChoice(
+            rule_index,
+            rule,
+            "Safe offense",
+            "steady damage and momentum without overcommitting",
+            55.0 + score,
+        )
+
+    return _MoveChoice(
+        rule_index,
+        rule,
+        "Pressure",
+        "keep control and build toward a bigger chance",
+        45.0 + score,
+    )
+
+
+def _curate_move_choices(
+    state: MatchState,
+    actor_idx: int,
+    options: Sequence[tuple[int, MoveRule]],
+    *,
+    max_choices: int = 5,
+) -> list[_MoveChoice]:
+    choices = [
+        _move_choice_details(state, actor_idx, rule_index, rule)
+        for rule_index, rule in options
+    ]
+    choices.sort(
+        key=lambda ch: (
+            -ch.score,
+            _MOVE_INTENT_ORDER.index(ch.intent)
+            if ch.intent in _MOVE_INTENT_ORDER
+            else len(_MOVE_INTENT_ORDER),
+        )
+    )
+    if len(choices) <= max_choices:
+        return sorted(
+            choices,
+            key=lambda ch: (
+                _MOVE_INTENT_ORDER.index(ch.intent)
+                if ch.intent in _MOVE_INTENT_ORDER
+                else len(_MOVE_INTENT_ORDER),
+                -ch.score,
+            ),
+        )
+
+    selected: list[_MoveChoice] = []
+    selected_ids: set[str] = set()
+    pin_choice = next((ch for ch in choices if ch.rule.move.is_pin), None)
+    if pin_choice is not None:
+        selected.append(pin_choice)
+        selected_ids.add(pin_choice.rule.move.id)
+
+    for intent in _MOVE_INTENT_ORDER:
+        intent_choices = [
+            ch
+            for ch in choices
+            if ch.intent == intent and ch.rule.move.id not in selected_ids
+        ]
+        if not intent_choices:
+            continue
+        pick = intent_choices[0]
+        selected.append(pick)
+        selected_ids.add(pick.rule.move.id)
+        if len(selected) >= max_choices:
+            break
+
+    for choice in choices:
+        if len(selected) >= max_choices:
+            break
+        if choice.rule.move.id not in selected_ids:
+            selected.append(choice)
+            selected_ids.add(choice.rule.move.id)
+
+    return sorted(
+        selected,
+        key=lambda ch: (
+            _MOVE_INTENT_ORDER.index(ch.intent)
+            if ch.intent in _MOVE_INTENT_ORDER
+            else len(_MOVE_INTENT_ORDER),
+            -ch.score,
+        ),
+    )
+
+
 # Pause between one wrestler's move and the next (same round).
-_MOVE_GAP_BETWEEN_TURNS_SEC = 1.0
+_MOVE_GAP_BETWEEN_TURNS_SEC = 0.5
+_MOVE_LOG_SCROLL_DELAY_SEC = 1.0
 
 
 class FixedLayoutRenderer:
@@ -92,9 +243,9 @@ class FixedLayoutRenderer:
     Set ``use_color=False`` for dumb terminals; color is auto-disabled when stdout
     is not a TTY.
 
-    When ``animate_move_log`` is True (default), a short multi-line rising-arrow cue
-    plays above the action log after each move (skipped for non-TTY stdout). Pass
-    False to avoid extra redraws and sleeps (e.g. tests or slow links).
+    When ``animate_move_log`` is True (default), new action-log lines auto-scroll
+    upward one line at a time (skipped for non-TTY stdout). Pass False to avoid
+    extra redraws and sleeps (e.g. tests or slow links).
     """
 
     def __init__(
@@ -108,7 +259,7 @@ class FixedLayoutRenderer:
         self._animate_move_log = animate_move_log
         self._action_chain: list[_ActionBlock] = []
         self._instruction_heading = "Choose your move!"
-        self._move_log_riser_lines: tuple[str, ...] | None = None
+        self._action_log_override_lines: list[str] | None = None
         self._state: MatchState | None = None
         self._names: tuple[str, str] | None = None
         self._player_turn = True
@@ -241,21 +392,21 @@ class FixedLayoutRenderer:
         else:
             print(f"{c.bold}{c.accent}{h}{c.reset}")
 
-    def _print_action_block(
+    def _action_block_lines(
         self,
         block: _ActionBlock,
         wrap_w: int,
         c: _Palette,
         use_ansi: bool,
-    ) -> None:
+    ) -> list[str]:
         col = c.player if block.is_player else c.cpu
         if self._names is not None:
             label = self._names[0] if block.is_player else self._names[1]
         else:
             label = "You" if block.is_player else "CPU"
-        print(f"  {col}{label} uses {block.move_name}!{c.reset}")
+        lines = [f"  {col}{label} uses {block.move_name}!{c.reset}"]
         if not block.log_text or not block.log_text.strip():
-            return
+            return lines
         for raw in block.log_text.splitlines():
             if not raw.strip():
                 continue
@@ -266,7 +417,32 @@ class FixedLayoutRenderer:
                     self._cpu_nick,
                     use_ansi=use_ansi,
                 )
-                print(f"    {colored}")
+                lines.append(f"    {colored}")
+        return lines
+
+    def _action_log_lines(
+        self,
+        wrap_w: int,
+        c: _Palette,
+        use_ansi: bool,
+        *,
+        action_chain: Sequence[_ActionBlock] | None = None,
+    ) -> list[str]:
+        chain = self._action_chain if action_chain is None else action_chain
+        if not chain:
+            return [f"  {c.dim}(no actions yet){c.reset}"]
+        lines: list[str] = []
+        for block in chain:
+            lines.extend(self._action_block_lines(block, wrap_w, c, use_ansi))
+            lines.append("")
+        return lines
+
+    def _current_action_log_lines(self) -> list[str]:
+        c = self._c
+        inner = self._width() - 4
+        wrap_w = max(20, inner - 4)
+        use_ansi = bool(self._c.player)
+        return self._action_log_lines(wrap_w, c, use_ansi)
 
     def _on_sigwinch(self, signum: int, frame: object | None) -> None:
         """Redraw the current full-screen layout when the terminal is resized (POSIX)."""
@@ -327,15 +503,12 @@ class FixedLayoutRenderer:
         wrap_w = max(20, inner - 4)
         use_ansi = bool(self._c.player)
         self._print_instruction_heading(c)
-        if self._move_log_riser_lines is not None:
-            for rl in self._move_log_riser_lines:
-                print(f"  {c.dim}{rl}{c.reset}")
-        if not self._action_chain:
-            print(f"  {c.dim}(no actions yet){c.reset}")
+        if self._action_log_override_lines is not None:
+            for line in self._action_log_override_lines:
+                print(line)
         else:
-            for block in self._action_chain:
-                self._print_action_block(block, wrap_w, c, use_ansi)
-                print()
+            for line in self._action_log_lines(wrap_w, c, use_ansi):
+                print(line)
         print(c.dim + self._rule("─") + c.reset)
 
         if bottom_extra:
@@ -460,7 +633,7 @@ class FixedLayoutRenderer:
         self._player_turn_starts = 0
         self._action_chain = []
         self._instruction_heading = "Choose your move!"
-        self._move_log_riser_lines = None
+        self._action_log_override_lines = None
         self._player_nick = ""
         self._cpu_nick = ""
 
@@ -492,14 +665,14 @@ class FixedLayoutRenderer:
     ) -> None:
         self._player_nick = player_nickname
         self._cpu_nick = cpu_nickname
-        before_len = len(self._action_chain)
+        old_lines = self._current_action_log_lines()
         self._push_action_block(
             is_player=actor_is_player, move_name=move_name, log_text=text
         )
         self._instruction_heading = (
             "> CPU TURN..." if actor_is_player else "Choose your move!"
         )
-        self._play_move_log_scroll_cue(before_len)
+        self._play_move_log_scroll(old_lines)
 
     def _pin_sleep(self, sec: float) -> None:
         if sec > 0 and sys.stdout.isatty():
@@ -542,22 +715,34 @@ class FixedLayoutRenderer:
         )
         self._redraw_match()
 
-    def _play_move_log_scroll_cue(self, chain_len_before_push: int) -> None:
-        """Brief multi-line rising-arrow cue: stronger when an older block is on screen."""
+    def _new_action_log_lines(
+        self, old_lines: Sequence[str], new_lines: Sequence[str]
+    ) -> list[str]:
+        overlap_len = 0
+        max_overlap = min(len(old_lines), len(new_lines))
+        for n in range(max_overlap, 0, -1):
+            if list(old_lines[-n:]) == list(new_lines[:n]):
+                overlap_len = n
+                break
+        return list(new_lines[overlap_len:]) or list(new_lines[-1:])
+
+    def _play_move_log_scroll(self, old_lines: Sequence[str]) -> None:
+        """Animate new log lines by shifting the visible log upward one row per line."""
+        new_lines = self._current_action_log_lines()
         if not self._animate_move_log or not sys.stdout.isatty():
-            self._move_log_riser_lines = None
+            self._action_log_override_lines = None
             self._redraw_match()
             return
-        frames = (
-            _SCROLL_RISER_PUSH_FRAMES
-            if chain_len_before_push >= 1
-            else _SCROLL_RISER_FIRST_FRAMES
-        )
-        for triple in frames:
-            self._move_log_riser_lines = triple
+
+        frame_lines = list(old_lines)
+        viewport_h = max(len(old_lines), len(new_lines))
+        frame_lines += [""] * max(0, viewport_h - len(frame_lines))
+        for line in self._new_action_log_lines(old_lines, new_lines):
+            frame_lines = (frame_lines + [line])[-viewport_h:]
+            self._action_log_override_lines = frame_lines
             self._redraw_match()
-            time.sleep(_SCROLL_RISER_FRAME_DELAY_SEC)
-        self._move_log_riser_lines = None
+            time.sleep(_MOVE_LOG_SCROLL_DELAY_SEC)
+        self._action_log_override_lines = None
         self._redraw_match()
 
     def wait_between_moves(self) -> None:
@@ -607,19 +792,28 @@ class FixedLayoutRenderer:
             self.fatal_no_valid_moves()
             raise SystemExit(1)
         c = self._c
-        n_opts = len(options)
+        choices = _curate_move_choices(state, actor_idx, options)
+        n_opts = len(choices)
         err = ""
         while True:
             lines: list[str] = [
-                f"{c.bold}Your moves{c.reset}",
+                f"{c.bold}Your plan{c.reset}",
+                f"{c.dim}Showing curated options so each choice has a clear job.{c.reset}",
                 "",
             ]
-            for j, (_ix, rule) in enumerate(options, start=1):
+            last_intent = ""
+            for j, choice in enumerate(choices, start=1):
+                rule = choice.rule
                 m = rule.move
-                hint = f" — {m.description}" if len(m.description) < 60 else ""
+                if choice.intent != last_intent:
+                    if last_intent:
+                        lines.append("")
+                    lines.append(f"  {c.dim}{choice.intent}{c.reset}")
+                    last_intent = choice.intent
                 lbl = move_landing_probability_label(state, actor_idx, rule)
                 lines.append(
-                    f"  {c.accent}{j}.{c.reset} {m.name}{hint}  {c.dim}[{lbl}]{c.reset}"
+                    f"    {c.accent}{j}.{c.reset} {m.name}  "
+                    f"{c.dim}[{lbl}] — {choice.note}{c.reset}"
                 )
             lines.append("")
             if err:
@@ -635,7 +829,7 @@ class FixedLayoutRenderer:
             if raw.isdigit():
                 n = int(raw)
                 if 1 <= n <= n_opts:
-                    return options[n - 1][0]
+                    return choices[n - 1].rule_index
             err = "Invalid choice — try again."
 
     def fatal_no_valid_moves(self) -> None:

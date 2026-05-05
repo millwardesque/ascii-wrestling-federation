@@ -419,6 +419,70 @@ def all_move_rules() -> list[MoveRule]:
         ),
         MoveRule(
             Move(
+                id="top_crossbody",
+                name="Diving crossbody",
+                description="Launch from the top — crash into a standing opponent.",
+                actor_top=True,
+                actor_standing=False,
+                target_standing=True,
+                base_damage=17,
+                actor_after=BodyPosition.STANDING,
+                target_after=BodyPosition.GROUNDED,
+                momentum_gain=3,
+                difficulty=4,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="top_crossbody_running",
+                name="Diving crossbody",
+                description="Time the leap as they hit the ropes — harder to catch clean.",
+                actor_top=True,
+                actor_standing=False,
+                target_running_ropes=True,
+                base_damage=17,
+                actor_after=BodyPosition.STANDING,
+                target_after=BodyPosition.GROUNDED,
+                momentum_gain=3,
+                difficulty=5,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="top_missile_dropkick",
+                name="Missile dropkick",
+                description="Both boots from the top rope — knock them flat.",
+                actor_top=True,
+                actor_standing=False,
+                target_standing=True,
+                base_damage=15,
+                actor_after=BodyPosition.STANDING,
+                target_after=BodyPosition.GROUNDED,
+                momentum_gain=3,
+                difficulty=4,
+                targets_head=True,
+                causes_groggy_on_stand=True,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="top_missile_dropkick_running",
+                name="Missile dropkick",
+                description="Pick them off the rebound — spectacular, but timing is tight.",
+                actor_top=True,
+                actor_standing=False,
+                target_running_ropes=True,
+                base_damage=15,
+                actor_after=BodyPosition.STANDING,
+                target_after=BodyPosition.GROUNDED,
+                momentum_gain=3,
+                difficulty=5,
+                targets_head=True,
+                causes_groggy_on_stand=True,
+            )
+        ),
+        MoveRule(
+            Move(
                 id="top_rope_punch",
                 name="Top-rope brawl shot",
                 description="Trade leather on the buckle — both fighting for balance.",

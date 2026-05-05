@@ -120,6 +120,8 @@ ROSTER: dict[str, Wrestler] = {
     ),
 }
 
+PLAYABLE_ROSTER_IDS = ("bret_hart", "scott_hall")
+
 
 def list_roster() -> list[Wrestler]:
-    return list(ROSTER.values())
+    return [ROSTER[wrestler_id] for wrestler_id in PLAYABLE_ROSTER_IDS]

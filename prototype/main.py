@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import argparse
 import random
 import secrets
 
@@ -10,6 +11,27 @@ from game import MatchState, apply_move, cpu_choose_rule
 from render import MatchRenderer, ReturnToTitle
 from render_fixed import FixedLayoutRenderer
 from wrestlers import ROSTER, list_roster
+
+
+def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="ASCII Wrestling Federation terminal prototype"
+    )
+    parser.add_argument(
+        "--random-match",
+        "--quick-match",
+        action="store_true",
+        help="skip title/player selection and start one match with random playable wrestlers",
+    )
+    return parser.parse_args(argv)
+
+
+def _random_match_ids() -> tuple[str, str]:
+    roster = list_roster()
+    if len(roster) < 2:
+        raise SystemExit("Need at least two playable wrestlers for --random-match.")
+    player, cpu = random.sample(roster, 2)
+    return player.id, cpu.id
 
 
 def run_match(player_id: str, cpu_id: str, ui: MatchRenderer) -> None:
@@ -95,14 +117,21 @@ def run_match(player_id: str, cpu_id: str, ui: MatchRenderer) -> None:
         ui.show_status(state, names)
 
 
-def main(ui: MatchRenderer | None = None) -> None:
+def main(ui: MatchRenderer | None = None, argv: list[str] | None = None) -> None:
+    args = _parse_args([] if ui is not None and argv is None else argv)
     renderer = ui if ui is not None else FixedLayoutRenderer()
+    if args.random_match:
+        pid, cid = _random_match_ids()
+        run_match(pid, cid, renderer)
+        renderer.wait_after_match()
+        return
+
     while True:
         renderer.show_title()
         try:
             roster = list_roster()
             pid = renderer.choose_wrestler(roster)
-            cpu_keys = [k for k in ROSTER if k != pid]
+            cpu_keys = [w.id for w in roster if w.id != pid]
             cid = random.choice(cpu_keys)
             renderer.show_opponent_chosen(ROSTER[cid])
             run_match(pid, cid, renderer)
