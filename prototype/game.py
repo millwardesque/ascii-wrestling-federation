@@ -6,12 +6,9 @@ import math
 import random
 from dataclasses import dataclass, field
 
+from config import get_config
 from moves import BodyPosition, Move, MoveRule, all_move_rules, move_valid
 from wrestlers import Wrestler
-
-# Pin count pacing (UI); outcome is pre-computed before any delay.
-_PIN_DELAY_AFTER_COUNT_1_SEC = 1.0
-_PIN_DELAY_AFTER_COUNT_2_SEC = 1.5
 
 # Hit probability: p = clamp(BASE + k_mom*momentum - k_diff*difficulty + ... , P_MIN, P_MAX)
 # Tuned so high-difficulty moves fail more at low momentum / healthy defender — but clean hits
@@ -506,10 +503,11 @@ def _plan_pin(state: MatchState, actor_idx: int, rng: random.Random | None) -> t
             break
 
         line = f"  Referee: {count}…"
+        timing = get_config().timing
         delay_after = (
-            _PIN_DELAY_AFTER_COUNT_1_SEC
+            timing.pin_delay_after_count_1_sec
             if count == 1
-            else _PIN_DELAY_AFTER_COUNT_2_SEC
+            else timing.pin_delay_after_count_2_sec
         )
         steps.append(([line], delay_after))
         if kicks_out:

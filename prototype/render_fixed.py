@@ -16,6 +16,7 @@ import time
 from typing import NamedTuple, Sequence
 
 from awf_logo import AWF_LOGO_LINES, INTRO_LINES, PROMPT_LINE
+from config import get_config
 from game import MatchState, PinSequence, move_landing_probability_label
 from moves import BodyPosition, MoveRule
 from render import (
@@ -227,11 +228,6 @@ def _curate_move_choices(
             -ch.score,
         ),
     )
-
-
-# Pause between one wrestler's move and the next (same round).
-_MOVE_GAP_BETWEEN_TURNS_SEC = 0.5
-_MOVE_LOG_SCROLL_DELAY_SEC = 1.0
 
 
 class FixedLayoutRenderer:
@@ -741,13 +737,13 @@ class FixedLayoutRenderer:
             frame_lines = (frame_lines + [line])[-viewport_h:]
             self._action_log_override_lines = frame_lines
             self._redraw_match()
-            time.sleep(_MOVE_LOG_SCROLL_DELAY_SEC)
+            time.sleep(get_config().timing.move_log_scroll_delay_sec)
         self._action_log_override_lines = None
         self._redraw_match()
 
     def wait_between_moves(self) -> None:
         if sys.stdout.isatty():
-            time.sleep(_MOVE_GAP_BETWEEN_TURNS_SEC)
+            time.sleep(get_config().timing.move_gap_between_turns_sec)
 
     def show_match_result_player_wins(self) -> None:
         self._end_screen("You win the match.", win=True)
