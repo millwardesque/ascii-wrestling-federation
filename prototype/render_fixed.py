@@ -58,6 +58,7 @@ class _MoveChoice(NamedTuple):
 _MOVE_INTENT_ORDER = (
     "Finish",
     "Big swing",
+    "Grapple control",
     "Set up position",
     "Safe offense",
     "Reset / recover",
@@ -116,6 +117,23 @@ def _move_choice_details(
             "Reset / recover",
             "small stamina recovery; low risk, low tempo",
             20.0 + (1.0 - hp_frac) * 35.0,
+        )
+
+    if m.id == "collar_elbow":
+        return _MoveChoice(
+            rule_index,
+            rule,
+            "Grapple control",
+            "enter a tie-up to unlock throws and whips",
+            78.0 + score,
+        )
+    if m.target_grappled:
+        return _MoveChoice(
+            rule_index,
+            rule,
+            "Grapple control",
+            "pay off the tie-up with a control move",
+            76.0 + score,
         )
 
     if (

@@ -15,6 +15,7 @@ class BodyPosition(Enum):
     GROUNDED = "grounded"
     CORNER = "cornered"
     TOP_ROPE = "top_rope"
+    GRAPPLED = "grappled"
 
 
 @dataclass(frozen=True)
@@ -28,11 +29,13 @@ class Move:
     actor_rebound: bool = False
     actor_grounded_only: bool = False  # e.g. kick out / stand up
     actor_corner_only: bool = False  # fight out of turnbuckles
+    actor_grappled_only: bool = False  # break or counter a tie-up
     # Target position required
     target_standing: bool | None = None  # None = any
     target_grounded: bool | None = None
     target_corner: bool | None = None
     target_top: bool | None = None  # True => opponent on top rope
+    target_grappled: bool | None = None
     target_running_ropes: bool | None = None  # True => opponent is running the ropes
     # Effects
     base_damage: int = 0
@@ -95,10 +98,22 @@ def all_move_rules() -> list[MoveRule]:
     return [
         MoveRule(
             Move(
-                id="lock_up",
+                id="collar_elbow",
+                name="Collar-and-elbow tie-up",
+                description="Lock horns and fight for control.",
+                target_standing=True,
+                base_damage=0,
+                target_after=BodyPosition.GRAPPLED,
+                momentum_gain=1,
+                difficulty=2,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="turnbuckle_whip",
                 name="Whip into the turnbuckle",
                 description="Drive them backward into the corner.",
-                target_standing=True,
+                target_grappled=True,
                 base_damage=6,
                 target_after=BodyPosition.CORNER,
                 momentum_gain=1,
@@ -136,11 +151,48 @@ def all_move_rules() -> list[MoveRule]:
                 id="irish_whip",
                 name="Irish whip",
                 description="Send them flying — they're running the ropes on the return.",
-                target_standing=True,
+                target_grappled=True,
                 base_damage=3,
                 target_after=BodyPosition.RUNNING_ROPES,
                 momentum_gain=2,
                 difficulty=2,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="arm_drag",
+                name="Arm drag",
+                description="Use the tie-up to send them rolling to the mat.",
+                target_grappled=True,
+                base_damage=7,
+                target_after=BodyPosition.GROUNDED,
+                momentum_gain=2,
+                difficulty=2,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="hip_toss",
+                name="Hip toss",
+                description="Turn the lock-up into a clean throw.",
+                target_grappled=True,
+                base_damage=9,
+                target_after=BodyPosition.GROUNDED,
+                momentum_gain=2,
+                difficulty=3,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="side_headlock",
+                name="Side headlock",
+                description="Clamp down from the tie-up and grind out control.",
+                target_grappled=True,
+                base_damage=5,
+                momentum_gain=2,
+                difficulty=2,
+                targets_head=True,
+                causes_groggy=True,
             )
         ),
         MoveRule(
@@ -802,6 +854,33 @@ def all_move_rules() -> list[MoveRule]:
         ),
         MoveRule(
             Move(
+                id="break_grapple",
+                name="Break the grapple",
+                description="Peel their hands away and reset to neutral.",
+                actor_grappled_only=True,
+                actor_standing=False,
+                base_damage=0,
+                actor_after=BodyPosition.STANDING,
+                momentum_gain=0,
+                difficulty=1,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="grapple_counter",
+                name="Grapple counter",
+                description="Reverse the tie-up with a short shot and reset.",
+                actor_grappled_only=True,
+                actor_standing=False,
+                target_standing=True,
+                base_damage=4,
+                actor_after=BodyPosition.STANDING,
+                momentum_gain=1,
+                difficulty=3,
+            )
+        ),
+        MoveRule(
+            Move(
                 id="get_up",
                 name="Fight to your feet",
                 description="Clear your head and stand — you need the ring back.",
@@ -873,6 +952,9 @@ def move_valid(
     if m.actor_corner_only:
         if actor_pos != BodyPosition.CORNER:
             return False
+    elif m.actor_grappled_only:
+        if actor_pos != BodyPosition.GRAPPLED:
+            return False
     elif m.actor_grounded_only:
         if actor_pos != BodyPosition.GROUNDED:
             return False
@@ -904,6 +986,8 @@ def move_valid(
     if m.target_corner is True and target_pos != BodyPosition.CORNER:
         return False
     if m.target_top is True and target_pos != BodyPosition.TOP_ROPE:
+        return False
+    if m.target_grappled is True and target_pos != BodyPosition.GRAPPLED:
         return False
     if m.target_running_ropes is True and target_pos != BodyPosition.RUNNING_ROPES:
         return False

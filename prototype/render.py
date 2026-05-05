@@ -60,6 +60,7 @@ def position_label(p: BodyPosition) -> str:
         BodyPosition.GROUNDED: "on the mat",
         BodyPosition.CORNER: "in the corner",
         BodyPosition.TOP_ROPE: "on the TOP ROPE",
+        BodyPosition.GRAPPLED: "locked up",
     }[p]
 
 

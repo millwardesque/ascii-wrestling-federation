@@ -566,6 +566,10 @@ def _cpu_rule_score(state: MatchState, cpu_idx: int, r: MoveRule) -> float:
         s += 45
     if m.id == "escape_corner":
         s += 100
+    if m.id == "break_grapple":
+        s += 100
+    if m.id == "grapple_counter":
+        s += 80
     if state.cpu_last_move_id is not None and m.id == state.cpu_last_move_id:
         s -= _CPU_VARIETY_PENALTY
     if m.is_finisher:
