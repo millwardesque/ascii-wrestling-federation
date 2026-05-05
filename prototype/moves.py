@@ -96,13 +96,13 @@ def all_move_rules() -> list[MoveRule]:
         MoveRule(
             Move(
                 id="lock_up",
-                name="Collar-and-elbow lock-up",
-                description="Classic tie-up; shove into the corner.",
+                name="Whip into the turnbuckle",
+                description="Drive them backward into the corner.",
                 target_standing=True,
-                base_damage=4,
+                base_damage=6,
                 target_after=BodyPosition.CORNER,
                 momentum_gain=1,
-                difficulty=1,
+                difficulty=3,
             )
         ),
         MoveRule(
