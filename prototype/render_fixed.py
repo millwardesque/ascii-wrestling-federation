@@ -750,7 +750,7 @@ class FixedLayoutRenderer:
 
         frame_lines = list(old_lines)
         viewport_h = max(len(old_lines), len(new_lines))
-        frame_lines += [""] * max(0, viewport_h - len(frame_lines))
+        # frame_lines += [""] * max(0, viewport_h - len(frame_lines))
         for line in self._new_action_log_lines(old_lines, new_lines):
             frame_lines = (frame_lines + [line])[-viewport_h:]
             self._action_log_override_lines = frame_lines
