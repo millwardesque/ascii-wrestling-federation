@@ -4,7 +4,6 @@
 
 ### Gameplay & rules
 
-- Submissions
 - Weapons
 - Fight on the floor
 - Stunned state
