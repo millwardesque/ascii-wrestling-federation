@@ -116,7 +116,11 @@ class MatchRenderer(Protocol):
         ...
 
     def show_status(self, state: MatchState, display_names: tuple[str, str]) -> None:
-        """HP, position, momentum, rebound — called each update."""
+        """HP, position, momentum — called each update."""
+        ...
+
+    def record_momentum(self, state: MatchState) -> None:
+        """Record one momentum chart sample after both wrestlers have acted."""
         ...
 
     def round_header(self, is_player_turn: bool) -> None:

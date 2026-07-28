@@ -105,6 +105,8 @@ def run_match(player_id: str, cpu_id: str, ui: MatchRenderer) -> None:
                 move_name=cpu_rule.move.name,
             )
 
+        ui.record_momentum(state)
+
         if winner is not None:
             if winner == 0:
                 ui.show_match_result_player_wins()

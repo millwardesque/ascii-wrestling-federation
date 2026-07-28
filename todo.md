@@ -6,7 +6,6 @@
 
 - Weapons
 - Fight on the floor
-- Stunned state
 - Per-wrestler movesets
 - Tag-team matches
 
