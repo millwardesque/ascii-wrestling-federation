@@ -26,7 +26,6 @@ class Move:
     # Actor position required
     actor_standing: bool = True
     actor_top: bool = False
-    actor_rebound: bool = False
     actor_grounded_only: bool = False  # e.g. kick out / stand up
     actor_corner_only: bool = False  # fight out of turnbuckles
     actor_grappled_only: bool = False  # break or counter a tie-up
@@ -44,8 +43,6 @@ class Move:
     # After move: where actor ends (if not specified, stays standing)
     actor_after: BodyPosition | None = None
     target_after: BodyPosition | None = None
-    # Sets rebound for actor's NEXT offensive action (then consumed)
-    grants_rebound: bool = False
     # Climb — only from standing, ends on top rope
     is_climb: bool = False
     # Hit the ropes — only from standing, ends running the ropes
@@ -105,7 +102,7 @@ def all_move_rules() -> list[MoveRule]:
                 target_standing=True,
                 base_damage=0,
                 target_after=BodyPosition.GRAPPLED,
-                momentum_gain=1,
+                momentum_gain=0,
                 difficulty=2,
             )
         ),
@@ -934,7 +931,6 @@ def move_valid(
     target: Wrestler,
     actor_pos: BodyPosition,
     target_pos: BodyPosition,
-    actor_has_rebound: bool,
     actor_momentum: int = 0,
     *,
     actor_groggy: bool = False,
@@ -963,9 +959,6 @@ def move_valid(
             return False
     elif m.actor_grounded_only:
         if actor_pos != BodyPosition.GROUNDED:
-            return False
-    elif m.actor_rebound:
-        if not actor_has_rebound or actor_pos != BodyPosition.STANDING:
             return False
     elif m.actor_top:
         if actor_pos != BodyPosition.TOP_ROPE:

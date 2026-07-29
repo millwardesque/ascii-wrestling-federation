@@ -66,6 +66,33 @@ _MOVE_INTENT_ORDER = (
 )
 
 
+def _momentum_chart_lines(
+    history: Sequence[tuple[int, int]],
+    width: int,
+    c: "_Palette",
+) -> list[str]:
+    lines = [
+        f"{c.bold}Momentum trend{c.reset} {c.dim}(end of CPU turns){c.reset}"
+    ]
+    if not history:
+        lines.append(f"  {c.dim}(no full exchanges yet){c.reset}")
+        return lines
+
+    max_level = 5
+    label_w = 4
+    max_cols = max(8, width - label_w - 3)
+    samples = list(history[-max_cols:])
+    axis = "─" * len(samples)
+    for level in range(max_level, 0, -1):
+        bars = "".join("█" if player >= level else " " for player, _ in samples)
+        lines.append(f"{c.player}{level:>3}{c.reset} │{c.player}{bars}{c.reset}")
+    lines.append(f"{c.dim}  0 ┼{axis}{c.reset}")
+    for level in range(1, max_level + 1):
+        bars = "".join("█" if cpu >= level else " " for _, cpu in samples)
+        lines.append(f"{c.cpu}{-level:>3}{c.reset} │{c.cpu}{bars}{c.reset}")
+    return lines
+
+
 def _move_choice_details(
     state: MatchState, actor_idx: int, rule_index: int, rule: MoveRule
 ) -> _MoveChoice:
@@ -86,11 +113,14 @@ def _move_choice_details(
             120.0 + (1.0 - target_hp_frac) * 40.0,
         )
     if m.is_finisher:
+        note = "cash in momentum for a match-ending swing"
+        if state.groggy[target_idx]:
+            note = "TARGET GROGGY: cash in for a match-ending swing"
         return _MoveChoice(
             rule_index,
             rule,
             "Finish",
-            "cash in momentum for a match-ending swing",
+            note,
             105.0 + score,
         )
 
@@ -103,11 +133,14 @@ def _move_choice_details(
             100.0,
         )
     if m.id in {"get_up", "escape_corner", "feet_plant", "dismount_top"}:
+        note = "get back to a safer ring position"
+        if m.id == "get_up":
+            note = "stand before they cover you; misses build escape momentum"
         return _MoveChoice(
             rule_index,
             rule,
             "Reset / recover",
-            "get back to a safer ring position",
+            note,
             85.0,
         )
     if m.id == "recover":
@@ -124,7 +157,7 @@ def _move_choice_details(
             rule_index,
             rule,
             "Grapple control",
-            "enter a tie-up to unlock throws and whips",
+            "enter a tie-up to unlock throws and whips; repeat loops lose steam",
             78.0 + score,
         )
     if m.target_grappled:
@@ -141,7 +174,6 @@ def _move_choice_details(
         or m.actor_after in (BodyPosition.TOP_ROPE, BodyPosition.RUNNING_ROPES)
         or m.is_climb
         or m.is_hit_ropes
-        or m.grants_rebound
         or m.id in {"pickup", "drag_to_center", "pull_off_top"}
     ):
         return _MoveChoice(
@@ -149,16 +181,23 @@ def _move_choice_details(
             rule,
             "Set up position",
             "changes ring position to unlock a stronger follow-up",
-            65.0 + score,
+            72.0 + score,
         )
 
     if m.requires_target_groggy or m.difficulty >= 5 or m.base_damage >= 17:
+        note = "riskier hit, but it can flip the match"
+        if m.requires_target_groggy and state.groggy[target_idx]:
+            note = "TARGET GROGGY payoff: heavy damage is available now"
+        if m.actor_top:
+            note = "top-rope payoff: high risk, huge crowd pop"
+        elif m.actor_running_ropes_only or m.target_running_ropes:
+            note = "rope sprint payoff: capitalize while they're on the ropes"
         return _MoveChoice(
             rule_index,
             rule,
             "Big swing",
-            "riskier hit, but it can flip the match",
-            70.0 + score,
+            note,
+            82.0 + score,
         )
 
     if m.difficulty <= 3 and m.base_damage <= 10:
@@ -272,6 +311,7 @@ class FixedLayoutRenderer:
         self._input = input_fn or _default_input
         self._animate_move_log = animate_move_log
         self._action_chain: list[_ActionBlock] = []
+        self._momentum_history: list[tuple[int, int]] = []
         self._instruction_heading = "Choose your move!"
         self._action_log_override_lines: list[str] | None = None
         self._state: MatchState | None = None
@@ -458,6 +498,15 @@ class FixedLayoutRenderer:
         use_ansi = bool(self._c.player)
         return self._action_log_lines(wrap_w, c, use_ansi)
 
+    def _print_momentum_chart(
+        self,
+        history: Sequence[tuple[int, int]],
+        w: int,
+        c: _Palette,
+    ) -> None:
+        for line in _momentum_chart_lines(history, w, c):
+            print(line)
+
     def _on_sigwinch(self, signum: int, frame: object | None) -> None:
         """Redraw the current full-screen layout when the terminal is resized (POSIX)."""
         if self._sigwinch_busy:
@@ -512,6 +561,8 @@ class FixedLayoutRenderer:
         if self._state is not None and self._names is not None:
             self._print_wrestler_header_panel(self._state, self._names, w, c)
 
+        print(c.dim + self._rule("─") + c.reset)
+        self._print_momentum_chart(self._momentum_history, w, c)
         print(c.dim + self._rule("─") + c.reset)
         inner = w - 4
         wrap_w = max(20, inner - 4)
@@ -646,6 +697,7 @@ class FixedLayoutRenderer:
         self._match_seed = match_seed
         self._player_turn_starts = 0
         self._action_chain = []
+        self._momentum_history = []
         self._instruction_heading = "Choose your move!"
         self._action_log_override_lines = None
         self._player_nick = ""
@@ -654,6 +706,10 @@ class FixedLayoutRenderer:
     def show_status(self, state: MatchState, display_names: tuple[str, str]) -> None:
         self._state = state
         self._names = display_names
+        self._redraw_match()
+
+    def record_momentum(self, state: MatchState) -> None:
+        self._momentum_history.append((state.momentum[0], state.momentum[1]))
         self._redraw_match()
 
     def round_header(self, is_player_turn: bool) -> None:

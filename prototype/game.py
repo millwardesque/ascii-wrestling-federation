@@ -1,4 +1,4 @@
-"""Match flow: positions, rebound, damage, and pinfall resolution."""
+"""Match flow: positions, damage, and pinfall resolution."""
 
 from __future__ import annotations
 
@@ -28,9 +28,10 @@ _FINISHER_HIT_BONUS_MAX = 0.05
 _FINISHER_WEAR_FULL_AT_DAMAGE_FRAC = 0.32  # e.g. ~32% of combined pool lost → full bonus
 
 # "Fight to your feet" — extra modifiers on top of the global hit formula (get_up only)
-_GET_UP_BASE_BONUS = 0.06  # small edge vs strikes; beatdown / finisher shock do most of the work
-_GET_UP_BEATDOWN_PENALTY = 0.42  # multiplied by (1 - HP fraction); worse when badly hurt
+_GET_UP_BASE_BONUS = 0.12  # slightly easier than strikes; still scary when hurt or rocked
+_GET_UP_BEATDOWN_PENALTY = 0.30  # multiplied by (1 - HP fraction); worse when badly hurt
 _GET_UP_FINISH_SHOCK_K = 0.072  # per stack; stacks when you eat a finisher's damage
+_GET_UP_FAIL_RELIEF_BONUS = 0.18  # repeated misses build escape momentum instead of dead turns
 
 # Rare easter egg: successful head-targeting hit may blood the defender for the rest of the match
 _BLOODIED_CHANCE = 0.018
@@ -65,7 +66,6 @@ class MatchState:
     wrestlers: tuple[Wrestler, Wrestler]
     health: list[int] = field(default_factory=list)
     position: list[BodyPosition] = field(default_factory=list)
-    rebound: list[bool] = field(default_factory=list)
     momentum: list[int] = field(default_factory=list)
     bloodied: list[bool] = field(default_factory=list)
     rules: list[MoveRule] = field(default_factory=all_move_rules)
@@ -80,14 +80,16 @@ class MatchState:
     groggy_opponent_actions_left: list[int] = field(default_factory=list)
     # After certain slams/finishers while grounded; applies groggy when victim next stands (get_up or pickup).
     pending_groggy: list[bool] = field(default_factory=list)
+    # Failed get-up attempts increase the next get-up chance and can grant escape momentum.
+    get_up_fail_streak: list[int] = field(default_factory=list)
+    # Increases when neutral tie-up/break repeats; payoffs reset it, loops start helping the defender.
+    grapple_loop_pressure: int = 0
 
     def __post_init__(self) -> None:
         if not self.health:
             self.health = [w.max_health for w in self.wrestlers]
         if not self.position:
             self.position = [BodyPosition.STANDING, BodyPosition.STANDING]
-        if not self.rebound:
-            self.rebound = [False, False]
         if not self.momentum:
             self.momentum = [0, 0]
         if not self.bloodied:
@@ -102,6 +104,8 @@ class MatchState:
             self.groggy_opponent_actions_left = [0, 0]
         if not self.pending_groggy:
             self.pending_groggy = [False, False]
+        if not self.get_up_fail_streak:
+            self.get_up_fail_streak = [0, 0]
 
     def valid_rules(self, actor_idx: int) -> list[tuple[int, MoveRule]]:
         actor = self.wrestlers[actor_idx]
@@ -114,7 +118,6 @@ class MatchState:
                 target,
                 self.position[actor_idx],
                 self.position[1 - actor_idx],
-                self.rebound[actor_idx],
                 self.momentum[actor_idx],
                 actor_groggy=self.groggy[actor_idx],
                 target_groggy=self.groggy[1 - actor_idx],
@@ -174,6 +177,8 @@ def hit_probability(state: MatchState, actor_idx: int, rule: MoveRule) -> float:
         p += _GET_UP_BASE_BONUS
         p -= _GET_UP_BEATDOWN_PENALTY * (1.0 - att_hp)
         p -= _GET_UP_FINISH_SHOCK_K * float(state.finisher_shock[actor_idx])
+        if m.id == "get_up":
+            p += _GET_UP_FAIL_RELIEF_BONUS * min(2, state.get_up_fail_streak[actor_idx])
     if m.is_finisher:
         p += _FINISHER_HIT_BONUS_MAX * _finisher_wear_fraction(state)
     return max(_HIT_P_MIN, min(_HIT_P_MAX, p))
@@ -312,13 +317,10 @@ def apply_move(
 
     was_groggy_before_hit = state.groggy[tgt]
 
-    if m.grants_rebound:
-        state.rebound[actor_idx] = True
-
     if m.base_damage > 0:
         top = m.actor_top or m.id.startswith("top_")
         dmg = _damage_with_stats(
-            m.base_damage, actor, target, agility_bonus=top or m.actor_rebound or m.actor_running_ropes_only
+            m.base_damage, actor, target, agility_bonus=top or m.actor_running_ropes_only
         )
         state.health[tgt] = max(1, state.health[tgt] - dmg)
         lines.append(
@@ -340,7 +342,18 @@ def apply_move(
         state.position[tgt] = m.target_after
 
     if m.base_damage > 0 and (not was_groggy_before_hit or m.causes_groggy_on_stand):
-        _try_apply_groggy_after_damage(state, m, tgt, rng, was_groggy_before_hit)
+        applied_groggy = _try_apply_groggy_after_damage(
+            state, m, tgt, rng, was_groggy_before_hit
+        )
+        if applied_groggy:
+            if m.causes_groggy_on_stand:
+                lines.append(
+                    f"  {target.nickname} is rattled — when they're forced up, big payoffs may open."
+                )
+            else:
+                lines.append(
+                    f"  {target.nickname} is GROGGY — power moves and finishers are live!"
+                )
 
     if m.id == "desperation_strike":
         state.groggy[actor_idx] = False
@@ -349,6 +362,7 @@ def apply_move(
 
     immediate_groggy_from_stand_victim: int | None = None
     if m.id == "get_up" and state.position[actor_idx] == BodyPosition.STANDING:
+        state.get_up_fail_streak[actor_idx] = 0
         state.finisher_shock[actor_idx] = max(0, state.finisher_shock[actor_idx] - 1)
         if state.pending_groggy[actor_idx]:
             state.pending_groggy[actor_idx] = False
@@ -371,8 +385,26 @@ def apply_move(
         state.health[actor_idx] = min(cap, state.health[actor_idx] + heal)
         lines.append(f"  {actor.nickname} recovers {heal} stamina.")
 
-    if m.actor_rebound:
-        state.rebound[actor_idx] = False
+    pressure_before_action = state.grapple_loop_pressure
+    if m.id == "collar_elbow":
+        state.grapple_loop_pressure = min(4, state.grapple_loop_pressure + 1)
+        if pressure_before_action >= 2:
+            state.momentum[actor_idx] = max(0, state.momentum[actor_idx] - 1)
+            state.momentum[tgt] = min(5, state.momentum[tgt] + 1)
+            lines.append(
+                f"  The repeated tie-up stalls out — {target.nickname} gains escape momentum."
+            )
+    elif m.id == "break_grapple":
+        state.grapple_loop_pressure = min(4, state.grapple_loop_pressure + 1)
+        if pressure_before_action >= 2:
+            state.momentum[actor_idx] = min(5, state.momentum[actor_idx] + 1)
+            lines.append(
+                f"  {actor.nickname} uses the stale tie-up to reset with momentum."
+            )
+    elif m.target_grappled or m.id == "grapple_counter":
+        state.grapple_loop_pressure = 0
+    else:
+        state.grapple_loop_pressure = 0
 
     gain = min(5, state.momentum[actor_idx] + m.momentum_gain)
     state.momentum[actor_idx] = gain
@@ -413,7 +445,7 @@ def _resolve_miss(
     rule: MoveRule,
     rng: random.Random | None,
 ) -> list[str]:
-    """Failed hit: no position change, optional chip damage, momentum shift, consume rebound."""
+    """Failed hit: no position change, optional chip damage, momentum shift."""
     m = rule.move
     tgt = 1 - actor_idx
     actor = state.wrestlers[actor_idx]
@@ -421,8 +453,19 @@ def _resolve_miss(
     lines: list[str] = []
 
     if m.id == "get_up":
+        state.get_up_fail_streak[actor_idx] = min(
+            3, state.get_up_fail_streak[actor_idx] + 1
+        )
+        if state.get_up_fail_streak[actor_idx] >= 2:
+            state.momentum[actor_idx] = min(5, state.momentum[actor_idx] + 1)
+            lines.append(
+                f"  {actor.nickname} tries to rise but can't find it — still down and vulnerable, "
+                "but the crowd is pulling them up."
+            )
+            lines.append(f"  Escape momentum builds for {actor.nickname}.")
+            return lines
         lines.append(
-            f"  {actor.nickname} tries to rise but can't find it — still on the mat!"
+            f"  {actor.nickname} tries to rise but can't find it — still down and vulnerable to a cover!"
         )
         state.momentum[actor_idx] = max(0, state.momentum[actor_idx] - 1)
         return lines
@@ -441,16 +484,13 @@ def _resolve_miss(
         state.momentum[actor_idx] = max(0, state.momentum[actor_idx] - 1)
         return lines
 
-    if m.actor_rebound:
-        state.rebound[actor_idx] = False
-
     if m.base_damage > 0:
         chip = max(1, m.base_damage // 8)
         top = m.actor_top or m.id.startswith("top_")
         dmg = min(
             chip,
             _damage_with_stats(
-                chip, actor, target, agility_bonus=top or m.actor_rebound or m.actor_running_ropes_only
+                chip, actor, target, agility_bonus=top or m.actor_running_ropes_only
             ),
         )
         state.health[tgt] = max(1, state.health[tgt] - dmg)
@@ -637,15 +677,27 @@ def _cpu_rule_score(state: MatchState, cpu_idx: int, r: MoveRule) -> float:
         s = float(m.base_damage) + m.momentum_gain * 1.5
 
     if m.actor_top and m.target_grounded:
-        s += 15
+        s += 24
     if m.actor_top and m.target_top:
-        s += 22
-    if m.actor_rebound:
-        s += 6
+        s += 28
+    if m.actor_running_ropes_only:
+        s += 10
+    if m.target_running_ropes:
+        s += 12
     if m.id == "dismount_top":
         s -= 5
-    if m.id == "recover" and state.health[cpu_idx] > state.wrestlers[cpu_idx].max_health * 0.6:
-        s -= 10
+    if m.id == "collar_elbow":
+        s -= float(state.grapple_loop_pressure) * 18.0
+    if m.target_grappled:
+        s += 12.0
+    if m.id == "recover":
+        hp_frac = state.health[cpu_idx] / max(1, state.wrestlers[cpu_idx].max_health)
+        if hp_frac > 0.8:
+            s -= 80
+        elif hp_frac > 0.6:
+            s -= 45
+        else:
+            s += (1.0 - hp_frac) * 25.0
     if m.id == "get_up":
         s += 100
     if m.id == "shake_groggy":
@@ -655,9 +707,9 @@ def _cpu_rule_score(state: MatchState, cpu_idx: int, r: MoveRule) -> float:
     if m.id == "escape_corner":
         s += 100
     if m.id == "break_grapple":
-        s += 100
+        s += 65 - float(state.grapple_loop_pressure) * 8.0
     if m.id == "grapple_counter":
-        s += 80
+        s += 90
     if state.cpu_last_move_id is not None and m.id == state.cpu_last_move_id:
         s -= _CPU_VARIETY_PENALTY
     if m.is_finisher:

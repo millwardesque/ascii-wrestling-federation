@@ -7,6 +7,7 @@ import unittest
 
 from game import (
     MatchState,
+    _cpu_rule_score,
     _softmax_sample_index,
     apply_move,
     cpu_choose_rule,
@@ -131,6 +132,22 @@ class TestApplyMoveStochastic(unittest.TestCase):
         apply_move(st, 0, gu, rng)
         self.assertEqual(st.position[0], BodyPosition.GROUNDED)
 
+    def test_repeated_get_up_misses_build_escape_momentum(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        st.position[0] = BodyPosition.GROUNDED
+        gu = _rule_by_id("get_up")
+
+        first_p = hit_probability(st, 0, gu)
+        log1, _, _ = apply_move(st, 0, gu, _SeqRng([min(1.0, first_p + 0.2)]))
+        second_p = hit_probability(st, 0, gu)
+        log2, _, _ = apply_move(st, 0, gu, _SeqRng([min(1.0, second_p + 0.1)]))
+
+        self.assertIn("vulnerable to a cover", log1)
+        self.assertIn("Escape momentum builds", log2)
+        self.assertEqual(st.get_up_fail_streak[0], 2)
+        self.assertEqual(st.momentum[0], 1)
+        self.assertGreater(second_p, first_p)
+
     def test_irish_whip_miss_does_not_send_opponent_running(self) -> None:
         self.state.position[1] = BodyPosition.GRAPPLED
         whip = _rule_by_id("irish_whip")
@@ -146,7 +163,6 @@ class TestApplyMoveStochastic(unittest.TestCase):
         rng = _SeqRng([max(0.0, p - 0.2)])
         apply_move(self.state, 0, whip, rng)
         self.assertEqual(self.state.position[1], BodyPosition.RUNNING_ROPES)
-        self.assertFalse(self.state.rebound[0])
 
     def test_miss_does_not_apply_ground_transition(self) -> None:
         self.state.groggy[1] = True
@@ -190,6 +206,30 @@ class TestApplyMoveStochastic(unittest.TestCase):
         rng = _SeqRng([max(0.0, p - 0.2), 0.5, 0.99])
         apply_move(st, 1, punch, rng)
         self.assertEqual(st.cpu_last_move_id, "punch")
+
+    def test_repeated_grapple_loop_grants_defender_momentum(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        st.grapple_loop_pressure = 2
+        collar = _rule_by_id("collar_elbow")
+        p = hit_probability(st, 0, collar)
+
+        log, _, _ = apply_move(st, 0, collar, _SeqRng([max(0.0, p - 0.2)]))
+
+        self.assertEqual(st.position[1], BodyPosition.GRAPPLED)
+        self.assertEqual(st.momentum[0], 0)
+        self.assertEqual(st.momentum[1], 1)
+        self.assertIn("repeated tie-up stalls out", log)
+
+    def test_grapple_payoff_resets_loop_pressure(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        st.position[1] = BodyPosition.GRAPPLED
+        st.grapple_loop_pressure = 3
+        arm_drag = _rule_by_id("arm_drag")
+        p = hit_probability(st, 0, arm_drag)
+
+        apply_move(st, 0, arm_drag, _SeqRng([max(0.0, p - 0.2)]))
+
+        self.assertEqual(st.grapple_loop_pressure, 0)
 
 
 class TestPinUnchanged(unittest.TestCase):
@@ -268,6 +308,23 @@ class TestCpuExpectedValue(unittest.TestCase):
         r = cpu_choose_rule(st, 1)
         self.assertIsInstance(r, MoveRule)
 
+    def test_cpu_discourages_healthy_recover(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        recover_score = _cpu_rule_score(st, 1, _rule_by_id("recover"))
+        punch_score = _cpu_rule_score(st, 1, _rule_by_id("punch"))
+
+        self.assertLess(recover_score, punch_score)
+
+    def test_cpu_prefers_grapple_counter_over_stale_break(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        st.position[1] = BodyPosition.GRAPPLED
+        st.grapple_loop_pressure = 3
+
+        break_score = _cpu_rule_score(st, 1, _rule_by_id("break_grapple"))
+        counter_score = _cpu_rule_score(st, 1, _rule_by_id("grapple_counter"))
+
+        self.assertGreater(counter_score, break_score)
+
 
 class TestGroggy(unittest.TestCase):
     def test_punch_hit_applies_groggy_to_target(self) -> None:
@@ -276,9 +333,10 @@ class TestGroggy(unittest.TestCase):
         p = hit_probability(st, 0, punch)
         # hit roll, bloodied roll, groggy proc roll (0.0 → success)
         rng = _SeqRng([max(0.0, p - 0.2), 0.5, 0.0])
-        apply_move(st, 0, punch, rng)
+        log, _, _ = apply_move(st, 0, punch, rng)
         self.assertTrue(st.groggy[1])
         self.assertEqual(st.groggy_opponent_actions_left[1], 2)
+        self.assertIn("GROGGY", log)
 
     def test_punch_hit_may_not_proc_groggy(self) -> None:
         st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
