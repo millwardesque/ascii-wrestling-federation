@@ -1,0 +1,8 @@
+{
+  "timing": {
+    "move_gap_between_turns_sec": 0.0,
+    "move_log_scroll_delay_sec": 0.0,
+    "pin_delay_after_count_1_sec": 0.0,
+    "pin_delay_after_count_2_sec": 0.0
+  }
+}

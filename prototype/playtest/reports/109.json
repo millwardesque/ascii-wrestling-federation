@@ -1,0 +1,81 @@
+{
+  "rubric_version": "2026-07-30",
+  "meta": {
+    "match_seed": 109,
+    "wrestlers": [
+      "bret_hart",
+      "scott_hall"
+    ],
+    "player_policy": "novice",
+    "turn_count": 69,
+    "winner": "player"
+  },
+  "telemetry": {
+    "gates_passed": false,
+    "gate_failures": [
+      "turn_count 69 outside band [8, 40]"
+    ],
+    "turn_count": 69,
+    "winner": "player",
+    "reason": "submission",
+    "near_fall_count": 0,
+    "curation_pin_visible": true,
+    "log_uniqueness_ratio": 0.4231,
+    "move_repetition_rate": 0.4,
+    "position_diversity": 9,
+    "single_choice_turns": 1,
+    "match_seed": 109,
+    "wrestlers": [
+      "bret_hart",
+      "scott_hall"
+    ],
+    "player_policy": "novice"
+  },
+  "scores": {
+    "fun": {
+      "value": 3,
+      "confidence": "medium",
+      "evidence": [
+        {
+          "turn": 1,
+          "note": "repetition=0.4, near_falls=0"
+        }
+      ]
+    },
+    "ease_of_use": {
+      "value": 2,
+      "confidence": "medium",
+      "evidence": [
+        {
+          "turn": 1,
+          "note": "gates_passed=False"
+        }
+      ]
+    },
+    "stickiness": {
+      "value": 3,
+      "confidence": "medium",
+      "evidence": [
+        {
+          "turn": 1,
+          "note": "position_diversity=9, turn_count=69"
+        }
+      ],
+      "rematch_intent": "maybe",
+      "rematch_reason": "Pilot heuristic from telemetry anchors.",
+      "next_experiment": "Try aggressive policy on same seed."
+    },
+    "juiciness": {
+      "value": 2,
+      "confidence": "medium",
+      "evidence": [
+        {
+          "turn": 1,
+          "note": "near_fall_count=0"
+        }
+      ]
+    }
+  },
+  "top_issues": [],
+  "highlight_moments": []
+}

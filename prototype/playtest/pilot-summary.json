@@ -1,0 +1,72 @@
+[
+  {
+    "seed": 101,
+    "policy": "novice",
+    "turn_count": 43,
+    "winner": "player",
+    "gates_passed": false
+  },
+  {
+    "seed": 102,
+    "policy": "aggressive",
+    "turn_count": 119,
+    "winner": "player",
+    "gates_passed": false
+  },
+  {
+    "seed": 103,
+    "policy": "methodical",
+    "turn_count": 248,
+    "winner": "cpu",
+    "gates_passed": false
+  },
+  {
+    "seed": 104,
+    "policy": "chaotic",
+    "turn_count": 35,
+    "winner": "player",
+    "gates_passed": true
+  },
+  {
+    "seed": 105,
+    "policy": "novice",
+    "turn_count": 39,
+    "winner": "player",
+    "gates_passed": true
+  },
+  {
+    "seed": 106,
+    "policy": "aggressive",
+    "turn_count": 38,
+    "winner": "cpu",
+    "gates_passed": true
+  },
+  {
+    "seed": 107,
+    "policy": "methodical",
+    "turn_count": 238,
+    "winner": "cpu",
+    "gates_passed": false
+  },
+  {
+    "seed": 108,
+    "policy": "chaotic",
+    "turn_count": 21,
+    "winner": "player",
+    "gates_passed": true
+  },
+  {
+    "seed": 109,
+    "policy": "novice",
+    "turn_count": 69,
+    "winner": "player",
+    "gates_passed": false
+  },
+  {
+    "seed": 110,
+    "policy": "aggressive",
+    "turn_count": 28,
+    "winner": "cpu",
+    "gates_passed": true
+  }
+]

@@ -10,7 +10,10 @@ import secrets
 from game import MatchState, apply_move, cpu_choose_rule
 from render import MatchRenderer, ReturnToTitle
 from render_fixed import FixedLayoutRenderer
+from render_playtest import PlaytestRenderer
 from wrestlers import ROSTER, list_roster
+
+PLAYTEST_POLICIES = ("novice", "aggressive", "methodical", "chaotic")
 
 
 def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -23,24 +26,58 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         action="store_true",
         help="skip title/player selection and start one match with random playable wrestlers",
     )
+    parser.add_argument(
+        "--playtest",
+        action="store_true",
+        help="headless JSONL transcript mode for cloud-agent playtesting",
+    )
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=None,
+        help="match RNG seed (playtest / reproducible runs)",
+    )
+    parser.add_argument(
+        "--max-turns",
+        type=int,
+        default=None,
+        help="stop after N actor moves (exploratory playtests)",
+    )
+    parser.add_argument(
+        "--policy",
+        choices=PLAYTEST_POLICIES,
+        default="chaotic",
+        help="automated player policy for --playtest",
+    )
     return parser.parse_args(argv)
 
 
-def _random_match_ids() -> tuple[str, str]:
+def _random_match_ids(rng: random.Random | None = None) -> tuple[str, str]:
     roster = list_roster()
     if len(roster) < 2:
         raise SystemExit("Need at least two playable wrestlers for --random-match.")
-    player, cpu = random.sample(roster, 2)
+    source = rng or random
+    player, cpu = source.sample(roster, 2)
     return player.id, cpu.id
 
 
-def run_match(player_id: str, cpu_id: str, ui: MatchRenderer) -> None:
+def run_match(
+    player_id: str,
+    cpu_id: str,
+    ui: MatchRenderer,
+    *,
+    match_seed: int | None = None,
+    max_turns: int | None = None,
+) -> int | None:
+    """Run one match. Returns winner index (0 player, 1 CPU) or None if capped."""
     pw = ROSTER[player_id]
     cw = ROSTER[cpu_id]
-    match_seed = secrets.randbits(63)
+    if match_seed is None:
+        match_seed = secrets.randbits(63)
     random.seed(match_seed)
     state = MatchState(wrestlers=(pw, cw))
     names = ("YOU (" + pw.nickname + ")", "CPU (" + cw.nickname + ")")
+    playtest = isinstance(ui, PlaytestRenderer)
 
     ui.match_start_banner(match_seed=match_seed)
     ui.show_status(state, names)
@@ -56,7 +93,12 @@ def run_match(player_id: str, cpu_id: str, ui: MatchRenderer) -> None:
 
         log, winner, pin_seq = apply_move(state, 0, player_rule)
         ui.show_status(state, names)
-        if pin_seq is not None:
+        if playtest:
+            ui.record_player_turn(state, player_rule, log, pin_seq)
+            if ui.aborted:
+                ui.emit_max_turns_end()
+                return None
+        elif pin_seq is not None:
             ui.show_pin_sequence(
                 pin_seq,
                 player_nickname=pw.nickname,
@@ -78,7 +120,7 @@ def run_match(player_id: str, cpu_id: str, ui: MatchRenderer) -> None:
                 ui.show_match_result_player_wins()
             else:
                 ui.show_match_result_cpu_wins()
-            return
+            return winner
 
         ui.wait_between_moves()
 
@@ -88,7 +130,12 @@ def run_match(player_id: str, cpu_id: str, ui: MatchRenderer) -> None:
 
         log, winner, pin_seq = apply_move(state, 1, cpu_rule)
         ui.show_status(state, names)
-        if pin_seq is not None:
+        if playtest:
+            ui.record_cpu_turn(state, cpu_rule, log, pin_seq)
+            if ui.aborted:
+                ui.emit_max_turns_end()
+                return None
+        elif pin_seq is not None:
             ui.show_pin_sequence(
                 pin_seq,
                 player_nickname=pw.nickname,
@@ -112,15 +159,44 @@ def run_match(player_id: str, cpu_id: str, ui: MatchRenderer) -> None:
                 ui.show_match_result_player_wins()
             else:
                 ui.show_match_result_cpu_wins()
-            return
+            return winner
 
         ui.wait_between_moves()
 
         ui.show_status(state, names)
 
+        if max_turns is not None and playtest and ui.turn_count >= max_turns:
+            ui.emit_max_turns_end()
+            return None
+
+    return None
+
 
 def main(ui: MatchRenderer | None = None, argv: list[str] | None = None) -> None:
     args = _parse_args([] if ui is not None and argv is None else argv)
+
+    if args.playtest:
+        rng = random.Random(args.seed) if args.seed is not None else random.Random()
+        if args.seed is not None:
+            pid, cid = _random_match_ids(rng)
+        else:
+            pid, cid = _random_match_ids()
+        match_seed = args.seed if args.seed is not None else rng.randrange(1 << 30)
+        renderer = PlaytestRenderer(
+            policy=args.policy,
+            max_turns=args.max_turns,
+            wrestler_ids=(pid, cid),
+            rng=random.Random(match_seed),
+        )
+        run_match(
+            pid,
+            cid,
+            renderer,
+            match_seed=match_seed,
+            max_turns=args.max_turns,
+        )
+        return
+
     renderer = ui if ui is not None else FixedLayoutRenderer()
     if args.random_match:
         pid, cid = _random_match_ids()

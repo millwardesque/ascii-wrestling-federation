@@ -1,0 +1,147 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://awf.local/schemas/playtest-report.json",
+  "title": "AWF Playtest Judge Report",
+  "type": "object",
+  "required": ["rubric_version", "meta", "telemetry", "scores"],
+  "properties": {
+    "rubric_version": { "type": "string" },
+    "meta": {
+      "type": "object",
+      "required": [
+        "match_seed",
+        "wrestlers",
+        "player_policy",
+        "turn_count",
+        "winner"
+      ],
+      "properties": {
+        "match_seed": { "type": "integer" },
+        "wrestlers": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "player_policy": { "type": "string" },
+        "turn_count": { "type": "integer", "minimum": 0 },
+        "winner": {
+          "type": ["string", "null"],
+          "enum": ["player", "cpu", null]
+        }
+      },
+      "additionalProperties": false
+    },
+    "telemetry": {
+      "type": "object",
+      "required": [
+        "gates_passed",
+        "turn_count",
+        "near_fall_count",
+        "curation_pin_visible",
+        "log_uniqueness_ratio",
+        "move_repetition_rate",
+        "position_diversity",
+        "single_choice_turns"
+      ],
+      "properties": {
+        "gates_passed": { "type": "boolean" },
+        "gate_failures": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "turn_count": { "type": "integer" },
+        "near_fall_count": { "type": "integer" },
+        "curation_pin_visible": { "type": "boolean" },
+        "log_uniqueness_ratio": { "type": "number" },
+        "move_repetition_rate": { "type": "number" },
+        "position_diversity": { "type": "integer" },
+        "single_choice_turns": { "type": "integer" }
+      },
+      "additionalProperties": true
+    },
+    "scores": {
+      "type": "object",
+      "required": ["fun", "ease_of_use", "stickiness", "juiciness"],
+      "properties": {
+        "fun": { "$ref": "#/$defs/dimension_score" },
+        "ease_of_use": { "$ref": "#/$defs/dimension_score" },
+        "stickiness": { "$ref": "#/$defs/stickiness_score" },
+        "juiciness": { "$ref": "#/$defs/dimension_score" }
+      },
+      "additionalProperties": false
+    },
+    "top_issues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["severity", "dimension", "summary"],
+        "properties": {
+          "severity": { "type": "string", "enum": ["minor", "major", "critical"] },
+          "dimension": { "type": "string" },
+          "summary": { "type": "string" },
+          "suggested_area": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "highlight_moments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["turn", "type", "quote"],
+        "properties": {
+          "turn": { "type": "integer" },
+          "type": { "type": "string" },
+          "quote": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "evidence_item": {
+      "type": "object",
+      "required": ["turn", "note"],
+      "properties": {
+        "turn": { "type": "integer" },
+        "note": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "dimension_score": {
+      "type": "object",
+      "required": ["value", "confidence", "evidence"],
+      "properties": {
+        "value": { "type": "integer", "minimum": 1, "maximum": 5 },
+        "confidence": {
+          "type": "string",
+          "enum": ["high", "medium", "low"]
+        },
+        "evidence": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/evidence_item" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "stickiness_score": {
+      "allOf": [
+        { "$ref": "#/$defs/dimension_score" },
+        {
+          "type": "object",
+          "required": ["rematch_intent", "rematch_reason", "next_experiment"],
+          "properties": {
+            "rematch_intent": {
+              "type": "string",
+              "enum": ["yes", "maybe", "no"]
+            },
+            "rematch_reason": { "type": "string" },
+            "next_experiment": { "type": "string" }
+          }
+        }
+      ]
+    }
+  }
+}

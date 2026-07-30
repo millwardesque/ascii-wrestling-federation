@@ -3,12 +3,23 @@
 from __future__ import annotations
 
 import json
+import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 
-_CONFIG_PATH = Path(__file__).with_name("config.json")
+def _default_config_path() -> Path:
+    override = os.environ.get("AWF_CONFIG_PATH")
+    if override:
+        path = Path(override)
+        if not path.is_absolute():
+            path = Path(__file__).with_name(override)
+        return path
+    return Path(__file__).with_name("config.json")
+
+
+_CONFIG_PATH = _default_config_path()
 
 
 @dataclass(frozen=True)

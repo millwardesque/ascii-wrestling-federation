@@ -1,0 +1,153 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://awf.local/schemas/playtest-transcript.json",
+  "title": "AWF Playtest Transcript (JSONL)",
+  "description": "One JSON object per line emitted by --playtest mode.",
+  "oneOf": [
+    { "$ref": "#/$defs/match_start" },
+    { "$ref": "#/$defs/turn" },
+    { "$ref": "#/$defs/match_end" }
+  ],
+  "$defs": {
+    "wrestler_ids": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "choice": {
+      "type": "object",
+      "required": ["index", "rule_index", "intent", "move", "label", "note"],
+      "properties": {
+        "index": { "type": "integer", "minimum": 1 },
+        "rule_index": { "type": "integer", "minimum": 0 },
+        "intent": { "type": "string" },
+        "move": { "type": "string" },
+        "move_id": { "type": "string" },
+        "label": { "type": "string" },
+        "note": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "state_snapshot": {
+      "type": "object",
+      "required": ["health", "momentum", "position", "groggy"],
+      "properties": {
+        "health": {
+          "type": "array",
+          "items": { "type": "integer" },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "momentum": {
+          "type": "array",
+          "items": { "type": "integer" },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "position": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "groggy": {
+          "type": "array",
+          "items": { "type": "boolean" },
+          "minItems": 2,
+          "maxItems": 2
+        }
+      },
+      "additionalProperties": false
+    },
+    "finish_sequence": {
+      "type": "object",
+      "required": ["type", "heading", "won", "text", "steps"],
+      "properties": {
+        "type": { "type": "string", "enum": ["pinfall", "submission"] },
+        "heading": { "type": "string" },
+        "won": { "type": "boolean" },
+        "text": { "type": "string" },
+        "steps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["lines", "delay_sec"],
+            "properties": {
+              "lines": { "type": "array", "items": { "type": "string" } },
+              "delay_sec": { "type": "number", "minimum": 0 }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "match_start": {
+      "type": "object",
+      "required": ["event", "match_seed", "wrestlers", "player_policy"],
+      "properties": {
+        "event": { "const": "match_start" },
+        "match_seed": { "type": "integer" },
+        "wrestlers": { "$ref": "#/$defs/wrestler_ids" },
+        "player_policy": {
+          "type": "string",
+          "enum": ["novice", "aggressive", "methodical", "chaotic"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "turn": {
+      "type": "object",
+      "required": [
+        "event",
+        "turn",
+        "actor",
+        "match_seed",
+        "move",
+        "move_id",
+        "choices",
+        "selected_index",
+        "log",
+        "outcome",
+        "state"
+      ],
+      "properties": {
+        "event": { "const": "turn" },
+        "turn": { "type": "integer", "minimum": 1 },
+        "actor": { "type": "string", "enum": ["player", "cpu"] },
+        "match_seed": { "type": "integer" },
+        "move": { "type": "string" },
+        "move_id": { "type": "string" },
+        "choices": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/choice" }
+        },
+        "selected_index": { "type": "integer", "minimum": 1 },
+        "log": { "type": "string" },
+        "outcome": { "type": "string" },
+        "state": { "$ref": "#/$defs/state_snapshot" },
+        "finish_sequence": { "$ref": "#/$defs/finish_sequence" }
+      },
+      "additionalProperties": false
+    },
+    "match_end": {
+      "type": "object",
+      "required": ["event", "match_seed", "turn_count", "winner", "reason"],
+      "properties": {
+        "event": { "const": "match_end" },
+        "match_seed": { "type": "integer" },
+        "turn_count": { "type": "integer", "minimum": 0 },
+        "winner": {
+          "type": ["string", "null"],
+          "enum": ["player", "cpu", null]
+        },
+        "reason": {
+          "type": "string",
+          "enum": ["pinfall", "submission", "max_turns", "no_valid_moves"]
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
