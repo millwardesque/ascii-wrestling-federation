@@ -13,6 +13,8 @@ Batch seeded headless matches, compute telemetry, and optionally invoke judge ag
 
 ## Step 1 — Record transcripts (deterministic)
 
+Use the **awf-playtest-player** skill (`/awf-playtest-player`) or run:
+
 ```bash
 cd prototype
 python3 playtest/record_match.py \
@@ -44,7 +46,9 @@ PY
 
 ## Step 3 — Judge agents (parallel)
 
-Launch one cloud agent per seed with [`.cursor/playtest-judge.md`](../playtest-judge.md) instructions.
+Launch one cloud agent per seed with the **awf-playtest-judge** skill (`/awf-playtest-judge`).
+
+See [`.cursor/skills/awf-playtest-judge/SKILL.md`](../skills/awf-playtest-judge/SKILL.md).
 
 Each agent receives:
 

@@ -119,7 +119,10 @@ Return JSON matching docs/playtest-report.schema.json.
 Include rubric_version: "2026-07-30".
 ```
 
-See also [`.cursor/playtest-judge.md`](../.cursor/playtest-judge.md).
+Agent skills (invoke explicitly):
+
+- Player: [`.cursor/skills/awf-playtest-player/SKILL.md`](../.cursor/skills/awf-playtest-player/SKILL.md) — `/awf-playtest-player`
+- Judge: [`.cursor/skills/awf-playtest-judge/SKILL.md`](../.cursor/skills/awf-playtest-judge/SKILL.md) — `/awf-playtest-judge`
 
 ---
 

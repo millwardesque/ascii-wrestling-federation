@@ -39,3 +39,8 @@ All timing keys in that file are `0.0`.
 
 - Transcript: [`docs/playtest-transcript.schema.json`](../docs/playtest-transcript.schema.json)
 - Judge report: [`docs/playtest-report.schema.json`](../docs/playtest-report.schema.json)
+
+## Agent skills
+
+- **Player:** `/awf-playtest-player` — [`.cursor/skills/awf-playtest-player/SKILL.md`](../../.cursor/skills/awf-playtest-player/SKILL.md)
+- **Judge:** `/awf-playtest-judge` — [`.cursor/skills/awf-playtest-judge/SKILL.md`](../../.cursor/skills/awf-playtest-judge/SKILL.md)
