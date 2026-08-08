@@ -29,20 +29,10 @@ Policies to rotate across runs: `novice`, `aggressive`, `methodical`, `chaotic`.
 
 ```bash
 cd prototype
-python3 - <<'PY'
-import json
-from pathlib import Path
-from playtest.telemetry import compute_telemetry, load_transcript_lines
-
-out = Path("playtest/telemetry")
-out.mkdir(parents=True, exist_ok=True)
-for path in sorted(Path("playtest/transcripts").glob("*.jsonl")):
-    rows = load_transcript_lines(path)
-    payload = compute_telemetry(rows)
-    (out / f"{path.stem}.json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
-    print(path.stem, "PASS" if payload["gates_passed"] else "FAIL", payload.get("gate_failures"))
-PY
+python3 playtest/compute_telemetry.py
 ```
+
+Writes `playtest/telemetry/<seed>.json` for each file in `playtest/transcripts/`.
 
 ## Step 3 — Judge agents (parallel)
 
