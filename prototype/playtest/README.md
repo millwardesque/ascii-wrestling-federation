@@ -7,7 +7,8 @@ Headless JSONL output for cloud-agent playtesting. See [`docs/playtest-rubric.md
 ```bash
 cd prototype
 python3 main.py --playtest --seed 42 --policy methodical
-python3 playtest/record_match.py --seeds 1,2,3 --output-dir playtest/transcripts --telemetry
+python3 playtest/record_match.py --seeds 1,2,3 --output-dir playtest/transcripts
+python3 playtest/compute_telemetry.py
 ```
 
 ## CLI flags
