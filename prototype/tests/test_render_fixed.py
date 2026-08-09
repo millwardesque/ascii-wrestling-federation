@@ -5,8 +5,60 @@ from __future__ import annotations
 import unittest
 
 from game import MatchState
-from render_fixed import FixedLayoutRenderer, _Palette, _momentum_chart_lines
+from render_fixed import (
+    FixedLayoutRenderer,
+    _Palette,
+    _curate_move_choices,
+    _momentum_chart_lines,
+)
 from wrestlers import ROSTER
+
+
+class TestStaleMoveCuration(unittest.TestCase):
+    def _menu(self, state: MatchState) -> list[str]:
+        choices = _curate_move_choices(state, 0, state.valid_rules(0))
+        return [ch.rule.move.id for ch in choices]
+
+    def test_fresh_tie_up_is_offered_first(self) -> None:
+        state = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+
+        self.assertEqual(self._menu(state)[0], "collar_elbow")
+
+    def test_stale_tie_up_loses_its_top_slot(self) -> None:
+        state = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        state.grapple_loop_pressure = [3, 0]
+
+        menu = self._menu(state)
+
+        self.assertTrue(menu)
+        self.assertNotEqual(menu[0], "collar_elbow")
+
+    def test_stale_climb_loses_its_slot(self) -> None:
+        state = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        state.setup_loop_pressure = [3, 0]
+
+        menu = self._menu(state)
+        fresh = _curate_move_choices(
+            MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"])),
+            0,
+            MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"])).valid_rules(0),
+        )
+        fresh_ids = [ch.rule.move.id for ch in fresh]
+
+        self.assertIn("climb", fresh_ids)
+        if "climb" in menu:
+            self.assertGreater(menu.index("climb"), fresh_ids.index("climb"))
+
+    def test_stale_move_still_listed_when_nothing_else_is_legal(self) -> None:
+        state = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        state.grapple_loop_pressure = [3, 0]
+        collar = next(
+            (i, r) for i, r in state.valid_rules(0) if r.move.id == "collar_elbow"
+        )
+
+        choices = _curate_move_choices(state, 0, [collar])
+
+        self.assertEqual([ch.rule.move.id for ch in choices], ["collar_elbow"])
 
 
 class TestMomentumChart(unittest.TestCase):

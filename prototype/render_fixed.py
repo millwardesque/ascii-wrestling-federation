@@ -17,7 +17,13 @@ from typing import NamedTuple, Sequence
 
 from awf_logo import AWF_LOGO_LINES, INTRO_LINES, PROMPT_LINE
 from config import get_config
-from game import MatchState, PinSequence, move_landing_probability_label
+from game import (
+    MatchState,
+    PinSequence,
+    loop_pressure_for,
+    move_is_stale,
+    move_landing_probability_label,
+)
 from moves import BodyPosition, MoveRule
 from render import (
     InputFn,
@@ -53,6 +59,8 @@ class _MoveChoice(NamedTuple):
     intent: str
     note: str
     score: float
+    # Loop-taxed right now: never gets an intent slot, so the menu stops recommending it.
+    stale: bool = False
 
 
 _MOVE_INTENT_ORDER = (
@@ -153,16 +161,18 @@ def _move_choice_details(
         )
 
     if m.id == "collar_elbow":
-        pressure = state.grapple_loop_pressure
+        pressure = loop_pressure_for(state, actor_idx, m)
+        stale = move_is_stale(state, actor_idx, m)
         note = "enter a tie-up to unlock throws and whips; repeat loops lose steam"
-        if pressure >= 2:
-            note = "tie-up is going stale — pay it off or reset before they steal momentum"
+        if stale:
+            note = "tie-up is going stale — pay it off or try something else"
         return _MoveChoice(
             rule_index,
             rule,
             "Grapple control",
             note,
             78.0 + score - float(pressure) * 12.0,
+            stale,
         )
     if m.target_grappled:
         return _MoveChoice(
@@ -170,7 +180,7 @@ def _move_choice_details(
             rule,
             "Grapple control",
             "pay off the tie-up with a control move",
-            76.0 + score + float(state.grapple_loop_pressure) * 6.0,
+            76.0 + score + float(state.grapple_loop_pressure[actor_idx]) * 6.0,
         )
 
     if (
@@ -180,22 +190,21 @@ def _move_choice_details(
         or m.is_hit_ropes
         or m.id in {"pickup", "drag_to_center", "pull_off_top"}
     ):
-        setup = state.setup_loop_pressure
+        setup = loop_pressure_for(state, actor_idx, m)
+        stale = move_is_stale(state, actor_idx, m)
         note = "changes ring position to unlock a stronger follow-up"
-        score_adj = 0.0
-        if m.is_climb:
-            score_adj -= float(setup) * 14.0
-            if setup >= 2:
-                note = "they've seen this climb — mix in mat work or cash a top-rope payoff"
-        elif m.id == "dismount_top" and setup >= 2:
-            note = "empty dismounts waste the setup — dive or climb down only to reset"
-            score_adj -= float(setup) * 8.0
+        score_adj = -float(setup) * 14.0
+        if stale and m.is_climb:
+            note = "they've seen this climb — mix in mat work or cash a top-rope payoff"
+        elif stale and m.id == "dismount_top":
+            note = "empty dismounts waste the setup — climb down only when you must"
         return _MoveChoice(
             rule_index,
             rule,
             "Set up position",
             note,
             72.0 + score + score_adj,
+            stale,
         )
 
     if m.requires_target_groggy or m.difficulty >= 5 or m.base_damage >= 17:
@@ -243,24 +252,20 @@ def _curate_move_choices(
         _move_choice_details(state, actor_idx, rule_index, rule)
         for rule_index, rule in options
     ]
-    choices.sort(
-        key=lambda ch: (
-            -ch.score,
-            _MOVE_INTENT_ORDER.index(ch.intent)
-            if ch.intent in _MOVE_INTENT_ORDER
-            else len(_MOVE_INTENT_ORDER),
-        )
-    )
+
+    def _intent_rank(ch: _MoveChoice) -> int:
+        if ch.intent in _MOVE_INTENT_ORDER:
+            return _MOVE_INTENT_ORDER.index(ch.intent)
+        return len(_MOVE_INTENT_ORDER)
+
+    # Stale moves sort last regardless of intent, so a loop-taxed option can never keep
+    # the top slot just because its intent ranks high.
+    def _menu_key(ch: _MoveChoice) -> tuple[int, int, float]:
+        return (1 if ch.stale else 0, _intent_rank(ch), -ch.score)
+
+    choices.sort(key=lambda ch: (1 if ch.stale else 0, -ch.score, _intent_rank(ch)))
     if len(choices) <= max_choices:
-        return sorted(
-            choices,
-            key=lambda ch: (
-                _MOVE_INTENT_ORDER.index(ch.intent)
-                if ch.intent in _MOVE_INTENT_ORDER
-                else len(_MOVE_INTENT_ORDER),
-                -ch.score,
-            ),
-        )
+        return sorted(choices, key=_menu_key)
 
     selected: list[_MoveChoice] = []
     selected_ids: set[str] = set()
@@ -273,7 +278,9 @@ def _curate_move_choices(
         intent_choices = [
             ch
             for ch in choices
-            if ch.intent == intent and ch.rule.move.id not in selected_ids
+            if ch.intent == intent
+            and not ch.stale
+            and ch.rule.move.id not in selected_ids
         ]
         if not intent_choices:
             continue
@@ -290,15 +297,7 @@ def _curate_move_choices(
             selected.append(choice)
             selected_ids.add(choice.rule.move.id)
 
-    return sorted(
-        selected,
-        key=lambda ch: (
-            _MOVE_INTENT_ORDER.index(ch.intent)
-            if ch.intent in _MOVE_INTENT_ORDER
-            else len(_MOVE_INTENT_ORDER),
-            -ch.score,
-        ),
-    )
+    return sorted(selected, key=_menu_key)
 
 
 class FixedLayoutRenderer:
