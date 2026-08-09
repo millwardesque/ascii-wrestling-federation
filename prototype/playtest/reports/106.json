@@ -32,21 +32,45 @@
   "scores": {
     "fun": {
       "value": 2,
-      "confidence": "medium",
+      "confidence": "high",
       "evidence": [
         {
-          "turn": 1,
-          "note": "repetition=0.6316, near_falls=0"
+          "turn": 9,
+          "note": "Player picks Grapple control Collar-and-elbow again after the early reverse war; same intent continues through turn 27 (12 collar-elbows total). Telemetry move_repetition_rate=0.6316."
+        },
+        {
+          "turn": 15,
+          "note": "Log: \"The repeated tie-up stalls out — Hall gains escape momentum.\" Menu already warned \"repeat loops lose steam,\" yet the match stays in the tie-up/counter drain."
+        },
+        {
+          "turn": 26,
+          "note": "After the loop: health [85,130] momentum [0,5] — one-sided snowball with no comeback window before the finish."
+        },
+        {
+          "turn": 38,
+          "note": "First pin attempt is a clean 1-2-3 (near_fall_count=0); finish has no kickout beat after failed get-ups."
         }
       ]
     },
     "ease_of_use": {
-      "value": 3,
-      "confidence": "medium",
+      "value": 4,
+      "confidence": "high",
       "evidence": [
         {
-          "turn": 1,
-          "note": "gates_passed=True"
+          "turn": 9,
+          "note": "Curated intents stay readable (Grapple control / Set up position / Safe offense / Reset) with % labels; collar-elbow note honestly flags \"repeat loops lose steam.\""
+        },
+        {
+          "turn": 15,
+          "note": "Outcome text explains the stall (“repeated tie-up stalls out”), so the loop cost is not hidden status."
+        },
+        {
+          "turn": 35,
+          "note": "When Hall is TOP_ROPE, curation shows Pull off the top rope (55%) alongside climb/ropes/recover — optimal disrupt is visible; player chose Hit the ropes instead (policy, not hidden move)."
+        },
+        {
+          "turn": 31,
+          "note": "Grounded turns offer only Fight to your feet (single_choice_turns=3 across 31/33/37); honest but zero agency. gates_passed / curation_pin_visible=true."
         }
       ]
     },
@@ -55,25 +79,86 @@
       "confidence": "medium",
       "evidence": [
         {
-          "turn": 1,
-          "note": "position_diversity=6, turn_count=38"
+          "turn": 27,
+          "note": "Long collar-elbow ↔ grapple-counter grind makes a straight rematch feel samey under aggressive policy."
+        },
+        {
+          "turn": 36,
+          "note": "Late missile dropkick and pin sequence hint at a better match if offense diversifies earlier — curiosity without strong pull."
         }
       ],
       "rematch_intent": "maybe",
-      "rematch_reason": "Pilot heuristic from telemetry anchors.",
-      "next_experiment": "Try aggressive policy on same seed."
+      "rematch_reason": "Want to see if skipping tie-up spam unlocks the rope/top drama that only appeared in the last 10 turns; the middle loop itself is not replay-worthy.",
+      "next_experiment": "Replay seed 106 with methodical (or force Safe offense / Pull off top when Hall climbs) and compare whether near-falls and HP parity improve vs aggressive grapple spam."
     },
     "juiciness": {
-      "value": 2,
-      "confidence": "medium",
+      "value": 3,
+      "confidence": "high",
       "evidence": [
         {
-          "turn": 1,
-          "note": "near_fall_count=0"
+          "turn": 4,
+          "note": "Early payoff text: \"Hitman reverses the grapple counter — only 1 damage, and turns the tables!\""
+        },
+        {
+          "turn": 10,
+          "note": "Middle stretch flattens into repeated \"Hall snaps off grapple counter — Hitman takes 5 damage\" (also 12/16/18/20/22/24/26); log_uniqueness_ratio=0.5366."
+        },
+        {
+          "turn": 30,
+          "note": "Big spot lands: \"Hall snaps off running dropkick — Hitman takes 18 damage\" → GROUNDED, then elbow drop (12) at turn 32."
+        },
+        {
+          "turn": 38,
+          "note": "Pinfall sequence present with delays_sec 1.0 then 1.5 before count 3, but won=true with no prior near-fall — pin text without kickout drama."
         }
       ]
     }
   },
-  "top_issues": [],
-  "highlight_moments": []
+  "top_issues": [
+    {
+      "severity": "major",
+      "dimension": "fun",
+      "summary": "Aggressive play collapses into a collar-and-elbow ↔ grapple-counter loop (turns ~9–27) that snowballs HP while Hall stays near full; repetition rate 0.63 and no comeback beats.",
+      "suggested_area": "grapple loop diminishing returns / CPU counter reward / curation soft-steer after stall"
+    },
+    {
+      "severity": "major",
+      "dimension": "juiciness",
+      "summary": "near_fall_count=0; match ends on the first cover going straight 1-2-3 after two failed get-ups, so the finish has count pacing but no kickout climax.",
+      "suggested_area": "pin escape / near-fall thresholds when grounded after big spots"
+    },
+    {
+      "severity": "minor",
+      "dimension": "ease_of_use",
+      "summary": "Three single-choice Fight to your feet turns while grounded remove tactical choice even though the prompt is honest.",
+      "suggested_area": "grounded option depth (roll/block/desperation) without hiding pin defense"
+    }
+  ],
+  "highlight_moments": [
+    {
+      "turn": 4,
+      "type": "reversal",
+      "quote": "Hitman reverses the grapple counter — only 1 damage, and turns the tables!"
+    },
+    {
+      "turn": 15,
+      "type": "stall_feedback",
+      "quote": "The repeated tie-up stalls out — Hall gains escape momentum."
+    },
+    {
+      "turn": 30,
+      "type": "big_spot",
+      "quote": "Hall snaps off running dropkick — Hitman takes 18 damage."
+    },
+    {
+      "turn": 36,
+      "type": "finisher_setup",
+      "quote": "Hall snaps off missile dropkick — Hitman takes 18 damage."
+    },
+    {
+      "turn": 38,
+      "type": "pinfall",
+      "quote": "*** PINFALL — Hall wins ***"
+    }
+  ]
 }

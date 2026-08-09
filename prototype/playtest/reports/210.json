@@ -1,0 +1,188 @@
+{
+  "rubric_version": "2026-07-30",
+  "meta": {
+    "match_seed": 210,
+    "wrestlers": ["bret_hart", "scott_hall"],
+    "player_policy": "novice",
+    "turn_count": 57,
+    "winner": "player"
+  },
+  "telemetry": {
+    "gates_passed": false,
+    "gate_failures": ["turn_count 57 outside band [8, 40]"],
+    "turn_count": 57,
+    "near_fall_count": 0,
+    "curation_pin_visible": true,
+    "log_uniqueness_ratio": 0.5821,
+    "move_repetition_rate": 0.2759,
+    "position_diversity": 12,
+    "single_choice_turns": 1,
+    "winner": "player",
+    "reason": "submission"
+  },
+  "scores": {
+    "fun": {
+      "value": 3,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 19,
+          "note": "The loop tax genuinely bit and it changed the match. After tie-ups on 17 and 19 the log reads 'The repeated tie-up stalls out - Hall gains escape momentum.' (player momentum 5 -> 4) and turn 20 pays it off from the other side: 'Hall uses the stale tie-up to reset with momentum.' This is the anti-loop change working as intended."
+        },
+        {
+          "turn": 29,
+          "note": "It also broke the loop behaviourally. The player repeated the tie-up once more at 25/27 and ate a second stall, then finally pivoted to the payoff branch at 29 - 'Hitman snaps off arm drag - Hall takes 8 damage.' - and never returned to the tie-up for the remaining 28 turns."
+        },
+        {
+          "turn": 15,
+          "note": "Best trade-off moment of the match: both wrestlers on TOP_ROPE (turn 14, 'Hall: Climb to the top rope.') turned into a 75%/75% choice between Superplex and Hurricanrana, and the Hurricanrana hit for 22. Position diversity 12 is the highest of the batch and it shows in the rope-running/top-rope interplay across turns 40-51."
+        },
+        {
+          "turn": 45,
+          "note": "Mid-match sag: turns 31-46 are largely position shuffling - climb (31), pulled off (32), climb again (33), cpu recover (34), climb down (35), climb (39), hit ropes (40), reversal (41), kill the run (42), climb down (43) - producing about 22 total damage across 16 turns."
+        },
+        {
+          "turn": 57,
+          "note": "Anticlimax: near_fall_count is 0 and the match ends on the very first turn a Finish option appears. The Sharpshooter at 86% resolved on its first attempt with the opponent still on 46 health, so there was no build toward the finish at all."
+        }
+      ]
+    },
+    "ease_of_use": {
+      "value": 3,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 19,
+          "note": "The loop-tax feedback is legible in both directions. The menu warns first - the tie-up note changes to 'tie-up is going stale - pay it off or reset before they steal momentum' (turns 19, 21, 27) - and the penalty then names cause and effect: 'The repeated tie-up stalls out - Hall gains escape momentum.' A new player can connect the warning to the punishment without docs."
+        },
+        {
+          "turn": 27,
+          "note": "But the stall silently does more than it says. At turn 26 Hall's state is groggy true; the moment the stall fires at 27 the state flips to groggy false with no log line explaining it. The same silent clear happened at turn 19 (turn 18 groggy true -> turn 19 groggy false). Losing a groggy window is a bigger deal than the momentum tick the log actually mentions."
+        },
+        {
+          "turn": 57,
+          "note": "Pin honesty holds up: turn 57 is the only turn a cover is legal and it is shown as index 1, 'Cover - pinfall attempt', intent 'Finish', note 'try to end it now; stronger when they're worn down'. curation_pin_visible true is accurate."
+        },
+        {
+          "turn": 5,
+          "note": "Groggy handling is clear and correctly framed as a modifier: at turn 4 'Hitman is GROGGY - power moves and finishers are live!' with position STANDING, and the turn 5 menu narrows to two 'Reset / recover' options noted 'clear the haze before they punish you'. The outcome line 'Hitman fights through - the groggy haze lifts!' explains the state change."
+        },
+        {
+          "turn": 7,
+          "note": "Same mislabel as the rest of the batch: 'Break the grapple' is filed under intent 'Safe offense' with note 'steady damage and momentum without overcommitting' at 83%, but it deals no damage - turn 7's outcome is just 'Hitman: Break the grapple.' with health unchanged at 124/128."
+        }
+      ]
+    },
+    "stickiness": {
+      "value": 3,
+      "confidence": "high",
+      "rematch_intent": "maybe",
+      "rematch_reason": "Seeing the loop tax fire and actually reroute play (turns 19, 27, then the pivot to arm drag at 29) made me curious how the system responds to a player who never gives it the chance. The match itself was 17 turns too long and finished without a single near-fall, so the pull is toward testing the system rather than replaying the experience.",
+      "next_experiment": "Re-run seed 210 with a methodical policy that takes the 'TARGET GROGGY payoff' Vertical suplex offered at turns 17, 19, 25 and 27 instead of re-entering the tie-up, and check whether cashing those four windows brings the turn count inside 8-40 and whether the loop-tax lines stop appearing entirely.",
+      "evidence": [
+        {
+          "turn": 15,
+          "note": "The both-on-the-top-rope exchange (turn 14 cpu climb, turn 15 Superplex vs Hurricanrana at 75% each) is a discovery moment that makes me want to explore the position matrix deliberately."
+        },
+        {
+          "turn": 51,
+          "note": "The rope-running menu at turn 51 offers four distinct intents - Springboard crossbody (Big swing, 80%), Kill the run (Reset, 85%), Running dropkick and Spinning heel kick (Pressure, 80%) - which suggests unexplored lines I have not seen resolved yet."
+        },
+        {
+          "turn": 33,
+          "note": "Cutting against a rematch: the climb loop at turns 31/33 (climb, get pulled off for 6, climb again, opponent recovers, climb back down at 35) is exactly the kind of empty repetition the loop tax was supposed to punish, and it went untaxed."
+        }
+      ]
+    },
+    "juiciness": {
+      "value": 3,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 15,
+          "note": "Top-rope payoff lands with weight: 'Hitman snaps off hurricanrana - Hall takes 22 damage.' plus 'Hall is rattled - when they're forced up, big payoffs may open.' and position flipping to GROUNDED, then paying off at turn 16 with 'Hall rises - still groggy from the impact!'"
+        },
+        {
+          "turn": 57,
+          "note": "The submission finish_sequence is staged rather than dumped: step delays 1.0s ('Hitman hooks in sharpshooter!' / 'Hall reaches for daylight...'), 1.5s ('The hold is cinched in deeper!'), 0.0s ('Hall taps out!' / '*** SUBMISSION - Hitman wins ***')."
+        },
+        {
+          "turn": 20,
+          "note": "The loop tax added two genuinely fresh lines to the vocabulary - 'The repeated tie-up stalls out - Hall gains escape momentum.' and 'Hall uses the stale tie-up to reset with momentum.' - which is a real narrative beat rather than another hit/miss line."
+        },
+        {
+          "turn": 10,
+          "note": "Reversal and big-hit text carries impact both ways: turn 10 'Hall snaps off diving crossbody - Hitman takes 20 damage.' and turn 50 'Hitman reverses the rebound clothesline - only 2 damage, and turns the tables!' with momentum swinging 1 -> 5."
+        },
+        {
+          "turn": 55,
+          "note": "Feedback density thins where it matters most. Missile dropkick for 19 appears three times with identical phrasing (23, 47, 55), near_fall_count is 0, and no cover is ever attempted, so the match never produces the referee-count beat that carries the most drama."
+        }
+      ]
+    }
+  },
+  "top_issues": [
+    {
+      "severity": "major",
+      "dimension": "fun",
+      "summary": "57 turns against a [8, 40] band. The bulk of the overrun is positional shuffling that costs a turn but changes almost nothing: turns 31-46 contain climb (31, 33, 39, 45), climb down (35, 43), hit the ropes (40, 44), kill the run (42) and a cpu recover (34) for roughly 22 damage across 16 turns.",
+      "suggested_area": "game.py: make position transitions cheaper (free or reactive) or make them carry a cost so they are not a neutral way to pass a turn"
+    },
+    {
+      "severity": "major",
+      "dimension": "fun",
+      "summary": "The loop tax punishes the tie-up but the menu still prices it as the best option, so the warning fights the numbers. At turn 19 the stale tie-up reads 83% while the advertised 'TARGET GROGGY payoff' Vertical suplex reads 68%, and at turn 27 it is 84% versus 68%. A player reading percentages will keep picking the move the game is telling them to stop picking. The suplex payoff was surfaced four times (17, 19, 25, 27) and taken zero times.",
+      "suggested_area": "curation labels and hit probability: either surface expected damage alongside the percentage, or have the loop tax visibly degrade the displayed tie-up percentage rather than only the post-hoc momentum"
+    },
+    {
+      "severity": "minor",
+      "dimension": "ease_of_use",
+      "summary": "The stale-tie-up penalty silently clears the opponent's groggy modifier. At turns 19 and 27 the opponent goes from groggy true to groggy false in the same beat as the stall, but the log only mentions escape momentum. The player loses their most valuable state with no explanation.",
+      "suggested_area": "loop-tax log text: name the groggy clear alongside the momentum swing, or stop clearing groggy on a stall"
+    },
+    {
+      "severity": "minor",
+      "dimension": "fun",
+      "summary": "The climb loop escaped the tax entirely. The player climbed eight times (1, 13, 21, 31, 33, 39, 45, 53) including back-to-back at 31 and 33 after being pulled off for 6 damage, and no 'telegraphed' or 'empty climb' warning ever fired. The anti-loop coverage appears much tighter on the tie-up than on the climb.",
+      "suggested_area": "loop-tax move coverage and thresholds for climb"
+    },
+    {
+      "severity": "minor",
+      "dimension": "juiciness",
+      "summary": "Zero near-falls across 57 turns, and no cover was ever attempted by either side. The single Finish opportunity at turn 57 resolved on the first try against an opponent still holding 46 health, so the match ended without any kickout or count tension.",
+      "suggested_area": "CPU pin scoring and submission apply/escape tuning, so finish attempts happen earlier and sometimes fail"
+    }
+  ],
+  "highlight_moments": [
+    {
+      "turn": 10,
+      "type": "big_spot",
+      "quote": "Hall snaps off diving crossbody - Hitman takes 20 damage."
+    },
+    {
+      "turn": 15,
+      "type": "top_rope_payoff",
+      "quote": "Hitman snaps off hurricanrana - Hall takes 22 damage.\n  Hall is rattled - when they're forced up, big payoffs may open."
+    },
+    {
+      "turn": 19,
+      "type": "loop_tax",
+      "quote": "The repeated tie-up stalls out - Hall gains escape momentum."
+    },
+    {
+      "turn": 20,
+      "type": "loop_tax_payoff",
+      "quote": "Hall uses the stale tie-up to reset with momentum."
+    },
+    {
+      "turn": 50,
+      "type": "reversal",
+      "quote": "Hitman reverses the rebound clothesline - only 2 damage, and turns the tables!"
+    },
+    {
+      "turn": 57,
+      "type": "finish",
+      "quote": "Hitman hooks in sharpshooter!\n  Hall reaches for daylight...\n  The hold is cinched in deeper!\n  Hall taps out!\n  *** SUBMISSION - Hitman wins ***"
+    }
+  ]
+}

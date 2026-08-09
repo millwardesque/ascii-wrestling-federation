@@ -1,0 +1,167 @@
+{
+  "rubric_version": "2026-07-30",
+  "meta": {
+    "match_seed": 202,
+    "wrestlers": ["bret_hart", "scott_hall"],
+    "player_policy": "methodical",
+    "turn_count": 170,
+    "winner": "cpu"
+  },
+  "telemetry": {
+    "gates_passed": false,
+    "gate_failures": ["turn_count 170 outside band [8, 40]"],
+    "turn_count": 170,
+    "near_fall_count": 0,
+    "curation_pin_visible": true,
+    "log_uniqueness_ratio": 0.2796,
+    "move_repetition_rate": 0.7059,
+    "position_diversity": 14,
+    "single_choice_turns": 6,
+    "winner": "cpu",
+    "reason": "pinfall"
+  },
+  "scores": {
+    "fun": {
+      "value": 1,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 5,
+          "note": "The dominant loop starts here and never really stops: player takes Collar-and-elbow tie-up on 60 of 85 player turns, and the log reads 'The repeated tie-up stalls out - Hall gains escape momentum.'"
+        },
+        {
+          "turn": 46,
+          "note": "Turns 37-48 are six identical tie-up/break cycles with zero HP change on either side (health stays [72, 94] the whole way); CPU answers with 'Hall uses the stale tie-up to reset with momentum.' every time."
+        },
+        {
+          "turn": 80,
+          "note": "Hitman's health reaches 1 ('Hall snaps off roundhouse kick - Hitman takes 9 damage.') and then stays at 1 for the remaining 90 turns, so damage stops being a route to resolution and the arc flatlines."
+        },
+        {
+          "turn": 151,
+          "note": "Late match is still the same loop: 'The repeated tie-up stalls out - Hall gains escape momentum.' with health frozen at [1, 48] and player momentum pinned at 0."
+        },
+        {
+          "turn": 170,
+          "note": "Finish is a straight three-count with no kickout beat: 'Referee: 1... / Referee: 2... / Referee: 3! / *** PINFALL - Hall wins ***', near_fall_count 0."
+        }
+      ]
+    },
+    "ease_of_use": {
+      "value": 3,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 43,
+          "note": "The loop-tax feedback is legible in the menu itself: the tie-up option's note switches from 'enter a tie-up to unlock throws and whips; repeat loops lose steam' to 'tie-up is going stale - pay it off or reset before they steal momentum', and its odds drop to 64%."
+        },
+        {
+          "turn": 37,
+          "note": "Cause and effect are spelled out across two lines: 'The repeated tie-up stalls out - Hall gains escape momentum.' followed on turn 38 by 'Hall uses the stale tie-up to reset with momentum.' A reader can tell exactly what the penalty was."
+        },
+        {
+          "turn": 31,
+          "note": "Curation is honest at the key window: with Hall grounded, the menu leads with 'Finish | Cover - pinfall attempt | pin' and 'Finish | Sharpshooter | 83%'; the policy chose 'Climb to the top rope' instead, so no legal optimal move was hidden."
+        },
+        {
+          "turn": 82,
+          "note": "Status readout misleads: the log says 'Hall snaps off straight right - Hitman takes 7 damage.' but health stays [1, 88], and it stays 1 for the rest of the match. Damage text and the health field disagree with no explanation of the floor."
+        },
+        {
+          "turn": 93,
+          "note": "Groggy is handled as a modifier and read clearly - both options are labeled 'clear the haze before they punish you' ('Shake the cobwebs' 49%, 'Desperation strike' 61%), and the log confirms 'Hitman fights through - the groggy haze lifts!'"
+        }
+      ]
+    },
+    "stickiness": {
+      "value": 1,
+      "confidence": "high",
+      "rematch_intent": "no",
+      "rematch_reason": "The match was a 170-turn stalemate built from one repeated move; after turn 80 the player was locked at 1 HP with 0 momentum and no visible path back, and there was no near-fall or comeback beat to create curiosity about running it again with the same setup.",
+      "next_experiment": "Re-run seed 202 with an aggressive or chaotic policy that actually cashes the grounded windows (e.g. take 'Cover - pinfall attempt' or Sharpshooter at turn 31 instead of climbing), and separately test whether making the tie-up illegal or heavily damage-penalized after two consecutive uses breaks the loop rather than just draining momentum.",
+      "evidence": [
+        {
+          "turn": 31,
+          "note": "The one clear branch point in the whole match - pin and Sharpshooter both offered with Hall grounded at 118 HP - was passed over, and no comparable window reappeared for 139 turns."
+        },
+        {
+          "turn": 121,
+          "note": "By the late match the menu is identical to turn 43's (tie-up 69%, climb, kick, punch, recover), so there is nothing new to discover from continuing."
+        },
+        {
+          "turn": 170,
+          "note": "Match ends on a clean pinfall with near_fall_count 0 and log_uniqueness_ratio 0.28, leaving no cliffhanger."
+        }
+      ]
+    },
+    "juiciness": {
+      "value": 2,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 33,
+          "note": "Real payoff beat exists: 'Hitman snaps off diving elbow drop - Hall takes 24 damage.' off a top-rope setup against a grounded opponent."
+        },
+        {
+          "turn": 96,
+          "note": "Biggest spot of the match lands with a follow-on state line: 'Hall snaps off superplex - Hitman takes 29 damage. / Hitman is rattled - when they're forced up, big payoffs may open.'"
+        },
+        {
+          "turn": 24,
+          "note": "Groggy is announced with weight - 'Hitman is GROGGY - power moves and finishers are live!' - but it only fires 3 times in 170 turns (turns 24, 92, 128)."
+        },
+        {
+          "turn": 48,
+          "note": "Feedback density collapses under repetition: 'The repeated tie-up stalls out' appears 26 times and 'Hall uses the stale tie-up to reset with momentum.' 24 times, matching log_uniqueness_ratio 0.2796."
+        },
+        {
+          "turn": 170,
+          "note": "The finish has no tension - a straight 1-2-3 with no prior near-fall in the entire match."
+        }
+      ]
+    }
+  },
+  "top_issues": [
+    {
+      "severity": "critical",
+      "dimension": "fun",
+      "summary": "The loop tax does NOT break the loop. 26 'repeated tie-up stalls out' warnings and 4 'counter is getting predictable' warnings fired, yet the tie-up/break cycle still ran from turn 5 to turn 152 and drove the match to 170 turns. Draining momentum is not a strong enough deterrent when the repeated move remains legal, remains the highest-percentage option in the curated menu (56-69% at turns 43-151), and costs nothing but momentum the player has already lost.",
+      "suggested_area": "game.py loop-tax severity / moves.py legality gating on consecutive repeats"
+    },
+    {
+      "severity": "critical",
+      "dimension": "pacing",
+      "summary": "Player health floors at 1 from turn 80 through the turn-170 finish - 90 turns in which the log keeps reporting damage ('takes 9 damage', 'takes 7 damage') but the state never changes and the match cannot end by attrition. This is the direct cause of the turn_count gate failure.",
+      "suggested_area": "game.py damage/health resolution and match-end conditions"
+    },
+    {
+      "severity": "major",
+      "dimension": "fun",
+      "summary": "The tax is one-directional and self-reinforcing: every stall hands escape momentum to the opponent, and the CPU cashes it with break_grapple 24 times and grapple_counter 14 times. The punished player ends up at 0 momentum with the same menu, so the feedback tells them they are losing steam without opening an affordable exit.",
+      "suggested_area": "game.py momentum economy / CPU scoring for break_grapple"
+    },
+    {
+      "severity": "minor",
+      "dimension": "juiciness",
+      "summary": "Zero near-falls across 170 turns and a flat three-count finish; the only genuine payoff beats are the turn-33 diving elbow drop and the turn-96 superplex.",
+      "suggested_area": "pin sequence / near-fall tuning"
+    }
+  ],
+  "highlight_moments": [
+    {
+      "turn": 33,
+      "type": "big_spot",
+      "quote": "Hitman snaps off diving elbow drop - Hall takes 24 damage."
+    },
+    {
+      "turn": 93,
+      "type": "comeback_beat",
+      "quote": "Hitman snaps off desperation strike - Hall takes 4 damage. / Hitman fights through - the groggy haze lifts!"
+    },
+    {
+      "turn": 96,
+      "type": "big_spot",
+      "quote": "Hall snaps off superplex - Hitman takes 29 damage. / Hitman is rattled - when they're forced up, big payoffs may open."
+    }
+  ]
+}

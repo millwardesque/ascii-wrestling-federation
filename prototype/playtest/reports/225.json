@@ -1,0 +1,167 @@
+{
+  "rubric_version": "2026-07-30",
+  "meta": {
+    "match_seed": 225,
+    "wrestlers": ["bret_hart", "scott_hall"],
+    "player_policy": "novice",
+    "turn_count": 37,
+    "winner": "player"
+  },
+  "telemetry": {
+    "gates_passed": true,
+    "gate_failures": [],
+    "turn_count": 37,
+    "near_fall_count": 0,
+    "curation_pin_visible": true,
+    "log_uniqueness_ratio": 0.6977,
+    "move_repetition_rate": 0.2632,
+    "position_diversity": 10,
+    "single_choice_turns": 3,
+    "winner": "player",
+    "reason": "submission"
+  },
+  "scores": {
+    "fun": {
+      "value": 3,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 8,
+          "note": "The match trades control cleanly in the first half. 'Hall snaps off rebound clothesline - Hitman takes 17 damage' grounds the player at 108, then turn 13 'Hitman snaps off missile dropkick - Hall takes 19 damage' grounds Hall at 113. Neither side snowballs early."
+        },
+        {
+          "turn": 37,
+          "note": "The final menu is a genuine trade-off rather than one obvious button: 'Cover - pinfall attempt' (label 'pin', 'try to end it now; stronger when they're worn down'), 'Sharpshooter 85% - cash in momentum for a match-ending swing', 'Pull opponent up', and 'Leg drop 85%'. Four real intents with different risk, all legal, all shown."
+        },
+        {
+          "turn": 23,
+          "note": "Against: a dead neutral stretch. Turns 17, 19, 21 and 23 are 'Kill the run', 'Climb to the top rope', 'Climb down carefully', 'Hit the ropes' - four consecutive player turns with zero damage, answered by two CPU whiffs (turns 18 and 22, both 'Hitman reverses the roundhouse kick - only 1 damage'). Nothing in the game flags this stall; none of the anti-loop lines fire anywhere in this match."
+        },
+        {
+          "turn": 35,
+          "note": "The match is decided by one burst rather than an arc. 'Hitman snaps off hurricanrana - Hall takes 22 damage' drops Hall 109 -> 87, and he taps two turns later still holding 87 of 132 health, which undercuts the 'stronger when they're worn down' framing on the finish."
+        },
+        {
+          "turn": 27,
+          "note": "Positive risk beat: the player is groggy at 79 health and takes the attacking escape rather than the safe one - 'Hitman snaps off desperation strike - Hall takes 4 damage. Hitman fights through - the groggy haze lifts!' - a real 89%-versus-94% decision."
+        }
+      ]
+    },
+    "ease_of_use": {
+      "value": 4,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 37,
+          "note": "Best-case curation. Hall is grounded, and the menu shows the pin at index 1 with an honest condition ('stronger when they're worn down') next to the 85% Sharpshooter. Pin is visible the one time it is legal, and no clearly optimal legal move is hidden."
+        },
+        {
+          "turn": 16,
+          "note": "Reversal chronology is unambiguous: 'Hitman reverses the rebound clothesline - only 2 damage; Hall whiffs - Hitman shrugs it off.' Actor, move, mitigation and result all appear in one line, and momentum drops 3 -> 0 in the same row."
+        },
+        {
+          "turn": 26,
+          "note": "Groggy reads correctly as a modifier, not a position: 'Hitman is GROGGY - power moves and finishers are live!' while position stays STANDING, and it clears at turn 27 with position unchanged."
+        },
+        {
+          "turn": 27,
+          "note": "Deduction: the two groggy escapes share intent 'Reset / recover' and the identical note 'clear the haze before they punish you', though 'Shake the cobwebs' (94%) is a pure clear and 'Desperation strike' (89%) also deals damage. The label does not distinguish them."
+        },
+        {
+          "turn": 37,
+          "note": "Deduction: the '85%' on Sharpshooter is the chance to apply the hold, but nothing on screen says so, and the note 'cash in momentum for a match-ending swing' reads as a win chance. It applied and won here, so a new player would take away the wrong model of the number."
+        },
+        {
+          "turn": 36,
+          "note": "Positive: the setup for the finish is stated in plain language a turn ahead - 'Hall tries to rise but can't find it - still down and vulnerable to a cover!' - so the player knows why the Finish options appeared at turn 37."
+        }
+      ]
+    },
+    "stickiness": {
+      "value": 4,
+      "confidence": "medium",
+      "rematch_intent": "yes",
+      "rematch_reason": "The match ends on an unresolved question rather than a foregone conclusion: at turn 37 the game offered a pin and an 85% Sharpshooter side by side against a grounded opponent who had just failed to rise, and only one branch was taken. The 37-turn length inside the pacing band also means a rematch is a short, cheap experiment.",
+      "next_experiment": "Replay seed 225 and take 'Cover - pinfall attempt' at turn 37 instead of the Sharpshooter, to see whether a cover against a 87/132 opponent produces the kickout and near-fall this run never got (near_fall_count 0). Secondary: at turn 35 take 'Superplex' instead of 'Hurricanrana' from the double top-rope stack, and at turn 17 take 'Springboard crossbody' (80%) instead of 'Kill the run' to test whether the dead turns 17-23 can be skipped entirely.",
+      "evidence": [
+        {
+          "turn": 37,
+          "note": "Two Finish options presented simultaneously ('Cover - pinfall attempt' and 'Sharpshooter 85%') with only one resolved, leaving a concrete branch to retry."
+        },
+        {
+          "turn": 33,
+          "note": "Both wrestlers on the top rope at once ('position': ['TOP_ROPE','TOP_ROPE']) opened a move set - Superplex, Hurricanrana, Top-rope brawl shot - that appeared only once all match, which is a discovery worth chasing again."
+        },
+        {
+          "turn": 23,
+          "note": "Against: the middle of the match is forgettable positional churn (turns 17-23 produce no damage from either side), so the pull is toward specific unexplored branches rather than toward the match as a whole."
+        }
+      ]
+    },
+    "juiciness": {
+      "value": 3,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 37,
+          "note": "The submission lands as a three-beat sequence with real pacing: finish_sequence steps are ['Hitman hooks in sharpshooter!', 'Hall reaches for daylight...'] at 1.0s, then 'The hold is cinched in deeper!' at 1.5s, then 'Hall taps out!' and '*** SUBMISSION - Hitman wins ***'. The escape-versus-tap contest is dramatised rather than resolved in one line."
+        },
+        {
+          "turn": 35,
+          "note": "The biggest hit changes state as well as numbers: 'Hitman snaps off hurricanrana - Hall takes 22 damage' moves Hall STANDING -> GROUNDED off a double top-rope stack, and turn 36 'Hall tries to rise but can't find it' keeps him there."
+        },
+        {
+          "turn": 34,
+          "note": "Against: reversal phrasing is heavily reused. 'reverses the X - only N damage; Hall whiffs - Hitman shrugs it off' appears at turns 4, 20, 30 and 34, and 9 of 37 turns resolved as misses, so a quarter of the match reads the same way."
+        },
+        {
+          "turn": 37,
+          "note": "Against: near_fall_count is 0 - no cover was ever attempted by either side, so the match never produced the 1... 2... kickout beat that is the format's loudest moment."
+        }
+      ]
+    }
+  },
+  "top_issues": [
+    {
+      "severity": "major",
+      "dimension": "fun",
+      "summary": "A neutral stall runs untaxed from turn 17 to turn 23: four consecutive player turns ('Kill the run', 'Climb to the top rope', 'Climb down carefully', 'Hit the ropes') deal zero damage, and the two CPU answers both whiff. None of the four anti-loop warning lines appear anywhere in this transcript, so positional churn that is not a literal repeated move still costs nothing.",
+      "suggested_area": "loop tax coverage for climb / dismount / rope-run cycles"
+    },
+    {
+      "severity": "minor",
+      "dimension": "juiciness",
+      "summary": "Zero near-falls in a 37-turn match. No pin was attempted by either wrestler, so the strongest available drama beat never occurred, and the finish arrives with the loser still at 87 of 132 health, which contradicts the pin option's own 'stronger when they're worn down' copy.",
+      "suggested_area": "CPU pin scoring / damage pacing before finishes"
+    },
+    {
+      "severity": "minor",
+      "dimension": "ease_of_use",
+      "summary": "The Sharpshooter's '85%' is the chance to apply the hold, but the label and note ('cash in momentum for a match-ending swing') read as a win probability, and nothing distinguishes the two. Because the hold applied and won on the same turn, the transcript reinforces the wrong reading.",
+      "suggested_area": "submission label wording in _curate_move_choices"
+    },
+    {
+      "severity": "minor",
+      "dimension": "ease_of_use",
+      "summary": "At turn 27 both groggy escapes carry intent 'Reset / recover' and the identical note, though only one of them also deals damage.",
+      "suggested_area": "groggy move intent labels"
+    }
+  ],
+  "highlight_moments": [
+    {
+      "turn": 33,
+      "type": "position_setup",
+      "quote": "Hitman: Climb to the top rope."
+    },
+    {
+      "turn": 35,
+      "type": "big_spot",
+      "quote": "Hitman snaps off hurricanrana - Hall takes 22 damage."
+    },
+    {
+      "turn": 37,
+      "type": "finish",
+      "quote": "Hitman hooks in sharpshooter!\n  Hall reaches for daylight...\n  The hold is cinched in deeper!\n  Hall taps out!\n  *** SUBMISSION - Hitman wins ***"
+    }
+  ]
+}

@@ -1,0 +1,183 @@
+{
+  "rubric_version": "2026-07-30",
+  "meta": {
+    "match_seed": 226,
+    "wrestlers": ["bret_hart", "scott_hall"],
+    "player_policy": "chaotic",
+    "turn_count": 81,
+    "winner": "player"
+  },
+  "telemetry": {
+    "gates_passed": false,
+    "gate_failures": ["turn_count 81 outside band [8, 40]"],
+    "turn_count": 81,
+    "near_fall_count": 0,
+    "curation_pin_visible": true,
+    "log_uniqueness_ratio": 0.5408,
+    "move_repetition_rate": 0.1463,
+    "position_diversity": 8,
+    "single_choice_turns": 4,
+    "winner": "player",
+    "reason": "submission"
+  },
+  "scores": {
+    "fun": {
+      "value": 2,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 81,
+          "note": "Match ran 81 turns, more than double the pacing ceiling, and ended on the first submission the player chose to attempt: 'Hitman hooks in sharpshooter!' -> 'Hall taps out!'. Zero near-falls occurred in the entire match (near_fall_count 0), so there was never a two-count to survive."
+        },
+        {
+          "turn": 55,
+          "note": "The groggy setup/payoff cycle never resolved. The player put Hall groggy on turns 13, 15, 55, 59, 65 and 73 ('Hall is GROGGY - power moves and finishers are live!'), and Hall answered with 'Shake the cobwebs' on 14, 16, 56, 66 and 74 ('Hall steadies themselves - they're back!'). Six setups, zero cash-ins."
+        },
+        {
+          "turn": 61,
+          "note": "The one time the shake failed (turn 60, 'Hall tries to clear their head but they're still wobbly!'), the menu offered index 1 'Vertical suplex' at 76% with note 'TARGET GROGGY payoff: heavy damage is available now'. The chaotic player took Roundhouse kick instead and the window expired. Same missed window at turn 45."
+        },
+        {
+          "turn": 69,
+          "note": "Diving crossbody put Hall at 1 health, but health floors at 1 and only a pin/submission ends a match, so turns 69-81 (13 turns, 16% of the match) played out with the opponent already effectively beaten. The tension curve flatlined well before the finish."
+        },
+        {
+          "turn": 33,
+          "note": "There are real swings underneath the sag: Hall's Razor's Edge at turn 30 ('- FINISHER - the next cover packs extra heat') dropped the player to 57, and the player fought back from a 44-100 deficit at turn 37. The arc exists, it is just stretched far too thin."
+        }
+      ]
+    },
+    "ease_of_use": {
+      "value": 3,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 51,
+          "note": "Pin was correctly surfaced every time it was legal. Turns 51, 53 and 81 all show index 1 'Cover - pinfall attempt' with intent 'Finish' and note 'try to end it now; stronger when they're worn down'. curation_pin_visible is true and I found no turn where a grounded opponent hid the cover."
+        },
+        {
+          "turn": 59,
+          "note": "The anti-loop warning is legible as a pre-emptive menu note: the tie-up option's note switches from 'enter a tie-up to unlock throws and whips; repeat loops lose steam' to 'tie-up is going stale - pay it off or reset before they steal momentum' (also turn 65). A reader can tell what changed and what to do about it."
+        },
+        {
+          "turn": 25,
+          "note": "Mislabelled option: 'Break the grapple' is presented under intent 'Safe offense' with note 'steady damage and momentum without overcommitting', but it is an escape that deals no damage. The same wrong label appears at turn 9. A new player comparing 83% 'Safe offense' against 73% 'Grapple counter' would misread which one actually hurts the opponent."
+        },
+        {
+          "turn": 21,
+          "note": "Groggy is communicated as a modifier rather than a position, which is correct and readable: 'Hitman rises - still groggy from the impact!' with state position STANDING and groggy true. Turn 20's 'Hitman is rattled - when they're forced up, big payoffs may open' also telegraphs the pending-groggy rule before it fires."
+        },
+        {
+          "turn": 33,
+          "note": "Four single-choice turns (21, 27, 31, 33) present only 'Fight to your feet'. The note 'stand before they cover you; misses build escape momentum' does explain the stakes, and turn 33's 'Escape momentum builds for Hitman.' confirms it, but a one-option prompt still reads as a non-decision."
+        }
+      ]
+    },
+    "stickiness": {
+      "value": 3,
+      "confidence": "high",
+      "rematch_intent": "maybe",
+      "rematch_reason": "The systems clearly have more in them than this match showed - top-rope payoffs landed for 18-21 damage (turns 20, 43, 69, 79) and the finisher/submission chain reads well - but 81 turns with no near-fall and an opponent parked at 1 health for the last 13 turns is a poor advertisement. I would queue another match to test a hypothesis, not because this one was satisfying.",
+      "next_experiment": "Re-run seed 226 with the methodical policy and force the 'TARGET GROGGY payoff' Vertical suplex at turns 45 and 61, plus the 'Cover - pinfall attempt' offered at 51 and 53, to measure whether cashing setups instead of stacking them pulls the match back inside the 8-40 turn band.",
+      "evidence": [
+        {
+          "turn": 43,
+          "note": "Missile dropkick from the top onto a running opponent for 19 damage shows a two-step positional combo (climb at 41, opponent hits the ropes at 42) that I would want to run deliberately rather than stumble into."
+        },
+        {
+          "turn": 79,
+          "note": "Diving crossbody for 21 is the largest single hit available to the player and it fired twice (69, 79), which suggests a top-rope-focused game plan is worth a dedicated run."
+        },
+        {
+          "turn": 71,
+          "note": "Against that, the late match is discouraging repeat viewing: turns 71, 75 are 'Hitman recovers 5 stamina' and turns 76, 78 are 'Hall recovers 5 stamina' with the opponent already at 1 health - four consecutive stall turns with nothing at stake."
+        }
+      ]
+    },
+    "juiciness": {
+      "value": 3,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 30,
+          "note": "Finisher beat lands with dedicated text and a stated consequence: 'Hall snaps off razor's edge - Hitman takes 20 damage.' followed by '- FINISHER - the next cover packs extra heat.' The state shift is visible too (position GROUNDED, health 77 -> 57)."
+        },
+        {
+          "turn": 81,
+          "note": "The submission finish_sequence is properly staged: three steps with delays 1.0s ('Hitman hooks in sharpshooter!' / 'Hall reaches for daylight...'), 1.5s ('The hold is cinched in deeper!') and 0.0s ('Hall taps out!' / '*** SUBMISSION - Hitman wins ***'). That is a real escalation rather than a single result line."
+        },
+        {
+          "turn": 20,
+          "note": "Big spots reliably change state and are called out: 'Hall snaps off missile dropkick - Hitman takes 18 damage.' plus 'Hitman is rattled - when they're forced up, big payoffs may open.' with position flipping to GROUNDED."
+        },
+        {
+          "turn": 79,
+          "note": "Payoff feel breaks down at the extremes. Diving crossbody for 21 damage against an opponent on 11 health reads exactly the same as any other crossbody - no 'on the brink' flavour, no near-fall, and health simply clamps to 1. near_fall_count is 0 for the whole match, so the drama proxy never fired."
+        },
+        {
+          "turn": 76,
+          "note": "log_uniqueness_ratio 0.5408 shows in the text: 'Hall recovers 5 stamina.' and 'Hitman recovers 5 stamina.' repeat verbatim nine times across the match (player 5, 7, 19, 53, 71, 75; cpu 68, 76, 78) with no variation."
+        }
+      ]
+    }
+  },
+  "top_issues": [
+    {
+      "severity": "critical",
+      "dimension": "fun",
+      "summary": "81 turns against a [8, 40] band, and the low move_repetition_rate of 0.15 hides why: no single move dominates because the churn is spread across four separate maintenance loops. 'Catch your breath' burns 9 turns (player 5, 7, 19, 53, 71, 75; cpu 68, 76, 78), 'Fight to your feet' burns 10 (player 21, 27, 31, 33; cpu 44, 50, 52, 54, 70, 80), 'Shake the cobwebs' burns 8 (player 29, 37; cpu 14, 16, 56, 60, 66, 74), and tie-up entry/counter/break churn burns roughly 15 more (player 3, 9, 23, 25, 47, 57, 63; cpu 4, 6, 8, 24, 38, 48, 58, 64). That is about 27 turns of zero-or-trivial-damage upkeep - a third of the match - before counting the nine reversal turns that cap damage at 1.",
+      "suggested_area": "game.py turn economy: cost or cap recover/get_up/shake_groggy, or make repeated upkeep escalate a shared stall counter rather than tracking per-move repetition"
+    },
+    {
+      "severity": "major",
+      "dimension": "fun",
+      "summary": "The loop persists despite the warnings. The anti-loop feedback never actually fired in this seed - no 'stalls out', 'getting predictable', 'telegraphed' or 'empty climb' line appears anywhere in the 81 turns. The player used Collar-and-elbow tie-up five times (3, 23, 47, 57, 63) and the system only ever escalated to the softer menu note 'tie-up is going stale' at turns 59 and 65, which the player ignored at 63 with no penalty. In this match the loop tax was cosmetic.",
+      "suggested_area": "loop-tax trigger thresholds: the counter appears to decay or reset between non-adjacent repeats, so spaced-out loops escape the tax entirely"
+    },
+    {
+      "severity": "major",
+      "dimension": "fun",
+      "summary": "Groggy is a setup with no payoff in this match. Hall was knocked groggy six times (13, 15, 55, 59, 65, 73) and shook it off on the very next turn five times (14, 16, 56, 66, 74). Because the shake happens on the opponent's turn, a groggy proc scored on the player's turn is essentially free for the CPU to erase, so the advertised 'TARGET GROGGY payoff' option only appeared twice (45, 61) and both windows expired unused.",
+      "suggested_area": "game.py groggy duration / shake_groggy success rate, so a landed groggy guarantees at least one payoff window"
+    },
+    {
+      "severity": "major",
+      "dimension": "fun",
+      "summary": "Health floors at 1 and only a cover or submission ends a match, so Hall sat on 1 health from turn 69 to turn 81. Worse, the curated menu offered no Finish option on turns 71, 73, 75, 77 or 79 because Hall was STANDING - the player could see the opponent was finished but had no listed way to close it out until Hall happened to be grounded again at turn 80.",
+      "suggested_area": "curation and finish conditions: surface a finish route (or a knockout/ref-stoppage) when the opponent is at minimum health regardless of position"
+    },
+    {
+      "severity": "minor",
+      "dimension": "ease_of_use",
+      "summary": "'Break the grapple' is curated under intent 'Safe offense' with the note 'steady damage and momentum without overcommitting' (turns 9, 25) even though it is a pure escape that deals no damage - turn 27's successful break logs only 'Hitman: Fight to your feet.'-style flavour with no damage line. It should sit under 'Reset / recover'.",
+      "suggested_area": "_curate_move_choices() intent assignment for break_grapple"
+    }
+  ],
+  "highlight_moments": [
+    {
+      "turn": 20,
+      "type": "big_spot",
+      "quote": "Hall snaps off missile dropkick - Hitman takes 18 damage.\n  Hitman is rattled - when they're forced up, big payoffs may open."
+    },
+    {
+      "turn": 30,
+      "type": "finisher",
+      "quote": "Hall snaps off razor's edge - Hitman takes 20 damage.\n  - FINISHER - the next cover packs extra heat."
+    },
+    {
+      "turn": 43,
+      "type": "positional_combo",
+      "quote": "Hitman snaps off missile dropkick - Hall takes 19 damage.\n  Hall is rattled - when they're forced up, big payoffs may open."
+    },
+    {
+      "turn": 69,
+      "type": "big_spot",
+      "quote": "Hitman snaps off diving crossbody - Hall takes 21 damage."
+    },
+    {
+      "turn": 81,
+      "type": "finish",
+      "quote": "Hitman hooks in sharpshooter!\n  Hall reaches for daylight...\n  The hold is cinched in deeper!\n  Hall taps out!\n  *** SUBMISSION - Hitman wins ***"
+    }
+  ]
+}

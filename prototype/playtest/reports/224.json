@@ -1,0 +1,184 @@
+{
+  "rubric_version": "2026-07-30",
+  "meta": {
+    "match_seed": 224,
+    "wrestlers": ["bret_hart", "scott_hall"],
+    "player_policy": "aggressive",
+    "turn_count": 22,
+    "winner": "cpu"
+  },
+  "telemetry": {
+    "gates_passed": true,
+    "gate_failures": [],
+    "turn_count": 22,
+    "near_fall_count": 0,
+    "curation_pin_visible": true,
+    "log_uniqueness_ratio": 0.9032,
+    "move_repetition_rate": 0.4545,
+    "position_diversity": 4,
+    "single_choice_turns": 4,
+    "winner": "cpu",
+    "reason": "pinfall"
+  },
+  "scores": {
+    "fun": {
+      "value": 2,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 1,
+          "note": "Opening menu is a real decision - five distinct intents (Grapple control, Set up position, two Safe offense options at 53%/58%, Reset / recover) with different risk profiles."
+        },
+        {
+          "turn": 3,
+          "note": "The tie-up loop is punished immediately: 'The repeated tie-up stalls out - Hall gains escape momentum.' with Hall's momentum going 0 -> 1, followed at turn 4 by 'Hall uses the stale tie-up to reset with momentum.'"
+        },
+        {
+          "turn": 15,
+          "note": "The warning does not stop the loop - collar_elbow is chosen on turns 1, 3, 5, 13 and 15 (5 of 11 player turns, move_repetition_rate 0.45) and the loop only ends because Hall knocks the player down, not because the player reacted to the feedback."
+        },
+        {
+          "turn": 17,
+          "note": "The one attempt at a counter-play fails and is punished: 'Hall reverses the pull off the top rope - only 1 damage, and turns the tables!', which sets up the 20-damage diving crossbody at turn 18."
+        },
+        {
+          "turn": 21,
+          "note": "No comeback window exists in the back half. Turns 9, 11, 19 and 21 are all 'Fight to your feet' with exactly one option, and the player's health falls 132 -> 53 while Hall only ever loses 1 HP (a reversal at turn 17)."
+        },
+        {
+          "turn": 22,
+          "note": "Anticlimactic finish - the first cover of the entire match ends it 1-2-3 with near_fall_count 0 and no kickout tension."
+        }
+      ]
+    },
+    "ease_of_use": {
+      "value": 4,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 1,
+          "note": "Every option carries an intent label, a probability or 'auto', and a plain-language note ('steady damage and momentum without overcommitting'), so a new player can read the trade-offs without docs."
+        },
+        {
+          "turn": 3,
+          "note": "The anti-loop feedback is legible: the choice note changes from 'repeat loops lose steam' to 'tie-up is going stale - pay it off or reset before they steal momentum', and the resulting log names the consequence directly."
+        },
+        {
+          "turn": 6,
+          "note": "Status changes are explained rather than implied: 'Hitman is GROGGY - power moves and finishers are live!' and the very next menu (turn 7) narrows to two Reset / recover options noted 'clear the haze before they punish you'."
+        },
+        {
+          "turn": 8,
+          "note": "Groggy is presented as a modifier, not a position: the log reports GROUNDED plus 'Hitman is rattled - when they're forced up, big payoffs may open.', and turn 9 pays it off with 'Hitman rises - still groggy from the impact!'"
+        },
+        {
+          "turn": 19,
+          "note": "Friction: 4 of 11 player turns (9, 11, 19, 21) present a single option, so the game asks for a decision where none exists. The note does explain the stake ('stand before they cover you; misses build escape momentum')."
+        },
+        {
+          "turn": 15,
+          "note": "Minor ambiguity: 'Hall turns the tables!' is a bare reversal line that does not name the move reversed, unlike the fuller reversal text at turn 17."
+        }
+      ]
+    },
+    "stickiness": {
+      "value": 2,
+      "confidence": "high",
+      "rematch_intent": "maybe",
+      "rematch_reason": "The match is short, clean and legible, and the loop warning at turn 3 plants an obvious 'what if I had listened' hook. But it is a shutout - the player never lands a single offensive move, never sees a Finish option, and the last six turns are a scripted beating - so the pull is curiosity about the systems rather than desire to replay this matchup.",
+      "next_experiment": "Re-run seed 224 with a policy that switches off collar_elbow the moment the note reads 'tie-up is going stale' (turn 3) and takes the 58% Straight right instead, to see whether the player can build enough momentum to reach a Finish window before the Razor's Edge at turn 8.",
+      "evidence": [
+        {
+          "turn": 3,
+          "note": "Hook for a replay: the game explicitly told the player the loop was failing ('tie-up is going stale - pay it off or reset before they steal momentum') and the run continued anyway, so the alternate line is untested and interesting."
+        },
+        {
+          "turn": 8,
+          "note": "Unseen content teases a rematch: 'Hall snaps off razor's edge' and the FINISHER tag show a finisher/cover system the player never got to use from their own side."
+        },
+        {
+          "turn": 21,
+          "note": "Deterrent to replaying this exact configuration: the last six turns are 'Fight to your feet' into another CPU move, with the player at 53 HP and Hall at 131, offering no discovery."
+        },
+        {
+          "turn": 22,
+          "note": "The match ends on the first cover with near_fall_count 0, so the session closes without the drama beat that would drive an immediate rematch."
+        }
+      ]
+    },
+    "juiciness": {
+      "value": 3,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 6,
+          "note": "State shift is announced with weight: 'Hall snaps off straight right - Hitman takes 7 damage.' followed by 'Hitman is GROGGY - power moves and finishers are live!'"
+        },
+        {
+          "turn": 8,
+          "note": "Finisher beat lands with three stacked lines - 20 damage, 'Hitman is rattled', and '- FINISHER - the next cover packs extra heat.' - and the promise is honoured at turn 22 with '+12 on the cover!'"
+        },
+        {
+          "turn": 19,
+          "note": "Failed get-ups still produce feedback rather than a flat miss: 'still down and vulnerable, but the crowd is pulling them up.' plus 'Escape momentum builds for Hitman.' with momentum ticking 0 -> 1 -> 2."
+        },
+        {
+          "turn": 22,
+          "note": "Finish sequence has proper pacing metadata (1.0s after 'Referee: 1...', 1.5s after 'Referee: 2...'), but it is the only cover of the match and there is no near fall anywhere, so the payoff arrives without buildup."
+        },
+        {
+          "turn": 21,
+          "note": "The player side generates almost no payoff feedback: across 11 player turns not one landed offensive hit, so all the juice belongs to the CPU."
+        }
+      ]
+    }
+  },
+  "top_issues": [
+    {
+      "severity": "major",
+      "dimension": "fun",
+      "summary": "Total shutout with no comeback window. Across 22 turns the player lands zero offensive hits and Hall's health moves only 132 -> 131 (one reversal at turn 17), while the player falls 132 -> 53. Once the Razor's Edge lands at turn 8 the outcome is never in question.",
+      "suggested_area": "comeback / momentum systems"
+    },
+    {
+      "severity": "major",
+      "dimension": "fun",
+      "summary": "The loop tax warns but does not break the loop. The stale-tie-up note appears at turns 3, 5 and 15 and the player still repeats collar_elbow on turns 1, 3, 5, 13 and 15; the loop ends only because the CPU knocks the player down at turn 8, not because the feedback changed behaviour.",
+      "suggested_area": "loop tax escalation"
+    },
+    {
+      "severity": "minor",
+      "dimension": "ease_of_use",
+      "summary": "4 of 11 player turns (9, 11, 19, 21) offer exactly one choice, 'Fight to your feet'. Prompting for input with a single option is friction rather than a decision.",
+      "suggested_area": "curation / grounded state moveset"
+    },
+    {
+      "severity": "minor",
+      "dimension": "juiciness",
+      "summary": "near_fall_count is 0 and the match's only cover ends it immediately at turn 22, so the pin system's drama never activates.",
+      "suggested_area": "pin resolution"
+    }
+  ],
+  "highlight_moments": [
+    {
+      "turn": 3,
+      "type": "loop_tax",
+      "quote": "The repeated tie-up stalls out - Hall gains escape momentum."
+    },
+    {
+      "turn": 8,
+      "type": "finisher",
+      "quote": "Hall snaps off razor's edge - Hitman takes 20 damage."
+    },
+    {
+      "turn": 18,
+      "type": "big_spot",
+      "quote": "Hall snaps off diving crossbody - Hitman takes 20 damage."
+    },
+    {
+      "turn": 22,
+      "type": "finish",
+      "quote": "The finisher still echoes - +12 on the cover!"
+    }
+  ]
+}

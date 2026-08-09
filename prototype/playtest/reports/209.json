@@ -1,0 +1,179 @@
+{
+  "rubric_version": "2026-07-30",
+  "meta": {
+    "match_seed": 209,
+    "wrestlers": ["bret_hart", "scott_hall"],
+    "player_policy": "novice",
+    "turn_count": 45,
+    "winner": "player"
+  },
+  "telemetry": {
+    "gates_passed": false,
+    "gate_failures": ["turn_count 45 outside band [8, 40]"],
+    "turn_count": 45,
+    "near_fall_count": 0,
+    "curation_pin_visible": true,
+    "log_uniqueness_ratio": 0.6481,
+    "move_repetition_rate": 0.3043,
+    "position_diversity": 10,
+    "single_choice_turns": 3,
+    "winner": "player",
+    "reason": "submission",
+    "match_seed": 209,
+    "wrestlers": ["bret_hart", "scott_hall"],
+    "player_policy": "novice"
+  },
+  "scores": {
+    "fun": {
+      "value": 3,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 27,
+          "note": "The match is built on one repeated pattern: the player climbs at turns 1, 3, 13, 17, 23, 27 and 39 - 7 of 22 player turns - and each climb resolves the same way (climb at 13 -> missile dropkick at 15; climb at 17 -> missile dropkick at 19; climb at 23 -> missile dropkick at 25; climb at 27 -> 'Climb down carefully' at 29). move_repetition_rate 0.3043 is the highest of the batch."
+        },
+        {
+          "turn": 29,
+          "note": "The loop tax never fires against it. No 'The climb looks telegraphed' or 'Another empty climb' line appears anywhere in the transcript, including turn 29 where the climb at turn 27 produced nothing at all and the player simply climbed back down."
+        },
+        {
+          "turn": 36,
+          "note": "There is a strong momentum swing in the middle: Hall runs missile dropkick for 18 (turn 34), Razor's Edge for 20 with '- FINISHER - the next cover packs extra heat.' (turn 36) and a kick for 9 (turn 38), taking the player from 93 to 46."
+        },
+        {
+          "turn": 43,
+          "note": "The best exchange is turns 41-43 on the turnbuckle: 'Hall reverses the hurricanrana' then 'Hitman reverses the top-rope brawl shot' then 'Hitman snaps off hurricanrana - Hall takes 22 damage. Hall is rattled' - three turns where both players are genuinely exposed."
+        },
+        {
+          "turn": 45,
+          "note": "The ending is abrupt and slightly unfair-feeling: the player wins by submission at 45 health while Hall still has 52 - the loser had the health lead. With near_fall_count 0 and 29 of 45 outcomes resolving as 'ok' (no damage), the match ends without the buildup its own damage numbers implied."
+        }
+      ]
+    },
+    "ease_of_use": {
+      "value": 3,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 22,
+          "note": "Status changes are narrated clearly when they happen: 'Hall snaps off roundhouse kick - Hitman takes 9 damage. / The crowd gasps - Hitman is busted open; blood streams down their face.' - a new state is introduced with an explanation attached."
+        },
+        {
+          "turn": 36,
+          "note": "The game teaches a rule it then ignores: '- FINISHER - the next cover packs extra heat.' tells the player covers are now boosted, but the CPU never attempts a cover for the remaining nine turns (turn 38 is a roundhouse kick) and there are zero pin attempts in the match. Feedback that promises a payoff and does not deliver is worse than no feedback."
+        },
+        {
+          "turn": 45,
+          "note": "Submission percentage misreads badly here: the option shows 'Sharpshooter 85%' under the note 'cash in momentum for a match-ending swing', and it immediately ends a match in which the opponent had more health (52 vs 45). Nothing distinguishes the 85% apply roll from the separate escape/tap resolution."
+        },
+        {
+          "turn": 35,
+          "note": "Groggy is handled correctly as a modifier: 'Hitman rises - still groggy from the impact!' with position STANDING and groggy[0]=true, so pending_groggy reads as a condition rather than a place."
+        },
+        {
+          "turn": 31,
+          "note": "Grapple escapes are clear - when GRAPPLED the menu offers only 'Grapple counter 86%' and 'Break the grapple 95%', both labelled with odds, so the forced choice still feels informed."
+        },
+        {
+          "turn": 28,
+          "note": "'Hall recovers 5 stamina' raises state.health 71 -> 76, so the message names stamina while health is the value that moves."
+        }
+      ]
+    },
+    "stickiness": {
+      "value": 3,
+      "confidence": "high",
+      "rematch_intent": "yes",
+      "rematch_reason": "Two beats create genuine curiosity: the blood spot at turn 22 is a state the player has not seen elsewhere in this batch, and Hall hitting Razor's Edge at turn 36 shows the CPU has a finisher of its own. The pull is toward seeing those systems resolve - especially the boosted cover the game advertised and then never used.",
+      "next_experiment": "Re-run seed 209 with the aggressive policy and break the climb loop after turn 17 - answer the tie-up or the grounded opponent with a pin instead - to see whether a resolved pinfall produces a near-fall and whether the loop-tax lines ever trigger on a climb chain this long.",
+      "evidence": [
+        {
+          "turn": 22,
+          "note": "'The crowd gasps - Hitman is busted open; blood streams down their face.' is the most distinctive single line across the three seeds and it appears exactly once."
+        },
+        {
+          "turn": 36,
+          "note": "Hall's Razor's Edge plus the '- FINISHER -' banner shows off CPU capability the player has not faced down yet, which is a specific reason to queue another match."
+        },
+        {
+          "turn": 39,
+          "note": "Against that, the player's own menu barely changes - the same tie-up / climb / kick / punch / recover block appears at turns 1, 13, 17, 23, 27 and 39 - so a rematch on the same policy would likely replay the same climb loop."
+        }
+      ]
+    },
+    "juiciness": {
+      "value": 3,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 22,
+          "note": "The blood beat is exactly the kind of payoff feedback the rubric wants: a routine 9-damage kick escalates into 'The crowd gasps - Hitman is busted open; blood streams down their face.'"
+        },
+        {
+          "turn": 36,
+          "note": "The finisher banner reads big - 'Hall snaps off razor's edge - Hitman takes 20 damage. / - FINISHER - the next cover packs extra heat.' - but the heat is never cashed in, so the loudest promise of the match expires unused."
+        },
+        {
+          "turn": 5,
+          "note": "Top-rope payoffs carry weight: 'Hitman snaps off hurricanrana - Hall takes 22 damage. Hall is rattled - when they're forced up, big payoffs may open.' with Hall dropped to GROUNDED, repeated to equal effect at turn 43."
+        },
+        {
+          "turn": 45,
+          "note": "The finish sequence is staged (1.0s / 1.5s / 0.0s across 'hooks in sharpshooter', 'The hold is cinched in deeper!', 'Hall taps out!') but arrives with near_fall_count 0 and the loser at 52 health, so the pop is muted."
+        },
+        {
+          "turn": 17,
+          "note": "Filler lines dilute the mix: seven bare 'Hitman: Climb to the top rope.' entries plus 'Hall: Hit the ropes.' repeats hold log_uniqueness_ratio to 0.6481."
+        }
+      ]
+    }
+  },
+  "top_issues": [
+    {
+      "severity": "major",
+      "dimension": "fun",
+      "summary": "The loop persists despite the anti-loop change. The player runs the same climb-into-top-rope-move pattern at turns 13/15, 17/19, 23/25, 27/29 and 39/41 (move_repetition_rate 0.3043) and not a single loop-tax line ('telegraphed', 'empty climb', 'stalls out', 'getting predictable') fires in the whole transcript.",
+      "suggested_area": "loop-tax trigger conditions for climb; the tax appears not to count a climb whose follow-up landed, so a profitable loop is never penalised"
+    },
+    {
+      "severity": "major",
+      "dimension": "juiciness",
+      "summary": "Turn 36 announces '- FINISHER - the next cover packs extra heat' and the CPU never covers. There are zero pin attempts and near_fall_count 0 in the match, so an explicitly advertised payoff state simply decays.",
+      "suggested_area": "CPU move scoring: prioritise pin while the finisher heat modifier is active"
+    },
+    {
+      "severity": "major",
+      "dimension": "fun",
+      "summary": "Pacing gate failed at 45 turns (band 8-40), with 30 of 45 turns (67%) spent on non-damaging setup/recovery and 29 outcomes resolving as 'ok'.",
+      "suggested_area": "game.py: cost or cooldown on repeated position-change turns"
+    },
+    {
+      "severity": "minor",
+      "dimension": "ease_of_use",
+      "summary": "The match ends by submission with the winner at 45 health and the loser at 52. Nothing in the log frames why an 85% hold ended a match the opponent was leading on damage, reinforcing the apply-versus-win confusion.",
+      "suggested_area": "submission resolution text; surface the apply roll separately from the escape/tap roll"
+    }
+  ],
+  "highlight_moments": [
+    {
+      "turn": 22,
+      "type": "blood",
+      "quote": "The crowd gasps - Hitman is busted open; blood streams down their face."
+    },
+    {
+      "turn": 36,
+      "type": "finisher",
+      "quote": "Hall snaps off razor's edge - Hitman takes 20 damage. / - FINISHER - the next cover packs extra heat."
+    },
+    {
+      "turn": 43,
+      "type": "big_spot",
+      "quote": "Hitman snaps off hurricanrana - Hall takes 22 damage. Hall is rattled - when they're forced up, big payoffs may open."
+    },
+    {
+      "turn": 45,
+      "type": "finish",
+      "quote": "The hold is cinched in deeper! / Hall taps out! / *** SUBMISSION - Hitman wins ***"
+    }
+  ]
+}

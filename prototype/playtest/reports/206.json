@@ -1,0 +1,175 @@
+{
+  "rubric_version": "2026-07-30",
+  "meta": {
+    "match_seed": 206,
+    "wrestlers": ["bret_hart", "scott_hall"],
+    "player_policy": "methodical",
+    "turn_count": 50,
+    "winner": "cpu"
+  },
+  "telemetry": {
+    "gates_passed": false,
+    "gate_failures": ["turn_count 50 outside band [8, 40]"],
+    "turn_count": 50,
+    "winner": "cpu",
+    "reason": "pinfall",
+    "near_fall_count": 0,
+    "curation_pin_visible": true,
+    "log_uniqueness_ratio": 0.4844,
+    "move_repetition_rate": 0.68,
+    "position_diversity": 7,
+    "single_choice_turns": 2,
+    "match_seed": 206,
+    "wrestlers": ["bret_hart", "scott_hall"],
+    "player_policy": "methodical"
+  },
+  "scores": {
+    "fun": {
+      "value": 2,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 11,
+          "note": "The one good sequence in the match: climb at t9 pays off with 'Hitman snaps off missile dropkick — Hall takes 19 damage', momentum 5-2, Hall GROUNDED. This is the only offensive spike the player produces all match."
+        },
+        {
+          "turn": 13,
+          "note": "Real trade-off offered and passed on: menu shows 'Cover — pinfall attempt', 'Sharpshooter 83% — cash in momentum for a match-ending swing', 'Leg drop 86%' and 'Pull opponent up'. The player takes pickup for 3 damage; from here Hall never drops below 109 HP again."
+        },
+        {
+          "turn": 25,
+          "note": "Dead loop: collar_elbow is 17 of 25 player turns (68.00%, exactly the reported move_repetition_rate) and is chosen on 14 consecutive player turns from t15 through t41. Health is frozen at [109, 109] from t20 to t28 while the tie-up/break cycle repeats."
+        },
+        {
+          "turn": 41,
+          "note": "Player HP falls 132 -> 83 across the loop while Hall stays at 109 from t13 to the final bell — 37 turns in which the player deals zero damage. That is a one-sided snowball with no comeback window."
+        },
+        {
+          "turn": 50,
+          "note": "50 turns (gate fail, band [8, 40]) and near_fall_count 0; the match ends on a 1-2-3 the player had no chance to break up after two unanswered Razor's Edges."
+        }
+      ]
+    },
+    "ease_of_use": {
+      "value": 3,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 5,
+          "note": "Loop-tax feedback is legible and escalating: the tie-up note changes from 'enter a tie-up to unlock throws and whips; repeat loops lose steam' (t1) to 'tie-up is going stale — pay it off or reset before they steal momentum' (t5), and the log confirms the cost — 'The repeated tie-up stalls out — Hall gains escape momentum.'"
+        },
+        {
+          "turn": 23,
+          "note": "The cost is also visible numerically: the Collar-and-elbow label decays 91% (t15) -> 84% -> 78% -> 71% -> 65% -> 58% -> 57%, so a reader can see the move getting worse the more it is used."
+        },
+        {
+          "turn": 31,
+          "note": "But the menu contradicts its own warning: on every single stale turn Collar-and-elbow is still index 1 and still ties the best hit chance on offer (57% vs Straight right 57%, Roundhouse kick 52%). The text says reset while the ordering and the odds both say keep tying up."
+        },
+        {
+          "turn": 43,
+          "note": "Ambiguity in the groggy menu: 'Shake the cobwebs 61%' and 'Desperation strike 57%' carry the identical note 'clear the haze before they punish you' despite one being pure recovery and the other a strike attempt."
+        },
+        {
+          "turn": 46,
+          "note": "Status feedback is otherwise strong: 'Hitman is rattled — when they're forced up, big payoffs may open.' plus '— FINISHER — the next cover packs extra heat.' clearly telegraphs the incoming pin, and groggy reads as a modifier at t47 ('Hitman rises — still groggy from the impact!', position STANDING)."
+        },
+        {
+          "turn": 13,
+          "note": "Pin visible when legal (curation_pin_visible true), and Sharpshooter 83% is framed as 'cash in momentum for a match-ending swing' — apply-the-hold odds, not a win probability."
+        }
+      ]
+    },
+    "stickiness": {
+      "value": 2,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 27,
+          "note": "Nothing new is discovered after t13: turns 15-41 are the same tie-up/break exchange, and the log alternates between two sentences ('The repeated tie-up stalls out…' 11 times, 'Hall uses the stale tie-up to reset with momentum' 7 times)."
+        },
+        {
+          "turn": 48,
+          "note": "The ending removes agency rather than creating curiosity — two identical Razor's Edges at t46 and t48 with the player's only legal move being 'Fight to your feet' at 46% then 44%."
+        },
+        {
+          "turn": 13,
+          "note": "The single hook for a rematch is the unexplored fork at t13, where Sharpshooter at 83% and a Cover were both live with Hall grounded and rattled."
+        }
+      ],
+      "rematch_intent": "maybe",
+      "rematch_reason": "Only one specific question is left open — whether taking the Sharpshooter or the cover at t13 converts the missile-dropkick knockdown — because everything after that turn was the same tie-up exchange with no damage on either side.",
+      "next_experiment": "Re-run seed 206 with a policy that takes the Finish options at t13 (Sharpshooter 83% or Cover) and, whenever the note reads 'tie-up is going stale', switches to Straight right or a grapple payoff (Arm drag / Side headlock) instead of re-tying, to test whether the loop tax is actually escapable in play."
+    },
+    "juiciness": {
+      "value": 2,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 11,
+          "note": "One clean impact beat: 'Hitman snaps off missile dropkick — Hall takes 19 damage' with Hall dropped to GROUNDED and momentum jumping to 5-2."
+        },
+        {
+          "turn": 26,
+          "note": "Feedback density collapses mid-match: turns 17-41 are almost entirely two alternating sentences, and log_uniqueness_ratio is 0.4844 with position_diversity only 7 — the ring never changes shape."
+        },
+        {
+          "turn": 46,
+          "note": "The Razor's Edge beat is well built: 'Hall snaps off razor's edge — Hitman takes 20 damage. Hitman is rattled… — FINISHER — the next cover packs extra heat.' State shifts to GROUNDED, and the promise is paid off at t50 with 'The finisher still echoes — +12 on the cover!'"
+        },
+        {
+          "turn": 50,
+          "note": "Pin sequence is properly staged (delays 0.0 / 1.0 / 1.5 / 0.0 / 0.0) through 'Referee: 1… 2… 3!', but with near_fall_count 0 the three-count carries no doubt — there was never a kickout in the match to make the count feel dangerous."
+        }
+      ]
+    }
+  },
+  "top_issues": [
+    {
+      "severity": "critical",
+      "dimension": "fun",
+      "summary": "The loop persists despite the warnings. Collar-and-elbow is chosen on 14 consecutive player turns (t15-t41) and 68% of all player turns; 'The repeated tie-up stalls out' fires 11 times and 'Hall uses the stale tie-up to reset with momentum' 7 times, yet nothing in the game state or the menu forces a different choice. The loop tax drains momentum but does not break the loop.",
+      "suggested_area": "escalating loop tax — gate or remove the repeated move from curation after N stale uses"
+    },
+    {
+      "severity": "major",
+      "dimension": "ease_of_use",
+      "summary": "The curated menu fights its own advice: while the note reads 'tie-up is going stale — pay it off or reset before they steal momentum', Collar-and-elbow remains index 1 and ties the highest displayed hit chance on every stale turn (e.g. t31: tie-up 57%, punch 57%, kick 52%). A player following either the ordering or the percentages does exactly what the text warns against.",
+      "suggested_area": "curation ordering / hit-% presentation when a move is flagged stale"
+    },
+    {
+      "severity": "major",
+      "dimension": "fun",
+      "summary": "Fairness and pacing: Hall's HP is unchanged at 109 from t13 to the final bell while the player falls 132 -> 25, so 37 of 50 turns contain no player offense at all. Combined with near_fall_count 0 and the 50-turn gate fail, the match has no comeback structure.",
+      "suggested_area": "momentum floor / comeback pressure when one side has taken no damage for many turns"
+    },
+    {
+      "severity": "minor",
+      "dimension": "ease_of_use",
+      "summary": "Both groggy-recovery options at t43 and t45 share the identical note 'clear the haze before they punish you' even though Shake the cobwebs is a pure recovery and Desperation strike also deals damage.",
+      "suggested_area": "distinct note text for shake_groggy vs desperation_strike"
+    }
+  ],
+  "highlight_moments": [
+    {
+      "turn": 11,
+      "type": "big_spot",
+      "quote": "Hitman snaps off missile dropkick — Hall takes 19 damage."
+    },
+    {
+      "turn": 6,
+      "type": "loop_tax",
+      "quote": "Hall snaps off grapple counter — Hitman takes 5 damage.\n  The counter is getting predictable — Hitman slips free with momentum."
+    },
+    {
+      "turn": 46,
+      "type": "finisher",
+      "quote": "Hall snaps off razor's edge — Hitman takes 20 damage.\n  Hitman is rattled — when they're forced up, big payoffs may open.\n  — FINISHER — the next cover packs extra heat."
+    },
+    {
+      "turn": 50,
+      "type": "finish",
+      "quote": "The finisher still echoes — +12 on the cover!\n  Referee: 1…\n  Referee: 2…\n  Referee: 3!\n  *** PINFALL — Hall wins ***"
+    }
+  ]
+}

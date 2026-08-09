@@ -1,0 +1,167 @@
+{
+  "rubric_version": "2026-07-30",
+  "meta": {
+    "match_seed": 214,
+    "wrestlers": ["bret_hart", "scott_hall"],
+    "player_policy": "novice",
+    "turn_count": 35,
+    "winner": "player"
+  },
+  "telemetry": {
+    "gates_passed": true,
+    "gate_failures": [],
+    "turn_count": 35,
+    "near_fall_count": 0,
+    "curation_pin_visible": true,
+    "log_uniqueness_ratio": 0.65,
+    "move_repetition_rate": 0.4444,
+    "position_diversity": 6,
+    "single_choice_turns": 0,
+    "winner": "player",
+    "reason": "submission"
+  },
+  "scores": {
+    "fun": {
+      "value": 2,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 9,
+          "note": "The match is a climb metronome: the player takes 'Climb to the top rope' on turns 1, 3, 9, 17, 19, 25, 29 and 31 - 8 of 18 player turns - and the log is the flat 'Hitman: Climb to the top rope.' each time."
+        },
+        {
+          "turn": 18,
+          "note": "The CPU answers the climb with the same counter over and over: 'Hall snaps off pull off the top rope - Hitman takes 6 damage.' at turns 2, 18 and 30, with a reversal of the same move at turn 10. Only 6 distinct position pairings occur in the whole match."
+        },
+        {
+          "turn": 7,
+          "note": "A real trade-off is presented and simply skipped by the policy - 'Big swing | Vertical suplex | 62% | TARGET GROGGY payoff: heavy damage is available now' versus the safer 78% tie-up - and the safe pick whiffs: 'Hitman whiffs - Hall shrugs it off.'"
+        },
+        {
+          "turn": 21,
+          "note": "Risk does register occasionally: the 62% missile dropkick is reversed ('Hall reverses the missile dropkick - only 1 damage, and turns the tables!'), swinging momentum from [5,1] to [3,4]."
+        },
+        {
+          "turn": 30,
+          "note": "No comeback arc - health tracks from [132,132] to [94,93] almost in lockstep and the closest the match comes to tension is a 1-point health gap, with near_fall_count 0."
+        }
+      ]
+    },
+    "ease_of_use": {
+      "value": 3,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 7,
+          "note": "Groggy is presented correctly as a modifier, not a position: with state position ['STANDING','STANDING'] and groggy [false,true], the menu tags 'Vertical suplex' with 'TARGET GROGGY payoff: heavy damage is available now'."
+        },
+        {
+          "turn": 6,
+          "note": "The modifier's lifecycle is readable across turns - 'Hall rises - still groggy from the impact!' then turn 8 'Hall steadies themselves - they're back!' - matching the groggy flag flipping true then false."
+        },
+        {
+          "turn": 35,
+          "note": "Pin is visible as soon as it is legal: 'Finish | Cover - pinfall attempt | pin' sits at index 1 with the Sharpshooter at index 2."
+        },
+        {
+          "turn": 29,
+          "note": "The menu gives no cost signal for the loop it is feeding. 'Climb to the top rope' is labeled 'auto' with the neutral note 'changes ring position to unlock a stronger follow-up' on every one of the 8 climbs, while the tie-up option on the same menu carries the warning 'repeat loops lose steam'. The inconsistency teaches that climbing is free when the CPU has punished it three times."
+        },
+        {
+          "turn": 35,
+          "note": "'Finish | Sharpshooter | 86% | cash in momentum for a match-ending swing' does not distinguish the chance to apply the hold from the chance to win, and the immediate tap makes 86% look like a win probability."
+        }
+      ]
+    },
+    "stickiness": {
+      "value": 2,
+      "confidence": "high",
+      "rematch_intent": "maybe",
+      "rematch_reason": "The two top-rope payoffs (turn 27 missile dropkick, turn 33 hurricanrana) and the turn-32 double-climb into a hurricanrana hint at a more interesting match than the one played, but eight repeated climbs and the lowest position diversity in the batch (6) made the middle predictable, and the finish came with no near-fall to hook a rerun.",
+      "next_experiment": "Re-run seed 214 with an aggressive policy that takes the 'Big swing' options actually offered - the turn-7 Vertical suplex against a groggy Hall and 'Diving crossbody' at turns 5, 21 and 27 - and separately take 'Cover - pinfall attempt' at turn 35 instead of the Sharpshooter to see whether the pin path generates the missing near-fall.",
+      "evidence": [
+        {
+          "turn": 32,
+          "note": "The only genuinely novel configuration in the match - 'Hall: Climb to the top rope.' with both wrestlers on TOP_ROPE - unlocks a Superplex/Hurricanrana menu that appears exactly once."
+        },
+        {
+          "turn": 33,
+          "note": "'Hitman snaps off hurricanrana - Hall takes 22 damage.' is the highest-impact moment and it lands two turns before the match ends, so most of the discovery is crammed into the finish."
+        },
+        {
+          "turn": 19,
+          "note": "Mid-match menus are identical to turn 3's (tie-up 90%, climb auto, kick 85%, punch 90%, recover), so replaying the same line would surface nothing new."
+        }
+      ]
+    },
+    "juiciness": {
+      "value": 3,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 5,
+          "note": "Top-rope payoff lands with a follow-on state line: 'Hitman snaps off missile dropkick - Hall takes 19 damage. / Hall is rattled - when they're forced up, big payoffs may open.'"
+        },
+        {
+          "turn": 33,
+          "note": "'Hitman snaps off hurricanrana - Hall takes 22 damage.' converts the double top-rope standoff into the biggest hit of the match and drops Hall to GROUNDED."
+        },
+        {
+          "turn": 34,
+          "note": "The pre-finish beat is well framed: 'Hall tries to rise but can't find it - still down and vulnerable to a cover!'"
+        },
+        {
+          "turn": 35,
+          "note": "The submission finish is paced with a three-step delayed sequence (delays 1.0s, 1.5s, 0.0s) through 'Hall reaches for daylight...' and 'The hold is cinched in deeper!' before the tap."
+        },
+        {
+          "turn": 31,
+          "note": "Feedback density is diluted by the loop - 21 of 35 turns resolve as plain 'ok' position lines such as 'Hitman: Climb to the top rope.' with no damage, and near_fall_count is 0."
+        }
+      ]
+    }
+  },
+  "top_issues": [
+    {
+      "severity": "major",
+      "dimension": "fun",
+      "summary": "A climb / pull-off-the-top loop runs the whole match with NO loop-tax feedback at all. The player climbs on turns 1, 3, 9, 17, 19, 25, 29, 31 and the CPU answers with 'Pull off the top rope' on turns 2, 10, 18, 30, yet not one of the new anti-loop lines fires in this transcript. The loop tax appears to cover the tie-up and the grapple counter but not repeated climbs, which is exactly the loop that dominates here (move_repetition_rate 0.44, position_diversity 6 - the lowest in the batch).",
+      "suggested_area": "game.py loop-tax coverage for climb / dismount cycles"
+    },
+    {
+      "severity": "minor",
+      "dimension": "ease_of_use",
+      "summary": "Setup moves labeled 'auto' carry no cost or staleness cue even after being punished repeatedly, while the tie-up on the same menu warns 'repeat loops lose steam'. The player is taught that one repeat is risky and another is free.",
+      "suggested_area": "_curate_move_choices() note text for repeated setup moves"
+    },
+    {
+      "severity": "minor",
+      "dimension": "ease_of_use",
+      "summary": "Submission percentage ambiguity: 'Sharpshooter | 86%' with the note 'cash in momentum for a match-ending swing' reads as a win chance rather than a chance to apply the hold.",
+      "suggested_area": "submission labeling in curated menu"
+    },
+    {
+      "severity": "minor",
+      "dimension": "juiciness",
+      "summary": "Zero near-falls and no failed finish attempt; the match ends on the first submission try at turn 35 with no escape drama.",
+      "suggested_area": "submission escape / near-fall tuning"
+    }
+  ],
+  "highlight_moments": [
+    {
+      "turn": 5,
+      "type": "big_spot",
+      "quote": "Hitman snaps off missile dropkick - Hall takes 19 damage. / Hall is rattled - when they're forced up, big payoffs may open."
+    },
+    {
+      "turn": 33,
+      "type": "big_spot",
+      "quote": "Hitman snaps off hurricanrana - Hall takes 22 damage."
+    },
+    {
+      "turn": 35,
+      "type": "finish",
+      "quote": "Hitman hooks in sharpshooter! / Hall reaches for daylight... / The hold is cinched in deeper! / Hall taps out! / *** SUBMISSION - Hitman wins ***"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "gates_passed": false,
+  "gate_failures": [
+    "turn_count 170 outside band [8, 40]"
+  ],
+  "turn_count": 170,
+  "winner": "cpu",
+  "reason": "pinfall",
+  "near_fall_count": 0,
+  "curation_pin_visible": true,
+  "log_uniqueness_ratio": 0.2796,
+  "move_repetition_rate": 0.7059,
+  "position_diversity": 14,
+  "single_choice_turns": 6,
+  "match_seed": 202,
+  "wrestlers": [
+    "bret_hart",
+    "scott_hall"
+  ],
+  "player_policy": "methodical"
+}

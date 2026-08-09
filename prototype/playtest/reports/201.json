@@ -1,0 +1,169 @@
+{
+  "rubric_version": "2026-07-30",
+  "meta": {
+    "match_seed": 201,
+    "wrestlers": [
+      "bret_hart",
+      "scott_hall"
+    ],
+    "player_policy": "novice",
+    "turn_count": 5,
+    "winner": "player"
+  },
+  "telemetry": {
+    "gates_passed": false,
+    "gate_failures": [
+      "turn_count 5 outside band [8, 40]"
+    ],
+    "turn_count": 5,
+    "winner": "player",
+    "reason": "submission",
+    "near_fall_count": 0,
+    "curation_pin_visible": true,
+    "log_uniqueness_ratio": 1.0,
+    "move_repetition_rate": 0.3333,
+    "position_diversity": 3,
+    "single_choice_turns": 0,
+    "match_seed": 201,
+    "wrestlers": [
+      "bret_hart",
+      "scott_hall"
+    ],
+    "player_policy": "novice"
+  },
+  "scores": {
+    "fun": {
+      "value": 2,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 1,
+          "note": "The menu presents genuine variety (Grapple control 71%, Set up position, two Safe offense options, Reset), so the decision space itself is fine; climb was chosen with no downside."
+        },
+        {
+          "turn": 3,
+          "note": "One big spot decides the match: 'Hitman snaps off missile dropkick — Hall takes 19 damage' plus a bleed and a rattled tag, taking momentum to [5,0] on the player's second action."
+        },
+        {
+          "turn": 4,
+          "note": "Hall never gets a meaningful turn — 'Hall tries to rise but can't find it — still down and vulnerable to a cover!' is his second and last action, and he lands zero damage all match."
+        },
+        {
+          "turn": 5,
+          "note": "Finish arrives with the opponent at 113/132 HP (86% health) after only three player actions: 'Hitman hooks in sharpshooter! … Hall taps out!'; there is no arc, no comeback window and near_fall_count=0."
+        },
+        {
+          "turn": 5,
+          "note": "Pacing gate failed at 5 turns against the [8, 40] band, and position_diversity is only 3 — the match ends before any tactical texture develops."
+        }
+      ]
+    },
+    "ease_of_use": {
+      "value": 4,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 1,
+          "note": "Every option is labeled with intent, hit chance and a plain-language note, e.g. 'Set up position / Climb to the top rope (auto) — changes ring position to unlock a stronger follow-up'; single_choice_turns=0."
+        },
+        {
+          "turn": 3,
+          "note": "Top-rope menu is honest about risk — both dives labeled 'Big swing … top-rope payoff: high risk, huge crowd pop' with 'Climb down carefully' offered as the bail-out."
+        },
+        {
+          "turn": 5,
+          "note": "Pin is visible when legal: 'Cover — pinfall attempt (pin)' shown next to 'Sharpshooter (82%)' while Hall is GROUNDED (curation_pin_visible=true), so curation hides nothing important here."
+        },
+        {
+          "turn": 5,
+          "note": "Submission percentage is misleading in effect: the 82% is the chance to APPLY the hold, but the hold applies and wins in the same beat, so a new player would reasonably read '82%' as an 82% chance to win the match."
+        },
+        {
+          "turn": 3,
+          "note": "State-change copy is clear and distinct: 'Hall is busted open; blood streams down their face' and 'Hall is rattled — when they're forced up, big payoffs may open' explain the bleed and pending-groggy setup without jargon."
+        }
+      ]
+    },
+    "stickiness": {
+      "value": 2,
+      "confidence": "medium",
+      "evidence": [
+        {
+          "turn": 1,
+          "note": "Almost nothing was exercised: five choices offered, three taken all match, and the collar-and-elbow / loop-tax systems this build is testing never came into play (no stale-tie-up lines anywhere in the transcript)."
+        },
+        {
+          "turn": 3,
+          "note": "The bleed line 'The crowd gasps — Hall is busted open; blood streams down their face' is the one hook that invites another run to see what blood actually does mechanically."
+        },
+        {
+          "turn": 5,
+          "note": "Pin versus sharpshooter was a live fork at 113 HP and only the submission was tried, so the pin branch and any kickout drama remain unseen."
+        }
+      ],
+      "rematch_intent": "maybe",
+      "rematch_reason": "Five turns is too little to form an opinion about the match — the finish landed before any exchange developed — but the blood callout and the untested pin branch leave mild curiosity.",
+      "next_experiment": "Rerun seed 201 taking the cover at T5 instead of the sharpshooter, and choose Collar-and-elbow tie-up at T1 rather than climbing, to see whether the match reaches the 8-40 turn band and whether the loop-tax feedback appears at all."
+    },
+    "juiciness": {
+      "value": 2,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 3,
+          "note": "Strongest beat in the match stacks three feedback layers: 'Hitman snaps off missile dropkick — Hall takes 19 damage. / The crowd gasps — Hall is busted open; blood streams down their face. / Hall is rattled — when they're forced up, big payoffs may open.'"
+        },
+        {
+          "turn": 3,
+          "note": "The rattled promise is never paid off — Hall fails his get-up on T4 and the match ends on T5, so the setup text writes a cheque the match never cashes."
+        },
+        {
+          "turn": 5,
+          "note": "Submission sequence is well staged in isolation (finish_sequence delays 1.0/1.5/0.0, 'Hall reaches for daylight… / The hold is cinched in deeper! / Hall taps out!') but resolves on the first attempt against an 86%-health opponent."
+        },
+        {
+          "turn": 5,
+          "note": "No drama metrics at all: near_fall_count=0, position_diversity=3, no reversal or kickout lines in the whole transcript; log_uniqueness_ratio 1.0 is trivially high because only 5 turns were logged."
+        }
+      ]
+    }
+  },
+  "top_issues": [
+    {
+      "severity": "critical",
+      "dimension": "fun",
+      "summary": "Match ends on turn 5, below the [8, 40] pacing band, with the loser at 113/132 HP and zero damage dealt; an 82% submission taken at near-full opponent health ends the match instantly, which makes the finish feel like a shortcut rather than a payoff.",
+      "suggested_area": "Submission win gating by target health/momentum, or a mandatory escape/near-fall beat on early attempts"
+    },
+    {
+      "severity": "major",
+      "dimension": "juiciness",
+      "summary": "The blood and 'rattled' setup on T3 promise escalation, but the match ends two turns later with near_fall_count=0 and no reversal or kickout anywhere, so the abrupt sub-band finish reads as anticlimax rather than dominance.",
+      "suggested_area": "Finish pacing / near-fall requirement before a match-ending hold"
+    },
+    {
+      "severity": "minor",
+      "dimension": "ease_of_use",
+      "summary": "The sharpshooter's '82%' is the chance to apply the hold, but applying it won the match in the same beat, actively teaching the wrong mental model to a novice.",
+      "suggested_area": "Submission label wording — distinguish apply chance from win chance in the curated note"
+    },
+    {
+      "severity": "minor",
+      "dimension": "stickiness",
+      "summary": "This seed exercises none of the anti-loop feedback under test — no tie-up was ever used, so no 'stalls out' / 'predictable' / 'telegraphed' lines appear in the transcript.",
+      "suggested_area": "Playtest coverage — novice policy seeds that reach the grapple game"
+    }
+  ],
+  "highlight_moments": [
+    {
+      "turn": 3,
+      "type": "big_spot",
+      "quote": "Hitman snaps off missile dropkick — Hall takes 19 damage.\n  The crowd gasps — Hall is busted open; blood streams down their face.\n  Hall is rattled — when they're forced up, big payoffs may open."
+    },
+    {
+      "turn": 5,
+      "type": "submission",
+      "quote": "Hitman hooks in sharpshooter!\n  Hall reaches for daylight…\n  The hold is cinched in deeper!\n  Hall taps out!\n  *** SUBMISSION — Hitman wins ***"
+    }
+  ]
+}

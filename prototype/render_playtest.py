@@ -185,8 +185,8 @@ class PlaytestRenderer:
             payload["finish_sequence"] = finish
             if pin_seq.won:
                 self._win_reason = str(finish["type"])
-        elif outcome_label(log) == "submission":
-            self._win_reason = "submission"
+        elif outcome_label(log) in {"submission", "knockout"}:
+            self._win_reason = outcome_label(log)
         self._emit(payload)
 
         if self._max_turns is not None and self._turn_count >= self._max_turns:

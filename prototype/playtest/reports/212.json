@@ -1,0 +1,203 @@
+{
+  "rubric_version": "2026-07-30",
+  "meta": {
+    "match_seed": 212,
+    "wrestlers": ["bret_hart", "scott_hall"],
+    "player_policy": "methodical",
+    "turn_count": 176,
+    "winner": "cpu"
+  },
+  "telemetry": {
+    "gates_passed": false,
+    "gate_failures": ["turn_count 176 outside band [8, 40]"],
+    "turn_count": 176,
+    "near_fall_count": 0,
+    "curation_pin_visible": true,
+    "log_uniqueness_ratio": 0.2653,
+    "move_repetition_rate": 0.6136,
+    "position_diversity": 9,
+    "single_choice_turns": 3,
+    "winner": "cpu",
+    "reason": "pinfall"
+  },
+  "scores": {
+    "fun": {
+      "value": 2,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 5,
+          "note": "Early grapple play has real payoff structure: after the tie-up the menu offers three 'Grapple control' payoffs and the chosen hip toss lands for 10 ('Hitman snaps off hip toss - Hall takes 10 damage.'), pushing Hall to GROUNDED."
+        },
+        {
+          "turn": 9,
+          "note": "Start of the loop that defines the match: 'The repeated tie-up stalls out - Hall gains escape momentum.' Player momentum falls 5 -> 4 while Hall climbs 1 -> 2."
+        },
+        {
+          "turn": 17,
+          "note": "Eight turns later the identical exchange is still running (tie-up stall on 9, 11, 13, 15, 17, each answered by 'Hall uses the stale tie-up to reset with momentum.'), and both health bars are frozen at 126/116 across turns 9-18."
+        },
+        {
+          "turn": 71,
+          "note": "The match's real climax window is skipped: with Hall GROUNDED at 6 HP the menu leads with two 'Finish' options (pin, plus Sharpshooter at 88%), and the methodical policy takes 'Climb to the top rope' instead. The same window reappears at 87, 95, 105 and 109 and is declined every time."
+        },
+        {
+          "turn": 89,
+          "note": "Hall reaches 1 HP here and never rises above 11 for the remaining 87 turns; subsequent 19-26 damage hits (107, 139) leave him at 1 HP, so offense stops meaning anything and the arc flatlines."
+        },
+        {
+          "turn": 123,
+          "note": "Late match is the same loop as turn 9: collar_elbow accounts for 54 of 88 player turns (move_repetition_rate 0.61), with 26 'repeated tie-up stalls out' lines and 21 'stale tie-up to reset' replies."
+        },
+        {
+          "turn": 176,
+          "note": "Anticlimactic finish after 176 turns: Hall covers once and wins 1-2-3 with 0 near falls all match, while the player never attempted a single Finish."
+        }
+      ]
+    },
+    "ease_of_use": {
+      "value": 3,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 1,
+          "note": "Menu is honest about the loop risk before it happens: the tie-up note reads 'enter a tie-up to unlock throws and whips; repeat loops lose steam'."
+        },
+        {
+          "turn": 9,
+          "note": "The escalated note is legible and actionable - 'tie-up is going stale - pay it off or reset before they steal momentum' - and the log line names both the cause and the consequence ('Hall gains escape momentum')."
+        },
+        {
+          "turn": 87,
+          "note": "Curation is honest at the decisive moment: pin is shown first under intent 'Finish' whenever legal (turns 71, 87, 95, 105, 109), so the 176-turn drag is a player-policy failure, not a hidden-move failure."
+        },
+        {
+          "turn": 87,
+          "note": "Readability gap in the Finish block: pin carries label 'pin' with no number while Sharpshooter shows '88%', so a new player cannot compare the two, and nothing states that the 88% is the chance to APPLY the hold rather than to win."
+        },
+        {
+          "turn": 26,
+          "note": "Groggy is communicated cleanly as a modifier rather than a position: 'Hitman is rattled - when they're forced up, big payoffs may open.' pays off at turn 27 with 'Hitman rises - still groggy from the impact!'"
+        },
+        {
+          "turn": 107,
+          "note": "Unexplained rule: a 19-damage missile dropkick on a 1 HP opponent leaves him at 1 HP with no message about a health floor, so the player gets no hint that only a Finish can close the match."
+        },
+        {
+          "turn": 21,
+          "note": "Bare reversal line 'Hall turns the tables!' does not name the move or say what was reversed, unlike the fuller reversal text at turn 20."
+        }
+      ]
+    },
+    "stickiness": {
+      "value": 2,
+      "confidence": "high",
+      "rematch_intent": "maybe",
+      "rematch_reason": "The first 90 turns show a genuinely interesting game - grapple payoffs, a top-rope exchange, a blood spot - and the obvious unanswered question is what happens if the Finish windows at turns 71/87/95/105/109 are actually taken. But the last 87 turns are the same tie-up exchange with both wrestlers unable to end it, which is a strong deterrent to queueing this configuration again.",
+      "next_experiment": "Re-run seed 212 with a policy that takes the 'Finish' intent whenever it appears (pin at turn 71 with Hall GROUNDED at 6 HP) and abandons collar_elbow after the first 'tie-up is going stale' note, to see whether the match lands inside the 8-40 turn band and produces near falls.",
+      "evidence": [
+        {
+          "turn": 73,
+          "note": "Discovery moment worth returning for: 'Hitman snaps off flying splash - Hall takes 26 damage.' after a top-rope setup, the largest single hit of the match."
+        },
+        {
+          "turn": 101,
+          "note": "Unexpected content that creates curiosity: 'The crowd gasps - Hall is busted open; blood streams down their face.' - a state event not seen in the other seeds this batch."
+        },
+        {
+          "turn": 129,
+          "note": "Counterweight to rematch intent: by this point the log is 26 repeats of the stall line and 21 repeats of the reset line (log_uniqueness_ratio 0.2653), so the session reads as samey rather than varied."
+        }
+      ]
+    },
+    "juiciness": {
+      "value": 2,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 37,
+          "note": "Big spots do land with state feedback: 'Hitman snaps off missile dropkick - Hall takes 19 damage.' plus 'Hall is rattled - when they're forced up, big payoffs may open.' and a position flip to GROUNDED."
+        },
+        {
+          "turn": 101,
+          "note": "Strongest feedback beat of the batch: 'The crowd gasps - Hall is busted open; blood streams down their face.'"
+        },
+        {
+          "turn": 174,
+          "note": "Finisher tagging works: 'Hall snaps off razor's edge - Hitman takes 20 damage.' followed by '- FINISHER - the next cover packs extra heat.', cashed in at 176 as 'The finisher still echoes - +12 on the cover!'"
+        },
+        {
+          "turn": 176,
+          "note": "Finish pacing metadata is present and reads well: finish_sequence steps delay 1.0s after 'Referee: 1...' and 1.5s after 'Referee: 2...' before the three count."
+        },
+        {
+          "turn": 97,
+          "note": "Payoffs stop paying off: 'Hitman snaps off diving elbow drop - Hall takes 24 damage.' moves Hall from 1 HP to 1 HP. From turn 89 onward every big spot lands on a health floor, so the biggest hits produce no state shift."
+        },
+        {
+          "turn": 133,
+          "note": "Phrasing repetition dominates the second half - the same two stall/reset lines alternate for dozens of turns, matching log_uniqueness_ratio 0.2653."
+        }
+      ]
+    }
+  },
+  "top_issues": [
+    {
+      "severity": "critical",
+      "dimension": "fun",
+      "summary": "The loop tax fires but does not break the loop. 'The repeated tie-up stalls out' appears 26 times and 'Hall uses the stale tie-up to reset with momentum' 21 times, yet collar_elbow is still 54 of 88 player turns (turns 9-19, 45-55, 117-133, 143-170). The penalty drains momentum without ever making the repeat unavailable or unattractive enough to stop, so the warning becomes wallpaper.",
+      "suggested_area": "loop tax escalation / curation"
+    },
+    {
+      "severity": "critical",
+      "dimension": "fun",
+      "summary": "Hall sits at 1 HP from turn 89 to turn 176 while absorbing 19-26 damage hits (turns 97, 107, 139). Damage cannot close a match, only a Finish can, so an 87-turn dead zone opens whenever the player does not take a Finish window. This is the direct cause of the 176-turn pacing gate failure.",
+      "suggested_area": "match end conditions / health floor"
+    },
+    {
+      "severity": "major",
+      "dimension": "fun",
+      "summary": "Finish windows are rare and easy to walk past. Pin was legal on only 5 of 88 player turns (71, 87, 95, 105, 109) - all requiring Hall to be GROUNDED - and once declined the match had no other route to a conclusion for the player.",
+      "suggested_area": "finish availability"
+    },
+    {
+      "severity": "major",
+      "dimension": "ease_of_use",
+      "summary": "In the Finish block the pin option shows label 'pin' with no probability next to Sharpshooter's '88%', and the 88% is not marked as chance-to-apply rather than chance-to-win. A new player has no basis for choosing between the two match-ending options.",
+      "suggested_area": "curation labels"
+    },
+    {
+      "severity": "minor",
+      "dimension": "ease_of_use",
+      "summary": "Landing 19-26 damage on a 1 HP opponent (turns 97, 107, 139) produces no message explaining why the opponent survives, leaving the health floor rule invisible.",
+      "suggested_area": "log text"
+    }
+  ],
+  "highlight_moments": [
+    {
+      "turn": 73,
+      "type": "big_spot",
+      "quote": "Hitman snaps off flying splash - Hall takes 26 damage."
+    },
+    {
+      "turn": 97,
+      "type": "big_spot",
+      "quote": "Hitman snaps off diving elbow drop - Hall takes 24 damage."
+    },
+    {
+      "turn": 101,
+      "type": "state_event",
+      "quote": "The crowd gasps - Hall is busted open; blood streams down their face."
+    },
+    {
+      "turn": 174,
+      "type": "finisher",
+      "quote": "- FINISHER - the next cover packs extra heat."
+    },
+    {
+      "turn": 176,
+      "type": "finish",
+      "quote": "The finisher still echoes - +12 on the cover!"
+    }
+  ]
+}

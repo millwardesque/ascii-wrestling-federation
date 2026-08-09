@@ -1,0 +1,19 @@
+{
+  "gates_passed": true,
+  "gate_failures": [],
+  "turn_count": 9,
+  "winner": "player",
+  "reason": "submission",
+  "near_fall_count": 0,
+  "curation_pin_visible": true,
+  "log_uniqueness_ratio": 1.0,
+  "move_repetition_rate": 0.2,
+  "position_diversity": 4,
+  "single_choice_turns": 0,
+  "match_seed": 203,
+  "wrestlers": [
+    "bret_hart",
+    "scott_hall"
+  ],
+  "player_policy": "chaotic"
+}

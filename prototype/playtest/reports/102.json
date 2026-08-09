@@ -34,48 +34,147 @@
   "scores": {
     "fun": {
       "value": 2,
-      "confidence": "medium",
+      "confidence": "high",
       "evidence": [
         {
           "turn": 1,
-          "note": "repetition=0.5333, near_falls=0"
+          "note": "Opening menu offers real intents (Grapple control Collar-and-elbow 58%, Set up Climb, Safe offense kick/punch, Reset) — early trade-offs exist."
+        },
+        {
+          "turn": 22,
+          "note": "One-sided snowball: Hall Superplex \"Hitman takes 29 damage\" drops player to HP [37,127]; by T49 player is at 1 HP while Hall still ~110."
+        },
+        {
+          "turn": 39,
+          "note": "Grapple-control streak: Collar-and-elbow chosen despite note \"repeat loops lose steam\"; same intent dominates long stretches (telemetry move_repetition_rate 0.5333; 14/10/13-turn Grapple control streaks)."
+        },
+        {
+          "turn": 56,
+          "note": "Player floors at 1 HP for 72 turns (T48–T119) while Hall keeps dealing Superplex damage that cannot finish; no comeback window until late chip-down — pacing fails gate (119 outside [8,40])."
+        },
+        {
+          "turn": 119,
+          "note": "Late climax only: Sharpshooter submission after T118 failed get-up; near_fall_count 0 across entire match — finish without prior pin drama."
         }
       ]
     },
     "ease_of_use": {
-      "value": 3,
-      "confidence": "medium",
+      "value": 4,
+      "confidence": "high",
       "evidence": [
         {
-          "turn": 1,
-          "note": "gates_passed=False"
+          "turn": 4,
+          "note": "Groggy clearly a modifier, not a position: \"Hitman is GROGGY — power moves and finishers are live!\" with positions STANDING/STANDING and groggy[true,false]."
+        },
+        {
+          "turn": 5,
+          "note": "Recovery options labeled Reset / recover (Shake the cobwebs 72%, Desperation strike 58%) with note \"clear the haze before they punish you\" — status → choice alignment is readable."
+        },
+        {
+          "turn": 9,
+          "note": "single_choice_turns=8: when grounded, only Fight to your feet (e.g. T9/T13/T57) — honest but high friction; still not a hidden-move case."
+        },
+        {
+          "turn": 119,
+          "note": "Pin visible when legal: Finish \"Cover — pinfall attempt\" (pin) plus Sharpshooter 83%; curation_pin_visible true. Sharpshooter note \"match-ending swing\" can still be misread as win% rather than apply%."
         }
       ]
     },
     "stickiness": {
-      "value": 3,
-      "confidence": "medium",
+      "value": 2,
+      "confidence": "high",
       "evidence": [
         {
-          "turn": 1,
-          "note": "position_diversity=9, turn_count=119"
+          "turn": 47,
+          "note": "Mid-match sameyness: player keeps Collar-and-elbow while HP bleeds 4→1; log uniqueness 0.368 and 22× \"Hitman: Collar-and-elbow tie-up.\" kill curiosity."
+        },
+        {
+          "turn": 60,
+          "note": "One spark worth replaying differently: at 1 HP, \"Hitman reverses the razor's edge — only 2 damage, and turns the tables!\" — rare drama in a slog."
+        },
+        {
+          "turn": 119,
+          "note": "119-turn submission win after endless grapple/counter loops; gates_passed false — too long to want another queue without a pacing fix."
         }
       ],
-      "rematch_intent": "maybe",
-      "rematch_reason": "Pilot heuristic from telemetry anchors.",
-      "next_experiment": "Try aggressive policy on same seed."
+      "rematch_intent": "no",
+      "rematch_reason": "Match overstays badly (119 turns, 72 at 1 HP) with collar/counter spam; a few highlights cannot salvage the urge to queue again.",
+      "next_experiment": "Replay seed 102 with methodical: after first successful ground (e.g. Hip toss pattern) prioritize damage/Finish over Collar-and-elbow; also check whether CPU ever covers when opponent is at 1 HP and GROUNDED (T56/T90 Superplex)."
     },
     "juiciness": {
-      "value": 2,
-      "confidence": "medium",
+      "value": 3,
+      "confidence": "high",
       "evidence": [
         {
-          "turn": 1,
-          "note": "near_fall_count=0"
+          "turn": 4,
+          "note": "Strong early beat: Straight right + \"Hitman is GROGGY — power moves and finishers are live!\""
+        },
+        {
+          "turn": 60,
+          "note": "Finisher reverse at death's door: Razor's Edge miss → \"turns the tables!\" — high drama, but no pin/near-fall follow-through."
+        },
+        {
+          "turn": 83,
+          "note": "Big spot lands: Superplex \"Hall takes 30 damage\" with GROUNDED/GROUNDED; one of few state-shifting payoffs in the back half."
+        },
+        {
+          "turn": 119,
+          "note": "Submission finish_sequence delays (1.0s, 1.5s, 0.0): hooks in → reaches for daylight → cinched deeper → taps → SUBMISSION. Closing juice is good; middle drowned by 18× \"Hall snaps off grapple counter — Hitman takes 5 damage.\" and near_fall_count 0."
         }
       ]
     }
   },
-  "top_issues": [],
-  "highlight_moments": []
+  "top_issues": [
+    {
+      "severity": "critical",
+      "dimension": "fun",
+      "summary": "Pacing collapse: turn_count 119 (gate fail), player stuck at 1 HP for 72 turns while damage cannot end the match; CPU Superplexes at T56/T90 never convert to covers (near_fall_count 0).",
+      "suggested_area": "finish urgency when opponent is critical / CPU pin logic"
+    },
+    {
+      "severity": "major",
+      "dimension": "fun",
+      "summary": "Collar-and-elbow ↔ Grapple counter loop dominates (move_repetition_rate 0.5333; long Grapple control streaks) despite UI warning \"repeat loops lose steam.\"",
+      "suggested_area": "grapple steam / anti-loop scoring; aggressive policy variety"
+    },
+    {
+      "severity": "major",
+      "dimension": "juiciness",
+      "summary": "log_uniqueness_ratio 0.368 with highly repeated counter/tie-up lines flattens the middle of a very long match; only late Sharpshooter sequence restores payoff feel.",
+      "suggested_area": "log phrasing variety; earlier finish pressure"
+    },
+    {
+      "severity": "minor",
+      "dimension": "ease_of_use",
+      "summary": "Eight single-choice Fight to your feet turns and Sharpshooter \"83%\" / \"match-ending swing\" wording risk apply-vs-win confusion.",
+      "suggested_area": "grounded choice variety; submission apply% labeling"
+    }
+  ],
+  "highlight_moments": [
+    {
+      "turn": 4,
+      "type": "groggy",
+      "quote": "Hitman is GROGGY — power moves and finishers are live!"
+    },
+    {
+      "turn": 60,
+      "type": "finisher_reverse",
+      "quote": "Hitman reverses the razor's edge — only 2 damage, and turns the tables!"
+    },
+    {
+      "turn": 83,
+      "type": "top_rope_payoff",
+      "quote": "Hitman snaps off superplex — Hall takes 30 damage."
+    },
+    {
+      "turn": 118,
+      "type": "failed_get_up",
+      "quote": "Hall tries to rise but can't find it — still down and vulnerable to a cover!"
+    },
+    {
+      "turn": 119,
+      "type": "submission_finish",
+      "quote": "Hitman hooks in sharpshooter! … Hall taps out! *** SUBMISSION — Hitman wins ***"
+    }
+  ]
 }

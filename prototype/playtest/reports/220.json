@@ -1,0 +1,183 @@
+{
+  "rubric_version": "2026-07-30",
+  "meta": {
+    "match_seed": 220,
+    "wrestlers": [
+      "bret_hart",
+      "scott_hall"
+    ],
+    "player_policy": "aggressive",
+    "turn_count": 58,
+    "winner": "cpu"
+  },
+  "telemetry": {
+    "gates_passed": false,
+    "gate_failures": [
+      "turn_count 58 outside band [8, 40]"
+    ],
+    "turn_count": 58,
+    "winner": "cpu",
+    "reason": "pinfall",
+    "near_fall_count": 0,
+    "curation_pin_visible": true,
+    "log_uniqueness_ratio": 0.4444,
+    "move_repetition_rate": 0.7586,
+    "position_diversity": 7,
+    "single_choice_turns": 2,
+    "match_seed": 220,
+    "wrestlers": [
+      "bret_hart",
+      "scott_hall"
+    ],
+    "player_policy": "aggressive"
+  },
+  "scores": {
+    "fun": {
+      "value": 1,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 15,
+          "note": "Dominant loop starts here and runs to T53: collar_elbow → CPU break_grapple or grapple_counter, repeated across 20 player turns. This is what drives move_repetition_rate=0.7586, the highest in the batch."
+        },
+        {
+          "turn": 29,
+          "note": "Total offensive stall: Hall's health is 116 at T29 and 115 at T53 — one point of damage across 24 turns. Across the entire 58-turn match Hall loses only 19 HP (132→113), all of it from three arm drags (T13, T21) and incidental reversals."
+        },
+        {
+          "turn": 41,
+          "note": "No comeback window exists. From T32 onward Hall's momentum is pinned at 5 and the player's at 0; 'The repeated tie-up stalls out — Hall gains escape momentum.' keeps printing with nothing left to transfer, so the state literally stops changing between T39 and T43."
+        },
+        {
+          "turn": 47,
+          "note": "The one turn the loop breaks open is immediately wasted: the CPU whiffs its escape on T46 and the payoff menu finally appears, but the options have decayed to Hip toss 51% / Arm drag 56% / Side headlock 56% and the attempt is reversed — 'Hall reverses the arm drag — only 1 damage'."
+        },
+        {
+          "turn": 58,
+          "note": "Anticlimactic loss with no drama: two CPU big spots (T6 diving crossbody 20, T56 running dropkick 18) bracket 50 turns of nothing, the player fails to rise on T57, and the cover is a clean three-count with near_fall_count=0."
+        }
+      ]
+    },
+    "ease_of_use": {
+      "value": 3,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 11,
+          "note": "The warning itself is clear and correctly timed: the collar_elbow note flips to 'tie-up is going stale — pay it off or reset before they steal momentum' on the second consecutive use, and the log confirms it with 'The repeated tie-up stalls out — Hall gains escape momentum.'"
+        },
+        {
+          "turn": 31,
+          "note": "But the advice is unfollowable. 'Pay it off' requires a menu with the target already GRAPPLED, and the CPU escapes on its very next turn every time, so the payoff options only appeared on T13, T21 and T47 — three chances in 20 loop turns. The player is told to do something the turn order rarely permits."
+        },
+        {
+          "turn": 35,
+          "note": "The hit percentage stops conveying the tax: collar_elbow decays 83% (T23) → 76 → 70 → 57 and then sits at exactly 56% for the remaining nine offers (T35–T53) while the penalty keeps compounding, so the number reads as stable when the situation is not."
+        },
+        {
+          "turn": 46,
+          "note": "Attribution ambiguity on CPU turns: actor is cpu using break_grapple and the entire log is 'Hitman turns the tables!' — the opponent's action is never named, unlike the clearer hit-reversal phrasing on T30 ('Hitman reverses the roundhouse kick — only 1 damage, and turns the tables!')."
+        },
+        {
+          "turn": 57,
+          "note": "Grounded messaging is honest and matches state: 'Hitman tries to rise but can't find it — still down and vulnerable to a cover!' precedes the CPU cover; single_choice_turns=2 (T7 and T57, both get_up only) is low friction overall."
+        }
+      ]
+    },
+    "stickiness": {
+      "value": 1,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 33,
+          "note": "Nothing new is presented after roughly T15: the same five-option standing menu at 56%/51%/56% recurs identically for the rest of the match, so there is no discovery to pull a player back."
+        },
+        {
+          "turn": 43,
+          "note": "No agency in the outcome: the player never gets a legal cover the entire match, and the loss is decided by two CPU spots (T6, T56) rather than by any decision the player made in between."
+        },
+        {
+          "turn": 55,
+          "note": "The one unexplored branch appears too late to matter: Hall hits the ropes on T54 and the menu finally offers Rebound clothesline 40% / Kitchen-sink knee 46% / Drop toe hold 51%, but the player is at 62 HP against 113 and is pinned three turns later."
+        }
+      ],
+      "rematch_intent": "no",
+      "rematch_reason": "Twenty-plus turns of identical tie-up text with the opponent's health frozen, no pin opportunity, and a loss that hinged on two CPU spots rather than any player decision — the run offered no memorable beat and no visible alternative to test in the same line.",
+      "next_experiment": "Replay seed 220 with a policy that abandons collar_elbow the first time the 'tie-up is going stale' note appears (T11) and instead alternates Roundhouse kick / Straight right / Climb, to test whether the loop tax is actually escapable from the player side or whether the tie-up is simply the only line the curated menu makes attractive."
+    },
+    "juiciness": {
+      "value": 2,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 6,
+          "note": "One well-earned impact beat: the player runs the ropes into Hall's dive — 'Hall snaps off diving crossbody — Hitman takes 20 damage.' — with position shifting to GROUNDED, a legible cause-and-effect punish."
+        },
+        {
+          "turn": 56,
+          "note": "Second and final impact beat, 50 turns later: 'Hall snaps off running dropkick — Hitman takes 18 damage.' also flipping the player to GROUNDED and setting up the cover."
+        },
+        {
+          "turn": 58,
+          "note": "Finish pacing metadata is intact (finish_sequence delays_sec 1.0 then 1.5 before 'Referee: 3!') but the beat is unearned — no near-fall anywhere (near_fall_count=0) and no finisher or groggy callout in the entire match."
+        },
+        {
+          "turn": 39,
+          "note": "Severe text fatigue: 'The repeated tie-up stalls out — Hall gains escape momentum.' appears fourteen times (T11, T17, T19, T25, T27, T31, T33, T35, T37, T39, T41, T45, T49, T51) and 'Hall uses the stale tie-up to reset with momentum.' nine more; log_uniqueness_ratio=0.4444."
+        },
+        {
+          "turn": 34,
+          "note": "The one text variation in the loop, 'The counter is getting predictable — Hitman slips free with momentum.' (also T38), reads as a payoff but produces only momentum 0→1 for the player and no position change, so the copy promises more than the state delivers."
+        }
+      ]
+    }
+  },
+  "top_issues": [
+    {
+      "severity": "critical",
+      "dimension": "fun",
+      "summary": "Dominant loop identified: collar_elbow tie-up → CPU break_grapple/grapple_counter, running from T15 to T53 (move_repetition_rate=0.7586). The loop tax fires on essentially every iteration — fourteen 'The repeated tie-up stalls out' lines and nine 'Hall uses the stale tie-up to reset with momentum' lines — and the loop still persists for over 20 player turns with Hall's health frozen at 116→115.",
+      "suggested_area": "Loop tax must have teeth beyond momentum: consider stamina/health cost, a rising failure chance, or dropping collar_elbow out of curation after repeated stalls"
+    },
+    {
+      "severity": "critical",
+      "dimension": "fun",
+      "summary": "The loop tax is asymmetric and rewards the CPU for its own repetition. The player is penalized for repeating collar_elbow, but the CPU repeats break_grapple nine times and each repeat prints 'Hall uses the stale tie-up to reset with momentum.' — a gain, not a tax. Combined with Hall's momentum being capped at 5 from T32, the penalty transfers nothing and the CPU has no incentive to vary.",
+      "suggested_area": "Apply loop tax symmetrically to the escaping side, and make the penalty degrade to another resource when the beneficiary's momentum is already capped"
+    },
+    {
+      "severity": "major",
+      "dimension": "ease_of_use",
+      "summary": "The tax message tells the player to 'pay it off or reset', but the pay-off menu requires the target to still be GRAPPLED on the player's next turn, which happened only three times in 20 loop turns (T13, T21, T47) because the CPU escapes immediately. The guidance describes an option the turn order rarely grants.",
+      "suggested_area": "Either surface a stall-breaking option in the same menu as the warning, or reword the note to point at the reset/offense choices that are actually available"
+    },
+    {
+      "severity": "minor",
+      "dimension": "ease_of_use",
+      "summary": "collar_elbow's displayed chance floors at 56% from T35 through T53 while the stall penalty keeps compounding, so the percentage stops reflecting how bad the repeat has become.",
+      "suggested_area": "Surface the stall penalty in the label rather than only in the note text"
+    }
+  ],
+  "highlight_moments": [
+    {
+      "turn": 6,
+      "type": "big_swing",
+      "quote": "Hall snaps off diving crossbody — Hitman takes 20 damage."
+    },
+    {
+      "turn": 34,
+      "type": "loop_tax",
+      "quote": "Hall snaps off grapple counter — Hitman takes 5 damage.\n  The counter is getting predictable — Hitman slips free with momentum."
+    },
+    {
+      "turn": 56,
+      "type": "big_swing",
+      "quote": "Hall snaps off running dropkick — Hitman takes 18 damage."
+    },
+    {
+      "turn": 58,
+      "type": "pinfall",
+      "quote": "Referee: 1…\n  Referee: 2…\n  Referee: 3!\n  *** PINFALL — Hall wins ***"
+    }
+  ]
+}

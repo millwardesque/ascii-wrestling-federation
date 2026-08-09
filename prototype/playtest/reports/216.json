@@ -1,0 +1,192 @@
+{
+  "rubric_version": "2026-07-30",
+  "meta": {
+    "match_seed": 216,
+    "wrestlers": [
+      "bret_hart",
+      "scott_hall"
+    ],
+    "player_policy": "methodical",
+    "turn_count": 210,
+    "winner": "cpu"
+  },
+  "telemetry": {
+    "gates_passed": false,
+    "gate_failures": [
+      "turn_count 210 outside band [8, 40]"
+    ],
+    "turn_count": 210,
+    "winner": "cpu",
+    "reason": "pinfall",
+    "near_fall_count": 0,
+    "curation_pin_visible": true,
+    "log_uniqueness_ratio": 0.2096,
+    "move_repetition_rate": 0.4667,
+    "position_diversity": 8,
+    "single_choice_turns": 3,
+    "match_seed": 216,
+    "wrestlers": [
+      "bret_hart",
+      "scott_hall"
+    ],
+    "player_policy": "methodical"
+  },
+  "scores": {
+    "fun": {
+      "value": 2,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 5,
+          "note": "Strong opening arc: climb (T3) into 'Hitman snaps off missile dropkick — Hall takes 19 damage' with real position play (TOP_ROPE vs RUNNING_ROPES on T3-T4)."
+        },
+        {
+          "turn": 55,
+          "note": "Hall reaches 1 HP on T55 and the match then runs 155 more turns without resolution; HP alone cannot finish, so the middle of the match has no stakes gradient at all."
+        },
+        {
+          "turn": 89,
+          "note": "Loop tax fires but does not break the loop: 'The repeated tie-up stalls out — Hall gains escape momentum' with player momentum draining 5→2 across T89/T91/T93, and the player simply re-enters the tie-up each time (49 collar-and-elbow uses total, move_repetition_rate 0.4667)."
+        },
+        {
+          "turn": 187,
+          "note": "Same two-move exchange still running at T187-T200: tie-up → 'Hall uses the stale tie-up to reset with momentum' → tie-up, with health frozen at [55, 6] for a dozen turns."
+        },
+        {
+          "turn": 204,
+          "note": "Only real climax is the last 8 turns: three straight Razor's Edge hits (T204/T206/T208) with '— FINISHER — the next cover packs extra heat', dropping Hitman 46→1; a genuine comeback beat, but arriving after ~150 turns of stalemate and with near_fall_count=0."
+        }
+      ]
+    },
+    "ease_of_use": {
+      "value": 4,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 1,
+          "note": "Curated menu is honest about the new tax up front: collar-and-elbow note reads 'enter a tie-up to unlock throws and whips; repeat loops lose steam' before any loop has formed."
+        },
+        {
+          "turn": 31,
+          "note": "Warning escalates legibly in the menu itself — note flips to 'tie-up is going stale — pay it off or reset before they steal momentum' on 24 turns (T31 through T201), matched in the log by 'The repeated tie-up stalls out — Hall gains escape momentum'."
+        },
+        {
+          "turn": 88,
+          "note": "Opponent side of the tax is equally readable: 'Hall uses the stale tie-up to reset with momentum' explains why the grapple evaporated instead of silently ending."
+        },
+        {
+          "turn": 202,
+          "note": "Groggy is presented as a modifier, not a position: 'Hitman is GROGGY — power moves and finishers are live!' with state position STANDING and groggy=[true,false]; T205 follow-up 'Hitman rises — still groggy from the impact!' keeps pending-groggy legible."
+        },
+        {
+          "turn": 193,
+          "note": "Readability nit: on a player turn the only log line is 'Hall turns the tables!', so the actor of the printed outcome is ambiguous; same phrasing appears for the player on T94."
+        },
+        {
+          "turn": 165,
+          "note": "Pin is visible whenever legal (offered T7/19/39/75/79/109/119/141/145/165, curation_pin_visible=true), but its note stays static — 'try to end it now; stronger when they're worn down' — with no cue that Hall has been at 1 HP since T55."
+        }
+      ]
+    },
+    "stickiness": {
+      "value": 2,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 75,
+          "note": "The interesting unexplored branch is explicit in the menu: 'Cover — pinfall attempt' and 'Sharpshooter (89%)' both offered while Hall sits at 1 HP, and the methodical policy took index 3 'Climb to the top rope' instead."
+        },
+        {
+          "turn": 145,
+          "note": "The same Finish/Set-up fork reappears at T109/T119/T141/T145/T165 and is declined every time; the match's only real question is what happens if the offered finish is actually cashed in."
+        },
+        {
+          "turn": 210,
+          "note": "Session ends on a 210-turn slog with log_uniqueness_ratio 0.2096 and the top log line repeated 22 times ('Hitman: Collar-and-elbow tie-up.'), which suppresses appetite for an immediate rerun of this policy."
+        }
+      ],
+      "rematch_intent": "maybe",
+      "rematch_reason": "The finish run (T202-T210) and the momentum-drain feedback are genuinely interesting, but 150 turns of tie-up/break stalemate against a 1 HP opponent is exhausting and I would not replay this policy as-is.",
+      "next_experiment": "Rerun seed 216 with a policy that takes the Finish intent the first time it appears while the opponent is worn down (pin/sharpshooter were offered at T75 and T79) to see whether the match resolves in-band instead of stalling out."
+    },
+    "juiciness": {
+      "value": 2,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 5,
+          "note": "Big-spot text lands early: 'Hitman snaps off missile dropkick — Hall takes 19 damage' with position shifting to GROUNDED."
+        },
+        {
+          "turn": 85,
+          "note": "Payoff feel collapses mid-match: 'Hitman snaps off side headlock — Hall takes 6 damage' takes Hall to 1 HP and nothing in the text or state marks it as a near-finish moment."
+        },
+        {
+          "turn": 99,
+          "note": "Narrative freshness is very low — log_uniqueness_ratio 0.2096, with 'The repeated tie-up stalls out — Hall gains escape momentum' printed 21 times and 'Hall uses the stale tie-up to reset with momentum' 16 times; the anti-loop copy itself becomes the most repetitive line in the match."
+        },
+        {
+          "turn": 204,
+          "note": "Finisher beat is strong when it finally lands: 'Hall snaps off razor's edge — Hitman takes 20 damage. / Hitman is rattled — when they're forced up, big payoffs may open. / — FINISHER — the next cover packs extra heat.'"
+        },
+        {
+          "turn": 210,
+          "note": "Pin sequence is well paced (finish_sequence delays 0.0/1.0/1.5) and callbacks the finisher — 'The finisher still echoes — +12 on the cover!' — but it is a clean 1…2…3 with near_fall_count=0, so there is no kickout drama anywhere in 210 turns."
+        }
+      ]
+    }
+  },
+  "top_issues": [
+    {
+      "severity": "critical",
+      "dimension": "fun",
+      "summary": "The loop tax is legible but does not actually break the loop: the player used collar-and-elbow 49 times, ate 21 'repeated tie-up stalls out' penalties (T31 through T199), and still re-entered the tie-up at 60-94% every time because it stays the top curated Grapple control option with no cooldown or gating.",
+      "suggested_area": "Grapple re-entry gating / escalating cost or lockout after repeated stale tie-ups"
+    },
+    {
+      "severity": "critical",
+      "dimension": "juiciness",
+      "summary": "Hall sits at 1 HP from T55 to T210 (155 turns) while HP recovery ticks him back to 6 and 11; nothing in log or state escalates urgency for a nearly-beaten opponent, so the match has a dead midgame with no stakes signal.",
+      "suggested_area": "Low-HP urgency state / forced finish pressure when a wrestler is near zero"
+    },
+    {
+      "severity": "major",
+      "dimension": "fun",
+      "summary": "Pacing gate failed at 210 turns (band [8, 40]) with near_fall_count=0 and log_uniqueness_ratio 0.2096; the entire match arc is compressed into the last 8 turns (T202-T210).",
+      "suggested_area": "Match-length pressure / escalating damage or fatigue over turn count"
+    },
+    {
+      "severity": "minor",
+      "dimension": "ease_of_use",
+      "summary": "On T193 a player turn prints only 'Hall turns the tables!' (and T94 prints 'Hitman turns the tables!' on a CPU turn), so reversal lines do not make clear who acted and who benefited.",
+      "suggested_area": "Reversal log attribution phrasing"
+    }
+  ],
+  "highlight_moments": [
+    {
+      "turn": 5,
+      "type": "big_spot",
+      "quote": "Hitman snaps off missile dropkick — Hall takes 19 damage."
+    },
+    {
+      "turn": 89,
+      "type": "loop_tax",
+      "quote": "The repeated tie-up stalls out — Hall gains escape momentum."
+    },
+    {
+      "turn": 202,
+      "type": "groggy",
+      "quote": "Hall snaps off roundhouse kick — Hitman takes 9 damage.\n  Hitman is GROGGY — power moves and finishers are live!"
+    },
+    {
+      "turn": 204,
+      "type": "finisher",
+      "quote": "Hall snaps off razor's edge — Hitman takes 20 damage.\n  Hitman is rattled — when they're forced up, big payoffs may open.\n  — FINISHER — the next cover packs extra heat."
+    },
+    {
+      "turn": 210,
+      "type": "pinfall",
+      "quote": "The finisher still echoes — +12 on the cover!\n  Referee: 1…\n  Referee: 2…\n  Referee: 3!\n  *** PINFALL — Hall wins ***"
+    }
+  ]
+}

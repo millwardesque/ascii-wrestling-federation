@@ -1,0 +1,172 @@
+{
+  "rubric_version": "2026-07-30",
+  "meta": {
+    "match_seed": 223,
+    "wrestlers": ["bret_hart", "scott_hall"],
+    "player_policy": "chaotic",
+    "turn_count": 52,
+    "winner": "cpu"
+  },
+  "telemetry": {
+    "gates_passed": false,
+    "gate_failures": ["turn_count 52 outside band [8, 40]"],
+    "turn_count": 52,
+    "near_fall_count": 0,
+    "curation_pin_visible": true,
+    "log_uniqueness_ratio": 0.6034,
+    "move_repetition_rate": 0.2692,
+    "position_diversity": 10,
+    "single_choice_turns": 8,
+    "winner": "cpu",
+    "reason": "pinfall"
+  },
+  "scores": {
+    "fun": {
+      "value": 2,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 13,
+          "note": "The counterplay the game wants exists and reads well: after Hall climbs, the menu offers 'Set up position / Pull off the top rope' at 84% and it lands — 'Hitman snaps off pull off the top rope — Hall takes 6 damage.'"
+        },
+        {
+          "turn": 20,
+          "note": "But the CPU's climb-to-crossbody loop runs unpunished: 'Hall snaps off diving crossbody — Hitman takes 20 damage' at T8, T20, T34 and T50, plus a 20-damage springboard crossbody at T16. No loop-tax line ever fires against Hall's repeated climbs."
+        },
+        {
+          "turn": 21,
+          "note": "The player's answer to each knockdown is a forced single option — 'Fight to your feet' is the only listed choice on T9, T17, T19, T21, T29, T35 and T51, so seven turns contain no decision at all."
+        },
+        {
+          "turn": 41,
+          "note": "One real momentum swing late: 'Hitman snaps off straight right — Hall takes 7 damage. / Hall is GROGGY — power moves and finishers are live!' followed by T43 and T45 offence pushing player momentum to 5 — but player HP is already 5, so it cannot become a comeback."
+        },
+        {
+          "turn": 52,
+          "note": "One-sided finish with no drama: Hitman goes 132 -> 1 while Hall only goes 132 -> 88, and the match ends on a clean 1-2-3 with near_fall_count 0."
+        }
+      ]
+    },
+    "ease_of_use": {
+      "value": 3,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 7,
+          "note": "Position context is clear: with Hall on TOP_ROPE the menu is all 'Set up position' options (pull_off_top 72%, hit_the_ropes, climb) plus recover, so the counter to a climb is discoverable from the prompt alone."
+        },
+        {
+          "turn": 25,
+          "note": "Being grappled reads correctly and honestly: state shows GRAPPLED for the player and the menu narrows to grapple_counter (51%) and break_grapple (61%), matching the documented escape options."
+        },
+        {
+          "turn": 49,
+          "note": "Confusing tax line: the player picks 'Climb down carefully' (intent 'Reset / recover', outcome 'hit') and the log reads 'Another empty climb — Hall takes the momentum.' The framing punishes the climb the player is abandoning, and 'hit' as an outcome for a momentum loss is misleading."
+        },
+        {
+          "turn": 1,
+          "note": "Advertised affordance does not appear: 'Hall is GROGGY — power moves and finishers are live!' but the curated menu that turn is collar_elbow / climb / kick / punch / recover with no Big swing or Finish entry. Same at T41 when Hall is groggy again. Whether a power move was legal cannot be confirmed from the transcript (no valid_rules field), so this is a suspected curation gap rather than a proven hidden move."
+        },
+        {
+          "turn": 33,
+          "note": "single_choice_turns = 8 is felt: here the only option is break_grapple (61%), and on seven other turns the only option is get_up. The prompt is honest but stops functioning as a menu."
+        },
+        {
+          "turn": 50,
+          "note": "Damage readout misleads at the HP floor: 'Hitman takes 20 damage' while state HP goes from 2 to 1."
+        }
+      ]
+    },
+    "stickiness": {
+      "value": 3,
+      "confidence": "medium",
+      "evidence": [
+        {
+          "turn": 47,
+          "note": "The chaotic policy surfaces states the aggressive seeds never reached — both wrestlers on TOP_ROPE at once (position_diversity 10 vs 6 in seeds 205/211), which opens a menu of top_rope_superplex 71% / hurricanrana 71% / top_rope_punch 77%."
+        },
+        {
+          "turn": 48,
+          "note": "Best moment of the match and a clear reason to try again: 'Hitman reverses the superplex — only 3 damage, and turns the tables!' from a top-rope-versus-top-rope standoff."
+        },
+        {
+          "turn": 34,
+          "note": "Against that, the middle of the match is a repeated beatdown — climb, diving crossbody for 20, get up, repeat — with the player never controlling the pace."
+        }
+      ],
+      "rematch_intent": "maybe",
+      "rematch_reason": "The varied positions and the top-rope superplex reversal at T48 are genuinely interesting, but being flattened 132-to-1 by the same diving crossbody four times is not a session to repeat as-is.",
+      "next_experiment": "Re-run seed 223 with a policy that always answers a CPU climb with 'Pull off the top rope' (it hit for 6 at T13 and was offered again at T7 and T47) to measure whether the crossbody loop is actually counterable or whether the CPU climb needs its own loop tax."
+    },
+    "juiciness": {
+      "value": 3,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 8,
+          "note": "Aerial spots hit hard and shift state: 'Hall snaps off diving crossbody — Hitman takes 20 damage' with position flipping to GROUNDED."
+        },
+        {
+          "turn": 48,
+          "note": "Top-rope reversal is the standout beat: 'Hitman reverses the superplex — only 3 damage, and turns the tables!' with momentum swinging from [5,3]."
+        },
+        {
+          "turn": 36,
+          "note": "Groggy beats are well signposted across the match (T1, T36, T41) with 'is GROGGY — power moves and finishers are live!' and clean recoveries like T37 'Hitman steadies themselves — they're back!'"
+        },
+        {
+          "turn": 52,
+          "note": "Finish is flat compared with seed 205: the pinfall sequence is just 'Referee: 1… / 2… / 3! / *** PINFALL — Hall wins ***' (delays 1.0 and 1.5) with no finisher callback and no near-fall anywhere in the match."
+        }
+      ]
+    }
+  },
+  "top_issues": [
+    {
+      "severity": "major",
+      "dimension": "fun",
+      "summary": "A CPU-side loop persists with no loop tax at all: Hall climbs and lands a diving crossbody for 20 damage at T8, T20, T34 and T50. The anti-loop lines only ever fired once this match, and it was against the player's own dismount at T49 ('Another empty climb — Hall takes the momentum'). The tax appears not to apply to the CPU's repeated climb-to-dive pattern.",
+      "suggested_area": "loop tax coverage for CPU climb/aerial repetition"
+    },
+    {
+      "severity": "major",
+      "dimension": "ease_of_use",
+      "summary": "Eight single-choice turns, seven of them a forced 'Fight to your feet' after a knockdown (T9, T17, T19, T21, T29, T35, T51). After each 20-damage crossbody the player has no decision, which turns the beatdown into a spectator sequence.",
+      "suggested_area": "grounded-state move options / curation"
+    },
+    {
+      "severity": "minor",
+      "dimension": "ease_of_use",
+      "summary": "T49 fires 'Another empty climb — Hall takes the momentum' on a move labelled 'Climb down carefully' with intent 'Reset / recover' and outcome 'hit'. Intent label, outcome field and log text disagree about what just happened.",
+      "suggested_area": "loop tax wording for dismount / outcome field"
+    },
+    {
+      "severity": "minor",
+      "dimension": "fun",
+      "summary": "One-sided pacing: player HP 132 -> 1 versus CPU 132 -> 88 over 52 turns, zero near-falls, and turn_count fails the [8, 40] gate band.",
+      "suggested_area": "CPU aerial damage tuning"
+    }
+  ],
+  "highlight_moments": [
+    {
+      "turn": 13,
+      "type": "counter",
+      "quote": "Hitman snaps off pull off the top rope — Hall takes 6 damage."
+    },
+    {
+      "turn": 41,
+      "type": "state_shift",
+      "quote": "Hall is GROGGY — power moves and finishers are live!"
+    },
+    {
+      "turn": 48,
+      "type": "reversal",
+      "quote": "Hitman reverses the superplex — only 3 damage, and turns the tables!"
+    },
+    {
+      "turn": 50,
+      "type": "big_spot",
+      "quote": "Hall snaps off diving crossbody — Hitman takes 20 damage."
+    }
+  ]
+}

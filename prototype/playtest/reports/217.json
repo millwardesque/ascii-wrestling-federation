@@ -1,0 +1,152 @@
+{
+  "rubric_version": "2026-07-30",
+  "meta": {
+    "match_seed": 217,
+    "wrestlers": ["bret_hart", "scott_hall"],
+    "player_policy": "methodical",
+    "turn_count": 10,
+    "winner": "cpu"
+  },
+  "telemetry": {
+    "gates_passed": true,
+    "gate_failures": [],
+    "turn_count": 10,
+    "near_fall_count": 0,
+    "curation_pin_visible": true,
+    "log_uniqueness_ratio": 0.9412,
+    "move_repetition_rate": 0.2,
+    "position_diversity": 3,
+    "single_choice_turns": 1,
+    "winner": "cpu",
+    "reason": "pinfall"
+  },
+  "scores": {
+    "fun": {
+      "value": 2,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 1,
+          "note": "The only turn with a genuinely varied menu: five distinct intents (Grapple control tie-up 58%, Set up position climb, Safe offense kick 53% / punch 58%, Reset recover). The player picked the tie-up and it was immediately reversed - 'Hall turns the tables!' - handing momentum to the CPU on turn 1."
+        },
+        {
+          "turn": 3,
+          "note": "Both offered options are the same intent: 'Reset / recover | Shake the cobwebs | 73%' and 'Reset / recover | Desperation strike | 58%'. Groggy turns collapse the decision space to one intent, and this recurs on turn 7."
+        },
+        {
+          "turn": 7,
+          "note": "'Hitman lunges wildly but can't connect - still groggy!' The player takes the 64% desperation strike over the 78% shake, whiffs, and stays groggy - the swing that directly sets up the CPU finisher on turn 8."
+        },
+        {
+          "turn": 9,
+          "note": "single_choice_turn: the menu is one option, 'Reset / recover | Fight to your feet | 69%'. It fails - 'Hitman tries to rise but can't find it' - so the player's last two turns of the match involve no choice at all."
+        },
+        {
+          "turn": 10,
+          "note": "One-sided snowball: momentum reads [0, 5] from turn 6 onward and final health is [96, 126]. The player landed exactly one offensive hit all match (turn 5, 6 damage) and never had a comeback window."
+        }
+      ]
+    },
+    "ease_of_use": {
+      "value": 4,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 2,
+          "note": "Status changes are explained inline: 'Hitman is GROGGY - power moves and finishers are live!' tells the player both what the modifier is and why it matters, and the state block correctly keeps groggy separate from position (STANDING/STANDING)."
+        },
+        {
+          "turn": 8,
+          "note": "'- FINISHER - the next cover packs extra heat' pre-announces the pin bonus, and turn 10 pays it off with the matching 'The finisher still echoes - +12 on the cover!'. Cause and effect are legible without docs."
+        },
+        {
+          "turn": 5,
+          "note": "Intent labels match behavior: 'Set up position | Pull off the top rope | 71%' both damages and returns Hall from TOP_ROPE to STANDING, exactly as the note 'changes ring position to unlock a stronger follow-up' promises."
+        },
+        {
+          "turn": 1,
+          "note": "The curated note pre-warns about the loop tax - 'enter a tie-up to unlock throws and whips; repeat loops lose steam' - so the anti-loop rule is legible before the player triggers it. No loop-tax log lines fired this match, consistent with move_repetition_rate 0.2."
+        },
+        {
+          "turn": 1,
+          "note": "Main readability gap: the outcome is 'ok' but the log is only 'Hall turns the tables!'. The attempted Collar-and-elbow tie-up is never named, and the state shows both wrestlers STANDING rather than GRAPPLED, so the player must infer that the tie-up failed."
+        }
+      ]
+    },
+    "stickiness": {
+      "value": 3,
+      "confidence": "high",
+      "rematch_intent": "maybe",
+      "rematch_reason": "A clean 10-turn match with a legible finisher-into-cover chain is cheap to retry, but the player never got to run their own offense - one hit in five turns, three of them forced recovery choices - so there is little sense of an unexplored line.",
+      "next_experiment": "Re-run seed 217 taking 'Shake the cobwebs' (78%) instead of 'Desperation strike' (64%) on turn 7 to see whether clearing groggy denies the Razor's Edge on turn 8 and opens a real Bret Hart offensive sequence.",
+      "evidence": [
+        {
+          "turn": 7,
+          "note": "There is one clear branch point worth replaying: 78% shake versus 64% desperation strike, and the losing choice is directly traceable to the loss on turn 8."
+        },
+        {
+          "turn": 4,
+          "note": "'Hall: Climb to the top rope' followed by the player's 71% 'Pull off the top rope' hints at a counter-play layer, but position_diversity is only 3 (STANDING, TOP_ROPE, GROUNDED) so little of the moveset was seen."
+        },
+        {
+          "turn": 10,
+          "note": "The match ends with the player having been groggy or grounded on 4 of 5 turns; there is no discovery of Bret Hart's own finish path (Sharpshooter never appeared in a menu)."
+        }
+      ]
+    },
+    "juiciness": {
+      "value": 3,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 8,
+          "note": "The finisher hits hard and shifts state: 'Hall snaps off razor's edge - Hitman takes 20 damage' with position moving to GROUNDED and the '- FINISHER -' banner flagging the payoff to come."
+        },
+        {
+          "turn": 10,
+          "note": "The pin sequence is properly paced via finish_sequence steps: the +12 line at 0.0s, 'Referee: 1...' at 1.0s, 'Referee: 2...' at 1.5s, then '3!' and '*** PINFALL - Hall wins ***'. That is the strongest beat in the match."
+        },
+        {
+          "turn": 6,
+          "note": "Groggy stingers land twice ('Hitman is GROGGY - power moves and finishers are live!' on turns 2 and 6) and log_uniqueness_ratio 0.9412 means almost no repeated phrasing."
+        },
+        {
+          "turn": 10,
+          "note": "near_fall_count is 0 - the referee counts straight to three on the only cover of the match - so the finish is clean but has no kickout tension. Ten turns with a single player hit also means very few impact moments overall."
+        }
+      ]
+    }
+  },
+  "top_issues": [
+    {
+      "severity": "major",
+      "dimension": "fun",
+      "summary": "Groggy and grounded states collapse the decision space. On turns 3, 7, and 9 every offered option carried the 'Reset / recover' intent (two options, two options, then one), so 3 of the player's 5 turns had no meaningful trade-off.",
+      "suggested_area": "_curate_move_choices() options while groggy / grounded"
+    },
+    {
+      "severity": "major",
+      "dimension": "fun",
+      "summary": "The finish is legible but the match is a pure snowball: momentum sat at [0, 5] from turn 6, the player landed one 6-damage hit all match, and there was no comeback window before the Razor's Edge on turn 8.",
+      "suggested_area": "momentum / comeback tuning in game.py"
+    },
+    {
+      "severity": "minor",
+      "dimension": "ease_of_use",
+      "summary": "Turn 1 logs only 'Hall turns the tables!' with outcome 'ok'. The attempted tie-up is not named and the reversal is not explained, which is the player's very first line of feedback in the match.",
+      "suggested_area": "action log phrasing for reversed setup moves"
+    }
+  ],
+  "highlight_moments": [
+    {
+      "turn": 8,
+      "type": "finisher",
+      "quote": "Hall snaps off razor's edge - Hitman takes 20 damage.\n  - FINISHER - the next cover packs extra heat."
+    },
+    {
+      "turn": 10,
+      "type": "finish",
+      "quote": "The finisher still echoes - +12 on the cover!\n  Referee: 1...\n  Referee: 2...\n  Referee: 3!\n  *** PINFALL - Hall wins ***"
+    }
+  ]
+}

@@ -231,6 +231,144 @@ class TestApplyMoveStochastic(unittest.TestCase):
 
         self.assertEqual(st.grapple_loop_pressure, 0)
 
+    def test_grapple_counter_keeps_and_taxes_loop_pressure(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        st.position[0] = BodyPosition.GRAPPLED
+        st.grapple_loop_pressure = 2
+        st.momentum = [2, 2]
+        counter = _rule_by_id("grapple_counter")
+        p = hit_probability(st, 0, counter)
+
+        log, _, _ = apply_move(st, 0, counter, _SeqRng([max(0.0, p - 0.2), 0.99]))
+
+        self.assertEqual(st.grapple_loop_pressure, 3)
+        self.assertEqual(st.momentum[0], 1)  # taxed -1, no momentum_gain
+        self.assertEqual(st.momentum[1], 3)  # defender gains escape momentum
+        self.assertIn("counter is getting predictable", log)
+
+    def test_non_grapple_move_soft_decays_loop_pressure(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        st.grapple_loop_pressure = 3
+        punch = _rule_by_id("punch")
+        p = hit_probability(st, 0, punch)
+
+        apply_move(st, 0, punch, _SeqRng([max(0.0, p - 0.2), 0.99, 0.99]))
+
+        self.assertEqual(st.grapple_loop_pressure, 2)
+
+    def test_repeated_climb_taxes_setup_loop(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        st.setup_loop_pressure = 2
+        st.momentum = [1, 1]
+        climb = _rule_by_id("climb")
+
+        log, _, _ = apply_move(st, 0, climb, None)
+
+        self.assertEqual(st.position[0], BodyPosition.TOP_ROPE)
+        self.assertEqual(st.setup_loop_pressure, 3)
+        self.assertEqual(st.momentum[0], 1)  # climb momentum_gain cancelled
+        self.assertEqual(st.momentum[1], 2)
+        self.assertIn("climb looks telegraphed", log)
+
+    def test_top_rope_payoff_preserves_setup_loop_debt(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        st.position[0] = BodyPosition.TOP_ROPE
+        st.position[1] = BodyPosition.GROUNDED
+        st.setup_loop_pressure = 3
+        splash = _rule_by_id("top_splash")
+        p = hit_probability(st, 0, splash)
+
+        apply_move(st, 0, splash, _SeqRng([max(0.0, p - 0.2), 0.99, 0.99]))
+
+        # Payoff should not wipe setup debt — climb→dive→climb stays taxed.
+        self.assertEqual(st.setup_loop_pressure, 3)
+
+    def test_get_up_does_not_erase_setup_loop_debt(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        st.position[0] = BodyPosition.GROUNDED
+        st.setup_loop_pressure = 2
+        get_up = _rule_by_id("get_up")
+        p = hit_probability(st, 0, get_up)
+
+        apply_move(st, 0, get_up, _SeqRng([max(0.0, p - 0.2)]))
+
+        self.assertEqual(st.setup_loop_pressure, 2)
+        self.assertEqual(st.position[0], BodyPosition.STANDING)
+
+    def test_standing_offense_decays_setup_loop_debt(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        st.setup_loop_pressure = 2
+        punch = _rule_by_id("punch")
+        p = hit_probability(st, 0, punch)
+
+        apply_move(st, 0, punch, _SeqRng([max(0.0, p - 0.2), 0.99, 0.99]))
+
+        self.assertEqual(st.setup_loop_pressure, 1)
+
+
+class TestKnockoutAndKnockdown(unittest.TestCase):
+    def test_damage_can_reach_zero_and_wins_by_knockout(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        st.health[1] = 1
+        punch = _rule_by_id("punch")
+        p = hit_probability(st, 0, punch)
+
+        log, winner, seq = apply_move(st, 0, punch, _SeqRng([max(0.0, p - 0.2), 0.99]))
+
+        self.assertEqual(st.health[1], 0)
+        self.assertEqual(winner, 0)
+        self.assertIsNone(seq)
+        self.assertIn("KNOCKOUT", log)
+        self.assertEqual(st.position[1], BodyPosition.GROUNDED)
+        self.assertEqual(outcome_label(log), "knockout")
+
+    def test_worn_down_standing_target_is_knocked_down(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        target_max = st.wrestlers[1].max_health
+        st.health[1] = int(target_max * 0.2)
+        punch = _rule_by_id("punch")
+        p = hit_probability(st, 0, punch)
+
+        log, winner, _ = apply_move(st, 0, punch, _SeqRng([max(0.0, p - 0.2), 0.99, 0.99]))
+
+        self.assertIsNone(winner)
+        self.assertGreater(st.health[1], 0)
+        self.assertEqual(st.position[1], BodyPosition.GROUNDED)
+        self.assertTrue(st.pending_groggy[1])
+        self.assertIn("collapses to the canvas", log)
+
+    def test_knockdown_makes_pin_legal(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        st.health[1] = int(st.wrestlers[1].max_health * 0.2)
+        punch = _rule_by_id("punch")
+        p = hit_probability(st, 0, punch)
+
+        apply_move(st, 0, punch, _SeqRng([max(0.0, p - 0.2), 0.99, 0.99]))
+
+        legal_ids = {rule.move.id for _, rule in st.valid_rules(0)}
+        self.assertIn("pin", legal_ids)
+
+    def test_healthy_target_is_not_knocked_down(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        punch = _rule_by_id("punch")
+        p = hit_probability(st, 0, punch)
+
+        apply_move(st, 0, punch, _SeqRng([max(0.0, p - 0.2), 0.99, 0.99]))
+
+        self.assertEqual(st.position[1], BodyPosition.STANDING)
+
+    def test_reversal_chip_damage_cannot_knock_out(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        st.health[1] = 1
+        suplex = _rule_by_id("suplex")
+        p = hit_probability(st, 0, suplex)
+
+        log, winner, _ = apply_move(st, 0, suplex, _SeqRng([min(1.0, p + 0.2), 0.0]))
+
+        self.assertEqual(st.health[1], 1)
+        self.assertIsNone(winner)
+        self.assertNotIn("KNOCKOUT", log)
+
 
 class TestPinUnchanged(unittest.TestCase):
     def test_pin_uses_resolve_pin_not_hit_roll(self) -> None:
@@ -318,12 +456,30 @@ class TestCpuExpectedValue(unittest.TestCase):
     def test_cpu_prefers_grapple_counter_over_stale_break(self) -> None:
         st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
         st.position[1] = BodyPosition.GRAPPLED
-        st.grapple_loop_pressure = 3
+        st.grapple_loop_pressure = 1
 
         break_score = _cpu_rule_score(st, 1, _rule_by_id("break_grapple"))
         counter_score = _cpu_rule_score(st, 1, _rule_by_id("grapple_counter"))
 
         self.assertGreater(counter_score, break_score)
+
+    def test_cpu_prefers_break_when_grapple_loop_is_stale(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        st.position[1] = BodyPosition.GRAPPLED
+        st.grapple_loop_pressure = 3
+
+        break_score = _cpu_rule_score(st, 1, _rule_by_id("break_grapple"))
+        counter_score = _cpu_rule_score(st, 1, _rule_by_id("grapple_counter"))
+
+        self.assertGreaterEqual(break_score, counter_score)
+
+    def test_cpu_discourages_stale_climb(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        st.setup_loop_pressure = 3
+        climb_score = _cpu_rule_score(st, 1, _rule_by_id("climb"))
+        punch_score = _cpu_rule_score(st, 1, _rule_by_id("punch"))
+
+        self.assertLess(climb_score, punch_score)
 
 
 class TestGroggy(unittest.TestCase):

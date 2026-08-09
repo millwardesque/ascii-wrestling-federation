@@ -31,49 +31,123 @@
   },
   "scores": {
     "fun": {
-      "value": 3,
-      "confidence": "medium",
+      "value": 4,
+      "confidence": "high",
       "evidence": [
         {
-          "turn": 1,
-          "note": "repetition=0.1111, near_falls=0"
+          "turn": 7,
+          "note": "Big swing payoff after setup: \"Hitman snaps off diving crossbody — Hall takes 21 damage\" (Hall GROUNDED); distinct from earlier Safe/Grapple intents."
+        },
+        {
+          "turn": 12,
+          "note": "Comeback window: Hall's missile dropkick deals 18 and grounds Hitman (HP 132→114); later kicks put Hitman GROGGY (T14)."
+        },
+        {
+          "turn": 21,
+          "note": "Second climax beat: Superplex for 30 (\"Hall takes 30 damage\") both GROUNDED — clear risk/reward from dual TOP_ROPE."
+        },
+        {
+          "turn": 33,
+          "note": "Groggy payoff intent shown: Big swing Vertical suplex \"TARGET GROGGY payoff\" lands 16; Hall fails get-up T34 then Sharpshooter finish T35. Low repetition (0.1111), position_diversity 11, but near_fall_count 0 keeps it under a 5."
         }
       ]
     },
     "ease_of_use": {
       "value": 4,
-      "confidence": "medium",
+      "confidence": "high",
       "evidence": [
         {
-          "turn": 1,
-          "note": "gates_passed=True"
+          "turn": 14,
+          "note": "Groggy read as modifier, not position: \"Hitman is GROGGY — power moves and finishers are live!\" with state groggy[true,false] while positions stay STANDING."
+        },
+        {
+          "turn": 33,
+          "note": "Curated menu surfaces optimal groggy Big swing (Vertical suplex 78%) alongside Grapple/Set up/Safe/Reset — intent + note align with payoff."
+        },
+        {
+          "turn": 35,
+          "note": "Pin visible when legal: Finish \"Cover — pinfall attempt\" (pin) and Sharpshooter both shown; curation_pin_visible true. Sharpshooter label \"88%\" with note \"cash in momentum for a match-ending swing\" risks reading apply% as win%."
+        },
+        {
+          "turn": 13,
+          "note": "Single-choice grounded turn is honest (only Fight to your feet); same at T23 — friction, not hidden options."
         }
       ]
     },
     "stickiness": {
-      "value": 3,
-      "confidence": "medium",
+      "value": 4,
+      "confidence": "high",
       "evidence": [
         {
-          "turn": 1,
-          "note": "position_diversity=11, turn_count=35"
+          "turn": 34,
+          "note": "Failed rise tease (\"still down and vulnerable to a cover!\") then T35 offers both pin and Sharpshooter — curiosity about the unused pin path."
+        },
+        {
+          "turn": 21,
+          "note": "Position-heavy spots (top rope, ropes, grapple, groggy) across 35 turns with gates_passed and diverse menus invite another run under a less chaotic policy."
         }
       ],
-      "rematch_intent": "maybe",
-      "rematch_reason": "Pilot heuristic from telemetry anchors.",
-      "next_experiment": "Try aggressive policy on same seed."
+      "rematch_intent": "yes",
+      "rematch_reason": "Match had real setup/payoff arcs and a multi-step submission finish; the unused pin after a failed get-up and the brief groggy windows make a rematch with a more intentional finish path appealing.",
+      "next_experiment": "Replay seed 104 with methodical or aggressive policy: after Hall fails get-up (vulnerable to cover), take pin; or cash Big swing while groggy persists instead of another kick."
     },
     "juiciness": {
-      "value": 2,
-      "confidence": "medium",
+      "value": 4,
+      "confidence": "high",
       "evidence": [
         {
-          "turn": 1,
-          "note": "near_fall_count=0"
+          "turn": 5,
+          "note": "Reversal beat: \"Hall reverses the missile dropkick — only 1 damage; Hitman whiffs — Hall shrugs it off.\""
+        },
+        {
+          "turn": 32,
+          "note": "Failed recover drama: \"Hall tries to clear their head but they're still wobbly!\" (groggy stays true)."
+        },
+        {
+          "turn": 34,
+          "note": "Near-cover tease without a counted near-fall: \"Hall tries to rise but can't find it — still down and vulnerable to a cover!\""
+        },
+        {
+          "turn": 35,
+          "note": "Submission finish_sequence with delays (1.0s, 1.5s): hooks in → reaches for daylight → cinched deeper → taps → SUBMISSION. Strong payoff text; near_fall_count 0 is the main gap vs a 5."
         }
       ]
     }
   },
-  "top_issues": [],
-  "highlight_moments": []
+  "top_issues": [
+    {
+      "severity": "minor",
+      "dimension": "juiciness",
+      "summary": "T34 explicitly teases a cover after a failed get-up, but the match ends on submission with near_fall_count 0 — no kickout/count drama before the finish.",
+      "suggested_area": "finish pacing / pin near-falls"
+    },
+    {
+      "severity": "minor",
+      "dimension": "ease_of_use",
+      "summary": "Sharpshooter Finish choice shows \"88%\" with \"match-ending swing\" wording, which can be misread as win chance rather than apply chance.",
+      "suggested_area": "submission apply% labeling"
+    }
+  ],
+  "highlight_moments": [
+    {
+      "turn": 7,
+      "type": "top_rope_payoff",
+      "quote": "Hitman snaps off diving crossbody — Hall takes 21 damage."
+    },
+    {
+      "turn": 21,
+      "type": "big_swing",
+      "quote": "Hitman snaps off superplex — Hall takes 30 damage."
+    },
+    {
+      "turn": 34,
+      "type": "failed_get_up",
+      "quote": "Hall tries to rise but can't find it — still down and vulnerable to a cover!"
+    },
+    {
+      "turn": 35,
+      "type": "submission_finish",
+      "quote": "Hitman hooks in sharpshooter! … Hall taps out! *** SUBMISSION — Hitman wins ***"
+    }
+  ]
 }

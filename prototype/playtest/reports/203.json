@@ -1,0 +1,152 @@
+{
+  "rubric_version": "2026-07-30",
+  "meta": {
+    "match_seed": 203,
+    "wrestlers": ["bret_hart", "scott_hall"],
+    "player_policy": "chaotic",
+    "turn_count": 9,
+    "winner": "player"
+  },
+  "telemetry": {
+    "gates_passed": true,
+    "gate_failures": [],
+    "turn_count": 9,
+    "near_fall_count": 0,
+    "curation_pin_visible": true,
+    "log_uniqueness_ratio": 1.0,
+    "move_repetition_rate": 0.2,
+    "position_diversity": 4,
+    "single_choice_turns": 0,
+    "winner": "player",
+    "reason": "submission"
+  },
+  "scores": {
+    "fun": {
+      "value": 3,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 4,
+          "note": "Turns 1-4 are a four-reversal grapple stalemate: 'Hitman reverses the grapple counter - only 1 damage' (turn 2), 'Hall reverses the hip toss - only 1 damage' (turn 3), then the same counter again on turn 4. Combined health movement across four turns is 3 points, and the loop tax never fired to punish it."
+        },
+        {
+          "turn": 5,
+          "note": "Real trade-off, well presented: with Hall still GRAPPLED the menu offers Arm drag 77% and Side headlock 77% against an auto 'Climb to the top rope'. The player abandons a 77% payoff to chase position, and momentum jumps [0,0] to [3,0]."
+        },
+        {
+          "turn": 7,
+          "note": "The setup pays off - 'Hitman snaps off missile dropkick - Hall takes 19 damage' plus 'Hall is rattled - when they're forced up, big payoffs may open' - taking momentum to 5 and grounding Hall. This is the match's clear arc peak."
+        },
+        {
+          "turn": 9,
+          "note": "The closing menu is the best decision in the batch: pin, Sharpshooter 82%, climb, Leg drop 86%, recover - four genuinely different risk profiles with Hall grounded."
+        },
+        {
+          "turn": 9,
+          "note": "Fairness/pacing concern: Hall taps at 112/132 health, about 85% remaining, off a single 19-damage sequence. The Finish note reads 'try to end it now; stronger when they're worn down', so a submission winning against an essentially fresh opponent undercuts the stated logic and makes the finish feel abrupt rather than earned."
+        }
+      ]
+    },
+    "ease_of_use": {
+      "value": 4,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 1,
+          "note": "Curated notes carry the rules the player needs: 'enter a tie-up to unlock throws and whips; repeat loops lose steam' warns about the loop tax before the player can trigger it, and the tie-up correctly logs 'Hitman: Collar-and-elbow tie-up' with state moving Hall to GRAPPLED."
+        },
+        {
+          "turn": 3,
+          "note": "Position gating is self-explanatory: with Hall GRAPPLED the menu switches to three 'Grapple control' payoffs (Hip toss 53%, Arm drag 58%, Side headlock 58%) noted as 'pay off the tie-up with a control move'. No external docs needed to understand why the options changed."
+        },
+        {
+          "turn": 9,
+          "note": "Pin is visible whenever legal - 'Finish | Cover - pinfall attempt | pin' appears the moment Hall is grounded - matching curation_pin_visible true. single_choice_turns is 0, so the player always had a real menu."
+        },
+        {
+          "turn": 9,
+          "note": "Submission percentage semantics hold up in the log: the 82% label precedes 'Hitman hooks in sharpshooter!' then a separate escape-versus-tap resolution, so 82% visibly means the hold applied, not that the match was won. The note 'cash in momentum for a match-ending swing' is the one place a new player could still read it as a win chance."
+        },
+        {
+          "turn": 7,
+          "note": "'Hall is rattled - when they're forced up, big payoffs may open' names the pending_groggy setup in plain language rather than as a status code."
+        }
+      ]
+    },
+    "stickiness": {
+      "value": 4,
+      "confidence": "high",
+      "rematch_intent": "yes",
+      "rematch_reason": "A tight nine-turn match with a legible plan (break the grapple stalemate, climb, land the missile dropkick, cash in the Sharpshooter) and a perfect log_uniqueness_ratio of 1.0 - every line was new. The turn 9 menu explicitly showed a road not taken, which is exactly the hook for another run.",
+      "next_experiment": "Re-run seed 203 and take 'Cover - pinfall attempt' instead of the 82% Sharpshooter on turn 9, to see whether a cover against a 112/132-health opponent produces the near-fall drama this match lacked - near_fall_count was 0.",
+      "evidence": [
+        {
+          "turn": 5,
+          "note": "The pivot from grapple stalemate to top rope is a discoverable tactic - abandoning two 77% grapple payoffs for an auto climb - and it directly produced the win two turns later."
+        },
+        {
+          "turn": 9,
+          "note": "The alternative lines are all still on the table: pin, Leg drop 86%, or another climb, so a replay has clear unexplored branches."
+        },
+        {
+          "turn": 7,
+          "note": "position_diversity of 4 in nine turns (STANDING, GRAPPLED, TOP_ROPE, GROUNDED) shows a decent slice of the system quickly, which invites trying the other wrestler's path."
+        }
+      ]
+    },
+    "juiciness": {
+      "value": 3,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 9,
+          "note": "The submission sequence is the standout beat and is properly staged: 'Hitman hooks in sharpshooter! / Hall reaches for daylight...' at 1.0s, 'The hold is cinched in deeper!' at 1.5s, then 'Hall taps out! / *** SUBMISSION - Hitman wins ***'. Three steps with escalating tension."
+        },
+        {
+          "turn": 7,
+          "note": "The biggest hit lands with both damage and a state promise: 'Hitman snaps off missile dropkick - Hall takes 19 damage' plus 'Hall is rattled - when they're forced up, big payoffs may open', with Hall dropping to GROUNDED and momentum to 5."
+        },
+        {
+          "turn": 8,
+          "note": "'Hall tries to rise but can't find it - still down and vulnerable to a cover!' turns a failed CPU turn into tension for the finish rather than dead air."
+        },
+        {
+          "turn": 2,
+          "note": "Against that, the opening four turns are flat 1-damage reversals with no state shift, and near_fall_count is 0 - the match never produced a two-count or kickout, so the payoff curve is one spike rather than a build."
+        }
+      ]
+    }
+  },
+  "top_issues": [
+    {
+      "severity": "major",
+      "dimension": "fun",
+      "summary": "The submission finish landed against an opponent at 112/132 health (85% remaining) off one 19-damage move. The Finish note promises it is 'stronger when they're worn down', so winning at near-full health makes a nine-turn match feel abrupt and weakens the incentive to build damage first.",
+      "suggested_area": "submission tap-out scaling vs target health in game.py"
+    },
+    {
+      "severity": "major",
+      "dimension": "fun",
+      "summary": "Loop persisted without any loop-tax feedback: turns 1-4 were four consecutive reversed grapple exchanges (tie-up, grapple counter, hip toss, grapple counter) worth 3 total damage, and none of the anti-loop warning lines fired. The tax appears not to cover reversal ping-pong inside a tie-up.",
+      "suggested_area": "loop tax coverage for grapple_counter exchanges"
+    },
+    {
+      "severity": "minor",
+      "dimension": "juiciness",
+      "summary": "No near-falls in the match (near_fall_count 0). The only cover-adjacent tension is the submission escape roll, so the finish has one beat rather than a build.",
+      "suggested_area": "pin / near-fall pacing"
+    }
+  ],
+  "highlight_moments": [
+    {
+      "turn": 7,
+      "type": "setup_payoff",
+      "quote": "Hitman snaps off missile dropkick - Hall takes 19 damage.\n  Hall is rattled - when they're forced up, big payoffs may open."
+    },
+    {
+      "turn": 9,
+      "type": "finish",
+      "quote": "Hitman hooks in sharpshooter!\n  Hall reaches for daylight...\n  The hold is cinched in deeper!\n  Hall taps out!\n  *** SUBMISSION - Hitman wins ***"
+    }
+  ]
+}

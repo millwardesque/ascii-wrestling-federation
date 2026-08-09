@@ -1,0 +1,167 @@
+{
+  "rubric_version": "2026-07-30",
+  "meta": {
+    "match_seed": 204,
+    "wrestlers": ["bret_hart", "scott_hall"],
+    "player_policy": "chaotic",
+    "turn_count": 39,
+    "winner": "player"
+  },
+  "telemetry": {
+    "gates_passed": true,
+    "gate_failures": [],
+    "turn_count": 39,
+    "near_fall_count": 0,
+    "curation_pin_visible": true,
+    "log_uniqueness_ratio": 0.6889,
+    "move_repetition_rate": 0.15,
+    "position_diversity": 8,
+    "single_choice_turns": 1,
+    "winner": "player",
+    "reason": "submission"
+  },
+  "scores": {
+    "fun": {
+      "value": 2,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 39,
+          "note": "Total shutout. Player health reads 132 from turn 1 through turn 31 and ends at 130; the only two points lost are 1-damage reversal chips at turns 32 and 36. Hall landed no clean offense in 39 turns, which is the one-sided-snowball negative signal in its purest form - there was never a comeback window because there was never a deficit."
+        },
+        {
+          "turn": 17,
+          "note": "Positive: a genuinely legible setup-and-payoff chain in the first act. Turn 13 'Hitman snaps off straight right - Hall takes 7 damage. Hall is GROGGY', turn 15 kick re-applies groggy, then turn 17 the menu leads with 'Vertical suplex 79% - TARGET GROGGY payoff: heavy damage is available now' and it pays 16 damage, dropping Hall 60 -> 44 and grounding him."
+        },
+        {
+          "turn": 27,
+          "note": "Against: a four-round standoff with no resolution mechanic. Player dives from the top rope at turns 23, 25 and 27 while the CPU answers 'Kill the run' at 22, 24, 26 and 28; every single one whiffs or is reversed for 1-2 damage. Eight consecutive turns produce 4 total damage and neither side is pushed out of the pattern."
+        },
+        {
+          "turn": 25,
+          "note": "Against: the trade-off in that standoff is invisible. Hit chance on the repeated top-rope dive slides 66% (turn 23) -> 59% (turn 25) -> 53% (turn 27) and then jumps back to 80% at turn 29, with no log line at any point explaining either the decay or the reset. The player cannot tell they are being punished for repeating."
+        },
+        {
+          "turn": 11,
+          "note": "Against: the finish was available at turn 11 with Hall at 87 of 132 - 'Cover - pinfall attempt' and 'Sharpshooter 86%' were both offered - so the following 28 turns were optional. The chaotic policy took 'Leg drop' instead, but the game itself set no bar for earning a finish."
+        }
+      ]
+    },
+    "ease_of_use": {
+      "value": 3,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 17,
+          "note": "Positive: intent, label and outcome align exactly. 'Vertical suplex 79% - TARGET GROGGY payoff: heavy damage is available now' appears at index 1 the turn after Hall fails to shake off groggy, and it delivers 16 damage. The curated menu points at the right move without hiding anything else."
+        },
+        {
+          "turn": 11,
+          "note": "Positive: pin is visible the moment it is legal. With Hall grounded the menu shows 'Cover - pinfall attempt' (label 'pin') at index 1 under a 'Finish' intent, alongside Sharpshooter at 86%; nothing more optimal is buried further down the list."
+        },
+        {
+          "turn": 16,
+          "note": "Positive: the groggy modifier is narrated distinctly on success and failure - turn 14 'Hall steadies themselves - they're back!' versus turn 16 'Hall tries to clear their head but they're still wobbly!' - and position stays STANDING throughout, so groggy reads as a modifier rather than a position."
+        },
+        {
+          "turn": 27,
+          "note": "Major deduction: silently decaying odds. Repeated top-rope dives show 66% -> 59% -> 53% across turns 23, 25 and 27 and then 80% at turn 29, and none of the four anti-loop warning lines ('The climb looks telegraphed', 'Another empty climb', and the tie-up and counter variants) appears anywhere in this transcript. The tax is real but entirely invisible in the log."
+        },
+        {
+          "turn": 33,
+          "note": "Deduction: an incoherent state pair persists for four turns. The player climbs to the top rope while Hall stays GRAPPLED, giving position ['TOP_ROPE','GRAPPLED'] from turn 33 to turn 36 - a tie-up held from the top turnbuckle. It also collapses turn 35 into the match's only single-choice turn ('Climb down carefully' as the sole legal move), which reads as the game apologising for the state it allowed."
+        },
+        {
+          "turn": 39,
+          "note": "Deduction: the Sharpshooter's '90%' is the chance to apply the hold, but the note reads 'cash in momentum for a match-ending swing' with no distinction from a win chance, and the hold applied and won on the same turn - reinforcing the wrong reading."
+        }
+      ]
+    },
+    "stickiness": {
+      "value": 3,
+      "confidence": "medium",
+      "rematch_intent": "maybe",
+      "rematch_reason": "The groggy-to-suplex chain around turns 13-17 and the pin-versus-Sharpshooter choice at turns 11 and 39 are systems worth poking at again. But a 39-turn match in which the opponent lands nothing and the player finishes at 130 of 132 offers no story to want back - the pull is toward testing specific branches, not toward replaying this fight.",
+      "next_experiment": "Replay seed 204 and take 'Cover - pinfall attempt' at turn 11 with Hall at 87 health, to test whether an early cover against a healthy opponent produces the kickout and near-fall this run never saw (near_fall_count 0). Secondly, at turn 33 take a 'Grapple control' payoff (Hip toss / Arm drag / Side headlock, all 90-95%) instead of climbing, both to avoid the TOP_ROPE-versus-GRAPPLED state and to see whether cashing the tie-up shortens the match. Thirdly, break the turn 23-28 standoff by dismounting after the first reversal to check whether the hidden hit-chance decay resets faster than repeating does.",
+      "evidence": [
+        {
+          "turn": 11,
+          "note": "A Finish menu appears at turn 11 and is declined by the policy, leaving a clean unexplored branch 28 turns before the match actually ended."
+        },
+        {
+          "turn": 33,
+          "note": "The TOP_ROPE-versus-GRAPPLED state is an oddity a curious player would want to reproduce, but it is a bug-hunting curiosity rather than a gameplay hook."
+        },
+        {
+          "turn": 39,
+          "note": "Against: the match ends with the player at 130 of 132 health and the opponent having never mounted offense, so there is no rivalry or unfinished business to carry into a rematch."
+        }
+      ]
+    },
+    "juiciness": {
+      "value": 3,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 39,
+          "note": "The submission finish is well paced and reads as a contest: finish_sequence steps are ['Hitman hooks in sharpshooter!', 'Hall reaches for daylight...'] at 1.0s, 'The hold is cinched in deeper!' at 1.5s, then 'Hall taps out!' and '*** SUBMISSION - Hitman wins ***'."
+        },
+        {
+          "turn": 9,
+          "note": "Big spots land with damage plus a state shift: 'Hitman snaps off diving crossbody - Hall takes 21 damage' drops Hall 108 -> 87 and STANDING -> GROUNDED, and turn 10 'Hall tries to rise but can't find it - still down and vulnerable to a cover!' immediately converts that into a pin threat."
+        },
+        {
+          "turn": 27,
+          "note": "Against: turns 22-28 produce six consecutive near-identical low-impact lines - 'Hall whiffs - Hitman shrugs it off', 'Hitman turns the tables!', 'Hall reverses the missile dropkick - only 1 damage' - for 4 total damage. The densest stretch of the match is also its flattest."
+        },
+        {
+          "turn": 39,
+          "note": "Against: near_fall_count is 0 and the winner was never in danger, so the finish carries no stakes; the tap-out resolves a match whose outcome was settled by turn 17."
+        }
+      ]
+    }
+  },
+  "top_issues": [
+    {
+      "severity": "major",
+      "dimension": "fun",
+      "summary": "One-sided to the point of having no arc: the CPU landed zero clean offense across 39 turns and the player finished at 130 of 132 health, the only damage taken being two 1-point reversal chips at turns 32 and 36. The pacing gate passes but the match has no comeback window and no jeopardy.",
+      "suggested_area": "CPU move scoring / difficulty when behind"
+    },
+    {
+      "severity": "major",
+      "dimension": "ease_of_use",
+      "summary": "The loop tax is applied silently. Repeated top-rope dives decay from 66% to 59% to 53% across turns 23-27 and reset to 80% at turn 29, but none of the four new anti-loop warning lines appears anywhere in this transcript, so the player sees shrinking odds with no stated cause. The loop also persists through all four rounds rather than being broken.",
+      "suggested_area": "loop tax logging for top-rope / rope-run repeats"
+    },
+    {
+      "severity": "minor",
+      "dimension": "ease_of_use",
+      "summary": "Incoherent position pair: the player occupies TOP_ROPE while the opponent remains GRAPPLED from turn 33 to turn 36, and turn 35 degenerates to a single legal move ('Climb down carefully'). A tie-up should not survive the aggressor climbing the turnbuckle.",
+      "suggested_area": "moves.py position gates for climb while target_grappled"
+    },
+    {
+      "severity": "minor",
+      "dimension": "juiciness",
+      "summary": "No near-falls in a 39-turn match, and the finish was already available at turn 11 with the opponent at 87 of 132 health, so the ending is not earned by attrition.",
+      "suggested_area": "finish gating / near-fall generation"
+    }
+  ],
+  "highlight_moments": [
+    {
+      "turn": 9,
+      "type": "big_spot",
+      "quote": "Hitman snaps off diving crossbody - Hall takes 21 damage."
+    },
+    {
+      "turn": 17,
+      "type": "setup_payoff",
+      "quote": "Hitman snaps off vertical suplex - Hall takes 16 damage."
+    },
+    {
+      "turn": 39,
+      "type": "finish",
+      "quote": "Hitman hooks in sharpshooter!\n  Hall reaches for daylight...\n  The hold is cinched in deeper!\n  Hall taps out!\n  *** SUBMISSION - Hitman wins ***"
+    }
+  ]
+}

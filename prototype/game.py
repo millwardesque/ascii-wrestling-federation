@@ -40,6 +40,11 @@ _BLOODIED_CHANCE = 0.018
 _GROGGY_STANDING_CHANCE = 0.42  # punch / kick — immediate standing groggy
 _GROGGY_ON_STAND_CHANCE = 0.48  # slams & finishers — pending until they stand
 
+# A worn-down wrestler gets dumped to the mat by any clean damaging hit, which is what
+# makes pins/submissions legal again. Without this, a standing opponent stuck near zero
+# HP can never be finished and the match stalls.
+_KNOCKDOWN_HP_FRAC = 0.20
+
 
 @dataclass
 class PinSequence:
@@ -82,8 +87,10 @@ class MatchState:
     pending_groggy: list[bool] = field(default_factory=list)
     # Failed get-up attempts increase the next get-up chance and can grant escape momentum.
     get_up_fail_streak: list[int] = field(default_factory=list)
-    # Increases when neutral tie-up/break repeats; payoffs reset it, loops start helping the defender.
+    # Neutral tie-up / break / counter repeats; grapple payoffs clear it. Soft-decays otherwise.
     grapple_loop_pressure: int = 0
+    # Climb / empty dismount repeats; survives top-rope payoffs so setup spam stays taxed match-wide.
+    setup_loop_pressure: int = 0
 
     def __post_init__(self) -> None:
         if not self.health:
@@ -261,6 +268,90 @@ def _try_apply_groggy_after_damage(
     return False
 
 
+def _apply_loop_pressure(
+    state: MatchState,
+    actor_idx: int,
+    m: Move,
+    lines: list[str],
+) -> int:
+    """Tax repeated grapple-neutral and top-setup loops. Returns effective momentum_gain."""
+    tgt = 1 - actor_idx
+    actor = state.wrestlers[actor_idx]
+    target = state.wrestlers[tgt]
+    mom_gain = m.momentum_gain
+
+    # --- Grapple-neutral loop (collar / break / counter) ---
+    grapple_before = state.grapple_loop_pressure
+    if m.id == "collar_elbow":
+        state.grapple_loop_pressure = min(4, state.grapple_loop_pressure + 1)
+        if grapple_before >= 2:
+            state.momentum[actor_idx] = max(0, state.momentum[actor_idx] - 1)
+            state.momentum[tgt] = min(5, state.momentum[tgt] + 1)
+            lines.append(
+                f"  The repeated tie-up stalls out — {target.nickname} gains escape momentum."
+            )
+    elif m.id == "break_grapple":
+        state.grapple_loop_pressure = min(4, state.grapple_loop_pressure + 1)
+        if grapple_before >= 2:
+            state.momentum[actor_idx] = min(5, state.momentum[actor_idx] + 1)
+            lines.append(
+                f"  {actor.nickname} uses the stale tie-up to reset with momentum."
+            )
+    elif m.id == "grapple_counter":
+        # Counters are part of the loop — do not clear pressure (old bug that enabled
+        # endless collar ↔ counter duels).
+        state.grapple_loop_pressure = min(4, state.grapple_loop_pressure + 1)
+        if grapple_before >= 2:
+            mom_gain = 0
+            state.momentum[actor_idx] = max(0, state.momentum[actor_idx] - 1)
+            state.momentum[tgt] = min(5, state.momentum[tgt] + 1)
+            lines.append(
+                f"  The counter is getting predictable — {target.nickname} slips free with momentum."
+            )
+    elif m.target_grappled:
+        state.grapple_loop_pressure = 0
+    else:
+        # Soft decay so get-ups / brief interruptions don't fully erase loop debt.
+        state.grapple_loop_pressure = max(0, state.grapple_loop_pressure - 1)
+
+    # --- Top-rope setup loop (climb / empty dismount) ---
+    setup_before = state.setup_loop_pressure
+    if m.id == "climb":
+        state.setup_loop_pressure = min(4, state.setup_loop_pressure + 1)
+        if setup_before >= 2:
+            mom_gain = 0
+            state.momentum[tgt] = min(5, state.momentum[tgt] + 1)
+            lines.append(
+                f"  The climb looks telegraphed — {target.nickname} is ready for it."
+            )
+    elif m.id == "dismount_top":
+        state.setup_loop_pressure = min(4, state.setup_loop_pressure + 1)
+        if setup_before >= 2:
+            state.momentum[tgt] = min(5, state.momentum[tgt] + 1)
+            lines.append(
+                f"  Another empty climb — {target.nickname} takes the momentum."
+            )
+    elif m.actor_top and m.base_damage > 0:
+        # Payoff does not fully clear setup debt (climb→dive→climb stays taxed).
+        pass
+    elif m.id == "pull_off_top":
+        state.setup_loop_pressure = max(0, state.setup_loop_pressure - 1)
+    elif m.id in {
+        "get_up",
+        "shake_groggy",
+        "recover",
+        "escape_corner",
+        "feet_plant",
+        "desperation_strike",
+    }:
+        # Forced resets / recovery should not erase climb spam debt.
+        pass
+    else:
+        state.setup_loop_pressure = max(0, state.setup_loop_pressure - 1)
+
+    return mom_gain
+
+
 def apply_move(
     state: MatchState,
     actor_idx: int,
@@ -322,7 +413,7 @@ def apply_move(
         dmg = _damage_with_stats(
             m.base_damage, actor, target, agility_bonus=top or m.actor_running_ropes_only
         )
-        state.health[tgt] = max(1, state.health[tgt] - dmg)
+        state.health[tgt] = max(0, state.health[tgt] - dmg)
         lines.append(
             f"  {actor.nickname} snaps off {m.name.lower()} — "
             f"{target.nickname} takes {dmg} damage."
@@ -340,6 +431,29 @@ def apply_move(
         state.position[actor_idx] = m.actor_after
     if m.target_after is not None:
         state.position[tgt] = m.target_after
+
+    if m.base_damage > 0 and state.health[tgt] <= 0:
+        state.position[tgt] = BodyPosition.GROUNDED
+        state.groggy[tgt] = False
+        state.groggy_opponent_actions_left[tgt] = 0
+        state.pending_groggy[tgt] = False
+        lines.append(f"  {target.nickname} crumples and doesn't move — they are out cold!")
+        lines.append(
+            f"  *** KNOCKOUT — the match is waved off; {actor.nickname} wins ***"
+        )
+        if actor_idx == 1:
+            state.cpu_last_move_id = m.id
+        _tick_groggy_timer(state, actor_idx)
+        return "\n".join(lines), actor_idx, None
+
+    if m.base_damage > 0 and state.position[tgt] != BodyPosition.GROUNDED:
+        worn_down = state.health[tgt] <= target.max_health * _KNOCKDOWN_HP_FRAC
+        if worn_down:
+            state.position[tgt] = BodyPosition.GROUNDED
+            state.pending_groggy[tgt] = True
+            lines.append(
+                f"  {target.nickname} collapses to the canvas — the cover is there for the taking!"
+            )
 
     if m.base_damage > 0 and (not was_groggy_before_hit or m.causes_groggy_on_stand):
         applied_groggy = _try_apply_groggy_after_damage(
@@ -385,28 +499,9 @@ def apply_move(
         state.health[actor_idx] = min(cap, state.health[actor_idx] + heal)
         lines.append(f"  {actor.nickname} recovers {heal} stamina.")
 
-    pressure_before_action = state.grapple_loop_pressure
-    if m.id == "collar_elbow":
-        state.grapple_loop_pressure = min(4, state.grapple_loop_pressure + 1)
-        if pressure_before_action >= 2:
-            state.momentum[actor_idx] = max(0, state.momentum[actor_idx] - 1)
-            state.momentum[tgt] = min(5, state.momentum[tgt] + 1)
-            lines.append(
-                f"  The repeated tie-up stalls out — {target.nickname} gains escape momentum."
-            )
-    elif m.id == "break_grapple":
-        state.grapple_loop_pressure = min(4, state.grapple_loop_pressure + 1)
-        if pressure_before_action >= 2:
-            state.momentum[actor_idx] = min(5, state.momentum[actor_idx] + 1)
-            lines.append(
-                f"  {actor.nickname} uses the stale tie-up to reset with momentum."
-            )
-    elif m.target_grappled or m.id == "grapple_counter":
-        state.grapple_loop_pressure = 0
-    else:
-        state.grapple_loop_pressure = 0
+    mom_gain = _apply_loop_pressure(state, actor_idx, m, lines)
 
-    gain = min(5, state.momentum[actor_idx] + m.momentum_gain)
+    gain = min(5, state.momentum[actor_idx] + mom_gain)
     state.momentum[actor_idx] = gain
     if m.is_finisher and m.base_damage > 0:
         state.pin_bonus_next_cover[actor_idx] = m.finisher_pin_bonus
@@ -686,6 +781,9 @@ def _cpu_rule_score(state: MatchState, cpu_idx: int, r: MoveRule) -> float:
         s += 12
     if m.id == "dismount_top":
         s -= 5
+        s -= float(state.setup_loop_pressure) * 10.0
+    if m.id == "climb":
+        s -= float(state.setup_loop_pressure) * 16.0
     if m.id == "collar_elbow":
         s -= float(state.grapple_loop_pressure) * 18.0
     if m.target_grappled:
@@ -709,7 +807,8 @@ def _cpu_rule_score(state: MatchState, cpu_idx: int, r: MoveRule) -> float:
     if m.id == "break_grapple":
         s += 65 - float(state.grapple_loop_pressure) * 8.0
     if m.id == "grapple_counter":
-        s += 90
+        # Prefer a counter early; stale counters lose value so CPU breaks the loop.
+        s += 90 - float(state.grapple_loop_pressure) * 22.0
     if state.cpu_last_move_id is not None and m.id == state.cpu_last_move_id:
         s -= _CPU_VARIETY_PENALTY
     if m.is_finisher:
@@ -755,6 +854,8 @@ def outcome_label(log: str) -> str:
     """Short label derived from apply_move / pin log text for exchange recap."""
     if not log.strip():
         return "—"
+    if "KNOCKOUT" in log:
+        return "knockout"
     if "SUBMISSION" in log or "taps out" in log:
         return "submission"
     if "PINFALL" in log or "pinfall" in log.lower():
