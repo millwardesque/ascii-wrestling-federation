@@ -2,19 +2,14 @@
   "rubric_version": "2026-07-30",
   "meta": {
     "match_seed": 101,
-    "wrestlers": [
-      "bret_hart",
-      "scott_hall"
-    ],
+    "wrestlers": ["bret_hart", "scott_hall"],
     "player_policy": "novice",
     "turn_count": 43,
     "winner": "player"
   },
   "telemetry": {
     "gates_passed": false,
-    "gate_failures": [
-      "turn_count 43 outside band [8, 40]"
-    ],
+    "gate_failures": ["turn_count 43 outside band [8, 40]"],
     "turn_count": 43,
     "winner": "player",
     "reason": "submission",
@@ -25,57 +20,134 @@
     "position_diversity": 7,
     "single_choice_turns": 1,
     "match_seed": 101,
-    "wrestlers": [
-      "bret_hart",
-      "scott_hall"
-    ],
+    "wrestlers": ["bret_hart", "scott_hall"],
     "player_policy": "novice"
   },
   "scores": {
     "fun": {
       "value": 3,
-      "confidence": "medium",
+      "confidence": "high",
       "evidence": [
         {
-          "turn": 1,
-          "note": "repetition=0.3182, near_falls=0"
+          "turn": 6,
+          "note": "Early swing against player: Hall superplex deals 29 and leaves Hitman rattled (HP 97 vs 130) — real deficit / comeback window opens."
+        },
+        {
+          "turn": 15,
+          "note": "Curated menu offers distinct trade-off: Vertical suplex 74% 'TARGET GROGGY payoff' vs Collar-and-elbow 90%; novice picks collar and Hall answers with grapple counter (t16) — setup fails to pay off."
+        },
+        {
+          "turn": 25,
+          "note": "Climb → missile dropkick loop lands (19 dmg, Hall rattled) but the same climb/dropkick/collar/counter pattern repeats at t27–38 and t31–38; move_repetition_rate 0.3182 and turn_count 43 (gate fail) make the mid-match feel samey."
+        },
+        {
+          "turn": 43,
+          "note": "Comeback completes at nearly even HP (50–51) via Sharpshooter tap-out; modest climax but near_fall_count 0 — no near-fall beat before finish."
         }
       ]
     },
     "ease_of_use": {
-      "value": 2,
-      "confidence": "medium",
+      "value": 4,
+      "confidence": "high",
       "evidence": [
         {
-          "turn": 1,
-          "note": "gates_passed=False"
+          "turn": 7,
+          "note": "Groggy as modifier is clear: after get_up, log says 'Hitman rises — still groggy from the impact!' with state.groggy [true,false]; only Fight to your feet was legal (single_choice_turns=1)."
+        },
+        {
+          "turn": 9,
+          "note": "Minor ambiguity: Shake the cobwebs and Desperation strike both use the same note 'clear the haze before they punish you' despite different risk."
+        },
+        {
+          "turn": 15,
+          "note": "Optimal groggy cash-in is not hidden — Vertical suplex is curated under Big swing with explicit 'TARGET GROGGY payoff' label (also t17/27/29/35/37)."
+        },
+        {
+          "turn": 43,
+          "note": "Pin visible when legal: Cover — pinfall attempt (intent Finish, label pin) alongside Sharpshooter 85%; curation_pin_visible true. Submission % reads as apply-hold chance in the choice label, not a win meter."
         }
       ]
     },
     "stickiness": {
       "value": 3,
-      "confidence": "medium",
+      "confidence": "high",
       "evidence": [
         {
-          "turn": 1,
-          "note": "position_diversity=7, turn_count=43"
+          "turn": 35,
+          "note": "Curiosity remains around unused groggy payoffs: menu again shows Vertical suplex 'TARGET GROGGY payoff' while collar_elbow → grapple_counter keeps burning windows."
+        },
+        {
+          "turn": 43,
+          "note": "Submission finish is a reason to return, but 43-turn drag, log_uniqueness_ratio 0.5, and zero near falls make a full rematch only a maybe."
         }
       ],
       "rematch_intent": "maybe",
-      "rematch_reason": "Pilot heuristic from telemetry anchors.",
-      "next_experiment": "Try aggressive policy on same seed."
+      "rematch_reason": "Want to test whether cashing TARGET GROGGY vertical suplexes breaks the climb/missile/collar/counter slog; the Sharpshooter finish was satisfying but the mid-match loop was exhausting.",
+      "next_experiment": "Re-run seed 101 with methodical (or aggressive) policy that picks Vertical suplex on groggy turns 15/27/35 instead of collar_elbow, and try pin on the t42 failed-rise cover window."
     },
     "juiciness": {
-      "value": 2,
-      "confidence": "medium",
+      "value": 3,
+      "confidence": "high",
       "evidence": [
         {
-          "turn": 1,
-          "note": "near_fall_count=0"
+          "turn": 6,
+          "note": "Big spot lands with state shift: 'Hall snaps off superplex — Hitman takes 29 damage.' plus rattled foreshadowing; both go GROUNDED."
+        },
+        {
+          "turn": 13,
+          "note": "Payoff beat: 'Hitman snaps off hurricanrana — Hall takes 22 damage. Hall is rattled…' — clear narrative + position change."
+        },
+        {
+          "turn": 42,
+          "note": "Cover teaser without near-fall: 'Hall tries to rise but can't find it — still down and vulnerable to a cover!' but near_fall_count stays 0."
+        },
+        {
+          "turn": 43,
+          "note": "finish_sequence submission with staged delays (1.0s / 1.5s / 0.0s): hooks in → reaches for daylight → cinched deeper → taps; strong finisher juice, offset by repetitive grapple-counter logs earlier."
         }
       ]
     }
   },
-  "top_issues": [],
-  "highlight_moments": []
+  "top_issues": [
+    {
+      "severity": "major",
+      "dimension": "fun",
+      "summary": "Pacing gate fail: 43 turns outside [8,40] driven by a climb → top-rope strike → collar-and-elbow → CPU grapple_counter loop that burns groggy windows without advancing the match.",
+      "suggested_area": "grapple_counter frequency / groggy-payoff incentives / mid-match loop breaking"
+    },
+    {
+      "severity": "minor",
+      "dimension": "ease_of_use",
+      "summary": "On groggy turns, Collar-and-elbow at 90% sits beside Vertical suplex 74% 'TARGET GROGGY payoff'; higher % may steer novices away from the clearly labeled optimal cash-in.",
+      "suggested_area": "curation ordering or % framing when TARGET GROGGY is active"
+    },
+    {
+      "severity": "minor",
+      "dimension": "juiciness",
+      "summary": "Turn 42 sells 'vulnerable to a cover' but the match records zero near falls before the submission finish.",
+      "suggested_area": "near-fall / pin pressure before finish"
+    }
+  ],
+  "highlight_moments": [
+    {
+      "turn": 6,
+      "type": "big_spot",
+      "quote": "Hall snaps off superplex — Hitman takes 29 damage. Hitman is rattled — when they're forced up, big payoffs may open."
+    },
+    {
+      "turn": 13,
+      "type": "payoff",
+      "quote": "Hitman snaps off hurricanrana — Hall takes 22 damage. Hall is rattled — when they're forced up, big payoffs may open."
+    },
+    {
+      "turn": 42,
+      "type": "cover_tease",
+      "quote": "Hall tries to rise but can't find it — still down and vulnerable to a cover!"
+    },
+    {
+      "turn": 43,
+      "type": "finish",
+      "quote": "Hitman hooks in sharpshooter! Hall reaches for daylight… The hold is cinched in deeper! Hall taps out! *** SUBMISSION — Hitman wins ***"
+    }
+  ]
 }

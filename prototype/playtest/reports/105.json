@@ -31,49 +31,138 @@
   },
   "scores": {
     "fun": {
-      "value": 3,
-      "confidence": "medium",
+      "value": 2,
+      "confidence": "high",
       "evidence": [
         {
           "turn": 1,
-          "note": "repetition=0.45, near_falls=0"
+          "note": "Player opens with Climb; then repeats Climb on turns 5, 7, 11, 13, 17, 25, 29, 33 — same 'Set up position' intent dominates (telemetry move_repetition_rate=0.45)."
+        },
+        {
+          "turn": 12,
+          "note": "Hall's pull-off hits keep resetting the climb loop rather than forcing a new strategy; HP stays one-sided (player 120 / Hall 91) with little comeback tension."
+        },
+        {
+          "turn": 23,
+          "note": "After Hall fails to rise (t22), Finish options appear (Pin + Sharpshooter 74%) but Sharpshooter misses — decent window, then the match returns to climb spam instead of a tightening finish arc."
+        },
+        {
+          "turn": 39,
+          "note": "Player wins by submission with Hall at 31 HP; near_fall_count=0 and no sustained momentum swing for Hall — climax arrives after a long, samey grind."
         }
       ]
     },
     "ease_of_use": {
       "value": 4,
-      "confidence": "medium",
+      "confidence": "high",
       "evidence": [
         {
-          "turn": 1,
-          "note": "gates_passed=True"
+          "turn": 23,
+          "note": "When Hall is grounded, curated menu shows Finish 'Cover — pinfall attempt' (pin) alongside Sharpshooter — pin visible when legal (curation_pin_visible=true)."
+        },
+        {
+          "turn": 39,
+          "note": "Again Pin + Sharpshooter (88%) both listed under Finish; single_choice_turns=0; standing menus consistently label Grapple / Set up / Safe / Reset intents."
+        },
+        {
+          "turn": 39,
+          "note": "Sharpshooter label '88%' with note 'cash in momentum for a match-ending swing' can be read as win chance rather than apply-hold chance — minor honesty ding, not a hidden-move issue."
+        },
+        {
+          "turn": 37,
+          "note": "Log says 'Hall is rattled — when they're forced up, big payoffs may open' while state.groggy stays [false,false] — pending-groggy wording is a bit opaque vs position clarity."
         }
       ]
     },
     "stickiness": {
       "value": 3,
-      "confidence": "medium",
+      "confidence": "high",
       "evidence": [
         {
-          "turn": 1,
-          "note": "position_diversity=5, turn_count=39"
+          "turn": 33,
+          "note": "Ninth Climb in the match — curiosity is more 'can I break this loop?' than 'that was fun, again.'"
+        },
+        {
+          "turn": 22,
+          "note": "Failed get-up ('still down and vulnerable to a cover!') plus unused Pin path creates a specific rematch itch."
+        },
+        {
+          "turn": 39,
+          "note": "Submission finish sequence is memorable enough to try once more with a different policy, not enough to erase the climb slog."
         }
       ],
       "rematch_intent": "maybe",
-      "rematch_reason": "Pilot heuristic from telemetry anchors.",
-      "next_experiment": "Try aggressive policy on same seed."
+      "rematch_reason": "Want to see a cleaner finish after the failed-get-up cover window, and whether skipping the climb loop (grapple/safe offense) yields a less samey match.",
+      "next_experiment": "Re-run seed 105 with methodical or aggressive policy: after Hall fails to rise, choose Pin for a near-fall; prefer Collar-and-elbow over Climb when standing."
     },
     "juiciness": {
-      "value": 2,
-      "confidence": "medium",
+      "value": 3,
+      "confidence": "high",
       "evidence": [
         {
+          "turn": 9,
+          "note": "Missile dropkick payoff lands: 'Hitman snaps off missile dropkick — Hall takes 19 damage' with GROUNDED shift — clear big-spot feedback."
+        },
+        {
+          "turn": 22,
+          "note": "'Hall tries to rise but can't find it — still down and vulnerable to a cover!' is strong drama text; repeated at t38."
+        },
+        {
+          "turn": 39,
+          "note": "finish_sequence submission with delays (1.0s / 1.5s): hooks in → reaches for daylight → cinched deeper → taps — high payoff beat."
+        },
+        {
           "turn": 1,
-          "note": "near_fall_count=0"
+          "note": "Counterweight: many flat 'Climb to the top rope' / 'Fight to your feet' lines, log_uniqueness_ratio=0.5, near_fall_count=0 — middle stretch feels dry."
         }
       ]
     }
   },
-  "top_issues": [],
-  "highlight_moments": []
+  "top_issues": [
+    {
+      "severity": "major",
+      "dimension": "fun",
+      "summary": "Novice Climb/Set-up loop (9 climbs) with move_repetition_rate 0.45 and one-sided HP makes the match feel samey despite varied curated intents.",
+      "suggested_area": "Discourage or soft-penalize repeated climb setups; steer novice toward grapple/grounded finish paths."
+    },
+    {
+      "severity": "major",
+      "dimension": "juiciness",
+      "summary": "Two 'vulnerable to a cover' failed get-ups (t22, t38) produced zero near-falls; first finish attempt missed and the match ground on to turn 39.",
+      "suggested_area": "Encourage pin after failed rise; ensure near-fall beats land before submission finishes."
+    },
+    {
+      "severity": "minor",
+      "dimension": "ease_of_use",
+      "summary": "Sharpshooter percentage reads like a match-ending win chance ('cash in… match-ending swing') rather than apply-hold chance.",
+      "suggested_area": "Clarify submission labels as apply% vs escape/tap resolution."
+    }
+  ],
+  "highlight_moments": [
+    {
+      "turn": 9,
+      "type": "big_spot",
+      "quote": "Hitman snaps off missile dropkick — Hall takes 19 damage."
+    },
+    {
+      "turn": 22,
+      "type": "failed_get_up",
+      "quote": "Hall tries to rise but can't find it — still down and vulnerable to a cover!"
+    },
+    {
+      "turn": 23,
+      "type": "missed_finish",
+      "quote": "Hitman whiffs — Hall shrugs it off. (Sharpshooter miss with Pin also curated)"
+    },
+    {
+      "turn": 37,
+      "type": "groggy_setup",
+      "quote": "Hitman snaps off hurricanrana — Hall takes 22 damage. Hall is rattled — when they're forced up, big payoffs may open."
+    },
+    {
+      "turn": 39,
+      "type": "submission_finish",
+      "quote": "Hitman hooks in sharpshooter! … Hall taps out! *** SUBMISSION — Hitman wins ***"
+    }
+  ]
 }

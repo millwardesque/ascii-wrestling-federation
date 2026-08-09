@@ -1,0 +1,184 @@
+{
+  "rubric_version": "2026-07-30",
+  "meta": {
+    "match_seed": 215,
+    "wrestlers": ["bret_hart", "scott_hall"],
+    "player_policy": "novice",
+    "turn_count": 91,
+    "winner": "player"
+  },
+  "telemetry": {
+    "gates_passed": false,
+    "gate_failures": ["turn_count 91 outside band [8, 40]"],
+    "turn_count": 91,
+    "winner": "player",
+    "reason": "submission",
+    "near_fall_count": 0,
+    "curation_pin_visible": true,
+    "log_uniqueness_ratio": 0.4286,
+    "move_repetition_rate": 0.3043,
+    "position_diversity": 11,
+    "single_choice_turns": 3,
+    "match_seed": 215,
+    "wrestlers": ["bret_hart", "scott_hall"],
+    "player_policy": "novice"
+  },
+  "scores": {
+    "fun": {
+      "value": 2,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 12,
+          "note": "Genuine early swing: Hall's running missile dropkick does 18 and grounds Hitman ('Hitman is rattled — when they're forced up, big payoffs may open'), then Razor's Edge at t14 for 20 takes the player from 131 to 93. Real deficit is established."
+        },
+        {
+          "turn": 33,
+          "note": "First actual comeback beat: 'Hitman snaps off missile dropkick — Hall takes 19 damage. Hall is rattled…' Hall 131 -> 112. This is the only offensive pattern the player ever converts."
+        },
+        {
+          "turn": 41,
+          "note": "Loop takes over: climb is 14 of 46 player turns (30.43%, exactly the reported move_repetition_rate). Turns 39/41, 49/51, 79/81 are back-to-back climbs where the CPU simply answers 'Pull off the top rope' for 6 damage — no trade-off is being made, the player just re-enters the same position."
+        },
+        {
+          "turn": 80,
+          "note": "Tension collapses at the HP floor: player sits on 1 HP from t76 through the finish. At t80 the log reads 'Hitman takes 6 damage' but state health stays [1, 64], so the last 16 turns carry no lethal risk while the CPU keeps swinging."
+        },
+        {
+          "turn": 91,
+          "note": "91 turns (2.3x the 40-turn gate ceiling) and near_fall_count 0; the Sharpshooter finish arrives with no near-fall buildup after roughly 50 turns of climb / missile dropkick / dismount rotation."
+        }
+      ]
+    },
+    "ease_of_use": {
+      "value": 3,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 13,
+          "note": "Groggy reads correctly as a modifier, not a position: 'Hitman rises — still groggy from the impact!' with position STANDING and groggy [true, false]; only 'Fight to your feet' was legal (one of 3 single_choice_turns)."
+        },
+        {
+          "turn": 35,
+          "note": "Curation does not hide the optimal line: with Hall groggy, 'Vertical suplex 73% — TARGET GROGGY payoff: heavy damage is available now' is index 1, above Collar-and-elbow at 88%. Repeated at t37/45/47/75/77. The novice policy ignores it, but the menu is honest."
+        },
+        {
+          "turn": 37,
+          "note": "Loop-tax feedback is legible where it fires: the tie-up note escalates from 'repeat loops lose steam' to 'tie-up is going stale — pay it off or reset before they steal momentum', and the log confirms the cost — 'The repeated tie-up stalls out — Hall gains escape momentum' followed by 'Hall uses the stale tie-up to reset with momentum' at t38."
+        },
+        {
+          "turn": 79,
+          "note": "The loop tax is silent for the loop that actually dominates this match. Neither 'The climb looks telegraphed' nor 'Another empty climb' appears anywhere in the transcript despite 14 climbs including consecutive climbs at t79/t81; only the tie-up and counter variants ever fire (3 occurrences each)."
+        },
+        {
+          "turn": 80,
+          "note": "Log contradicts state: 'Hall snaps off pull off the top rope — Hitman takes 6 damage' while health goes [1, 64] -> [1, 64]. A reader tracking the HP bar sees damage announced that never lands, with no explanation of a floor."
+        },
+        {
+          "turn": 91,
+          "note": "Pin visible when legal: 'Cover — pinfall attempt' (intent Finish) sits alongside 'Sharpshooter 84% — cash in momentum for a match-ending swing'; the 84% reads as apply-the-hold odds, not a win meter."
+        }
+      ]
+    },
+    "stickiness": {
+      "value": 3,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 75,
+          "note": "Unspent curiosity: the TARGET GROGGY vertical suplex was offered six separate times (t35/37/45/47/75/77) and never taken, so the biggest damage line in the match is still unexplored."
+        },
+        {
+          "turn": 85,
+          "note": "Surviving at 1 HP and still winning is a memorable story beat ('Hitman snaps off missile dropkick — Hall takes 19 damage' with health [1, 44]), which is the main pull toward another run."
+        },
+        {
+          "turn": 91,
+          "note": "Against that, 91 turns, log_uniqueness_ratio 0.4286 and zero near falls make this a tiring session; rematch appeal is about the unexplored lines rather than about replaying this arc."
+        }
+      ],
+      "rematch_intent": "maybe",
+      "rematch_reason": "The 1-HP survival into a Sharpshooter tap-out is a real story, and six ignored TARGET GROGGY suplex windows leave an obvious unexplored strategy — but 91 turns of climb/missile-dropkick rotation with no near falls is a lot to sit through again.",
+      "next_experiment": "Re-run seed 215 with a methodical or aggressive policy that cashes the TARGET GROGGY vertical suplex at t35/45/75 instead of re-entering the tie-up, and takes 'Pull off the top rope' at t11 rather than 'Hit the ropes', to see whether the match resolves inside the 8-40 turn band."
+    },
+    "juiciness": {
+      "value": 3,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 14,
+          "note": "Finisher beat lands with real weight: 'Hall snaps off razor's edge — Hitman takes 20 damage. — FINISHER — the next cover packs extra heat.' State shifts to GROUNDED and telegraphs a cover."
+        },
+        {
+          "turn": 18,
+          "note": "Status changes are announced, not just implied: 'Hall snaps off straight right — Hitman takes 7 damage. Hitman is GROGGY — power moves and finishers are live!'"
+        },
+        {
+          "turn": 43,
+          "note": "The signature payoff line is reused verbatim: 'Hitman snaps off missile dropkick — Hall takes 19 damage' appears identically at t33, t43, t73, t85 and t89 for exactly 19 damage each time, which is why log_uniqueness_ratio sits at 0.4286."
+        },
+        {
+          "turn": 80,
+          "note": "The endgame loses its payoff feel because damage stops registering at 1 HP — hits at t80 and t83 are narrated but the health bar does not move, so nothing feels decisive."
+        },
+        {
+          "turn": 91,
+          "note": "Strong finish sequence: submission staged at 1.0s / 1.5s / 0.0s — 'Hitman hooks in sharpshooter! / Hall reaches for daylight… / The hold is cinched in deeper! / Hall taps out!' Good escalation, though near_fall_count 0 means it is the match's only tension spike."
+        }
+      ]
+    }
+  },
+  "top_issues": [
+    {
+      "severity": "critical",
+      "dimension": "fun",
+      "summary": "The loop tax never fires for the climb loop that dominates this match. 'The climb looks telegraphed' and 'Another empty climb' appear zero times across 91 turns despite 14 climbs (30.43% of player turns) and back-to-back climbs at t39/41, t49/51 and t79/81, so the anti-loop feedback is absent exactly where it is needed and the loop runs unchecked to a 91-turn match.",
+      "suggested_area": "loop-tax coverage for climb / positional setup moves"
+    },
+    {
+      "severity": "major",
+      "dimension": "ease_of_use",
+      "summary": "Damage is announced but not applied once a wrestler hits the 1 HP floor: t80 logs 'Hitman takes 6 damage' while state health stays [1, 64], and the player absorbs hits at 1 HP from t76 to t91. The log and the health bar disagree with no in-fiction explanation.",
+      "suggested_area": "damage-vs-HP-floor logging, or a 'hanging on' state line"
+    },
+    {
+      "severity": "major",
+      "dimension": "fun",
+      "summary": "Pacing gate fail at 91 turns (band [8, 40]) with near_fall_count 0. Roughly turns 39-89 are a climb -> CPU pull-off/rope-run -> missile dropkick or dismount carousel that trades 6 damage for 19 damage without ever threatening a finish.",
+      "suggested_area": "top-rope re-entry cost / CPU cover pressure when opponent is low"
+    },
+    {
+      "severity": "minor",
+      "dimension": "juiciness",
+      "summary": "The match's main payoff line is identical five times: 'Hitman snaps off missile dropkick — Hall takes 19 damage' at t33/43/73/85/89, always for exactly 19, which flattens what should be the biggest recurring pop.",
+      "suggested_area": "damage variance and phrasing variants for repeated signature moves"
+    }
+  ],
+  "highlight_moments": [
+    {
+      "turn": 14,
+      "type": "finisher",
+      "quote": "Hall snaps off razor's edge — Hitman takes 20 damage.\n  — FINISHER — the next cover packs extra heat."
+    },
+    {
+      "turn": 33,
+      "type": "comeback",
+      "quote": "Hitman snaps off missile dropkick — Hall takes 19 damage.\n  Hall is rattled — when they're forced up, big payoffs may open."
+    },
+    {
+      "turn": 37,
+      "type": "loop_tax",
+      "quote": "The repeated tie-up stalls out — Hall gains escape momentum."
+    },
+    {
+      "turn": 85,
+      "type": "survival",
+      "quote": "Hitman snaps off missile dropkick — Hall takes 19 damage."
+    },
+    {
+      "turn": 91,
+      "type": "finish",
+      "quote": "Hitman hooks in sharpshooter!\n  Hall reaches for daylight…\n  The hold is cinched in deeper!\n  Hall taps out!\n  *** SUBMISSION — Hitman wins ***"
+    }
+  ]
+}

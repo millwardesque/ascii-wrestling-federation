@@ -1,0 +1,188 @@
+{
+  "rubric_version": "2026-07-30",
+  "meta": {
+    "match_seed": 229,
+    "wrestlers": [
+      "bret_hart",
+      "scott_hall"
+    ],
+    "player_policy": "chaotic",
+    "turn_count": 65,
+    "winner": "player"
+  },
+  "telemetry": {
+    "gates_passed": false,
+    "gate_failures": [
+      "turn_count 65 outside band [8, 40]"
+    ],
+    "turn_count": 65,
+    "winner": "player",
+    "reason": "pinfall",
+    "near_fall_count": 1,
+    "curation_pin_visible": true,
+    "log_uniqueness_ratio": 0.6234,
+    "move_repetition_rate": 0.1212,
+    "position_diversity": 9,
+    "single_choice_turns": 3,
+    "match_seed": 229,
+    "wrestlers": [
+      "bret_hart",
+      "scott_hall"
+    ],
+    "player_policy": "chaotic"
+  },
+  "scores": {
+    "fun": {
+      "value": 3,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 29,
+          "note": "Genuine climax build: after both wrestlers reach TOP_ROPE, 'Hitman snaps off hurricanrana — Hall takes 22 damage.' plus 'Hall is rattled — when they're forced up, big payoffs may open.' sets up the cover two turns later."
+        },
+        {
+          "turn": 31,
+          "note": "The batch's only near-fall lands here and it is the high point of the match: 'Referee: 1… Referee: 2… Hall kicks out!' The menu had offered a real fork — cover ('pin') vs Sharpshooter (72%) vs Pull opponent up — so the kickout punishes a choice rather than a script."
+        },
+        {
+          "turn": 33,
+          "note": "Immediate follow-up keeps the arc alive: 'Hitman snaps off pull opponent up — Hall takes 3 damage.' / 'Hall is yanked up — their legs aren't under them yet!' converts the failed pin into a groggy window, which Hall then shakes off on T34."
+        },
+        {
+          "turn": 17,
+          "note": "Twelve-turn drag in the middle: from T17 to T28 every exchange is a reversal for 1–3 damage (T18, T20, T22, T24, T26, T28) while the player cycles Hit the ropes / Kill the run / Climb; health only moves 121→109 across twelve turns and no loop-tax warning ever fires on this cycle."
+        },
+        {
+          "turn": 65,
+          "note": "Finish has little buildup relative to length: Hall sits at 17 HP from T61 onward, the player spends T63 on 'Catch your breath' with the cover already legal, and the T65 pin is a clean three-count. 65 turns against a [8, 40] band."
+        }
+      ]
+    },
+    "ease_of_use": {
+      "value": 3,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 11,
+          "note": "Status changes are explicit and correctly modeled as a modifier: 'Hall is GROGGY — power moves and finishers are live!' with position STANDING and groggy=[false,true]; T13's menu then leads with 'TARGET GROGGY payoff: heavy damage is available now'."
+        },
+        {
+          "turn": 31,
+          "note": "Pin is visible and labeled honestly whenever legal ('Cover — pinfall attempt', note 'try to end it now; stronger when they're worn down'), and Sharpshooter is separately labeled 72% — consistent with the rule that the percentage is the chance to apply, not to win. curation_pin_visible=true."
+        },
+        {
+          "turn": 19,
+          "note": "Friction: RUNNING_ROPES offers exactly one option, 'Kill the run' (86%), and the same single-choice wall repeats at T23 and T25 (single_choice_turns=3). The T23 miss strands the player on the ropes for another dive attempt with nothing to decide."
+        },
+        {
+          "turn": 23,
+          "note": "Legibility gap in the loop feedback: the player repeats Kill the run three times and Hit the ropes twice while Hall repeats top-rope dives six times, yet none of the anti-loop lines ('The climb looks telegraphed', 'Another empty climb') ever fire, so the twelve-turn stalemate is never explained to the player."
+        },
+        {
+          "turn": 32,
+          "note": "Good chronology on the escape side: 'Hall tries to rise but can't find it — still down and vulnerable, but the crowd is pulling them up.' / 'Escape momentum builds for Hall.' matches state momentum 0→1 for Hall, so the drift after the kickout is readable."
+        }
+      ]
+    },
+    "stickiness": {
+      "value": 4,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 31,
+          "note": "The kickout leaves an obvious counterfactual to test: the same menu offered Sharpshooter at 72% and Pull opponent up, and the cover was taken instead — 'Hall kicks out!' directly invites replaying that decision."
+        },
+        {
+          "turn": 43,
+          "note": "Second distinct payoff route discovered late: 'Hitman snaps off missile dropkick — Hall takes 19 damage.' from a solo top-rope position, a different big swing from the T29 hurricanrana, so the top rope has more than one line worth exploring."
+        },
+        {
+          "turn": 9,
+          "note": "The rope-sprint branch is barely touched: Kitchen-sink knee (80%) hit for 15 and again for 15 on T61, while Rebound clothesline and Drop toe hold sat unused both times — a clear untested lane for another run."
+        }
+      ],
+      "rematch_intent": "yes",
+      "rematch_reason": "The T31 kickout is the only near-fall in the batch and it changed the match's shape rather than ending it, and the position variety (position_diversity=9, move_repetition_rate=0.1212) meant most turns offered something new.",
+      "next_experiment": "Replay seed 229 and at T31 take Sharpshooter (72%) instead of the cover, then compare against a run that takes Pull opponent up into the T15/T37 'TARGET GROGGY payoff' suplex, to see which finish route produces a shorter match with the near-fall preserved."
+    },
+    "juiciness": {
+      "value": 4,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 31,
+          "note": "Key juiciness datapoint — the batch's single near-fall. It is produced by hurricanrana (22 damage, T29) → failed get-up ('Hall tries to rise but can't find it — still down and vulnerable to a cover!', T30) → cover, resolving as 'Referee: 1…\\n  Referee: 2…\\n  Hall kicks out!' The finish_sequence carries delays_sec 1.0 and 1.5 before the kickout line and won=false, so the beat is paced, not instant."
+        },
+        {
+          "turn": 33,
+          "note": "The kickout pays off immediately instead of dead-ending: 'Hall is yanked up — their legs aren't under them yet!' turns the failed pin into a groggy window, and T34's 'Hall steadies themselves — they're back!' closes it."
+        },
+        {
+          "turn": 43,
+          "note": "Second impact spot with state shift: 'Hitman snaps off missile dropkick — Hall takes 19 damage.' plus 'Hall is rattled — when they're forced up, big payoffs may open.', cashed on T44 as 'Hall rises — still groggy from the impact!'"
+        },
+        {
+          "turn": 22,
+          "note": "Repetition drags the ceiling down: 'Hitman reverses the diving crossbody — only 2 damage' appears three times (T18, T20, T22) and near-identical reversal text six times across T18–T28; log_uniqueness_ratio=0.6234."
+        },
+        {
+          "turn": 65,
+          "note": "Actual finish is flatter than the mid-match near-fall: same 1.0/1.5 delays but a plain 'Referee: 3!\\n  *** PINFALL — Hitman wins ***' with no finisher heat or echo line preceding it."
+        }
+      ]
+    }
+  },
+  "top_issues": [
+    {
+      "severity": "major",
+      "dimension": "fun",
+      "summary": "A twelve-turn rope/top-rope stalemate (T17–T28) survives untouched because the loop tax does not cover it. Player cycles Hit the ropes → Kill the run → Climb while Hall repeats top-rope dives; six consecutive reversals deal 1–3 damage each and none of the anti-loop lines ('The climb looks telegraphed', 'Another empty climb') fire. This stretch is the main reason the match overshoots the [8, 40] band at 65 turns.",
+      "suggested_area": "Extend loop-tax coverage from tie-up/counter to the climb / hit_the_ropes / feet_plant cycle"
+    },
+    {
+      "severity": "major",
+      "dimension": "fun",
+      "summary": "Pacing gate fails at 65 turns even though tactical variety is high (move_repetition_rate=0.1212, position_diversity=9); the drag comes from reversal-heavy exchanges dealing near-zero damage rather than from move repetition, so repetition telemetry alone would not catch it.",
+      "suggested_area": "Damage floor or momentum consequence on repeated whiff/reversal exchanges"
+    },
+    {
+      "severity": "minor",
+      "dimension": "ease_of_use",
+      "summary": "RUNNING_ROPES against a TOP_ROPE opponent curates down to a single option, 'Kill the run' (T19, T23, T25 — single_choice_turns=3), and a miss on T23 re-strands the player with the same lone choice.",
+      "suggested_area": "RUNNING_ROPES curation when the opponent holds the top rope"
+    },
+    {
+      "severity": "minor",
+      "dimension": "juiciness",
+      "summary": "The near-fall at T31 is stronger than the actual finish at T65; the winning cover has no finisher heat, no echo line, and reuses the same delay pacing, so the match peaks 34 turns before it ends.",
+      "suggested_area": "Escalating finish text when a prior cover was kicked out"
+    }
+  ],
+  "highlight_moments": [
+    {
+      "turn": 31,
+      "type": "near_fall",
+      "quote": "Referee: 1…\n  Referee: 2…\n  Hall kicks out!"
+    },
+    {
+      "turn": 29,
+      "type": "big_swing",
+      "quote": "Hitman snaps off hurricanrana — Hall takes 22 damage.\n  Hall is rattled — when they're forced up, big payoffs may open."
+    },
+    {
+      "turn": 33,
+      "type": "groggy_setup",
+      "quote": "Hitman snaps off pull opponent up — Hall takes 3 damage.\n  Hall is yanked up — their legs aren't under them yet!"
+    },
+    {
+      "turn": 43,
+      "type": "big_swing",
+      "quote": "Hitman snaps off missile dropkick — Hall takes 19 damage.\n  Hall is rattled — when they're forced up, big payoffs may open."
+    },
+    {
+      "turn": 65,
+      "type": "pinfall",
+      "quote": "Referee: 1…\n  Referee: 2…\n  Referee: 3!\n  *** PINFALL — Hitman wins ***"
+    }
+  ]
+}

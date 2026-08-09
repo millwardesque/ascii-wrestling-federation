@@ -2,19 +2,14 @@
   "rubric_version": "2026-07-30",
   "meta": {
     "match_seed": 107,
-    "wrestlers": [
-      "bret_hart",
-      "scott_hall"
-    ],
+    "wrestlers": ["bret_hart", "scott_hall"],
     "player_policy": "methodical",
     "turn_count": 238,
     "winner": "cpu"
   },
   "telemetry": {
     "gates_passed": false,
-    "gate_failures": [
-      "turn_count 238 outside band [8, 40]"
-    ],
+    "gate_failures": ["turn_count 238 outside band [8, 40]"],
     "turn_count": 238,
     "winner": "cpu",
     "reason": "pinfall",
@@ -25,57 +20,158 @@
     "position_diversity": 10,
     "single_choice_turns": 3,
     "match_seed": 107,
-    "wrestlers": [
-      "bret_hart",
-      "scott_hall"
-    ],
+    "wrestlers": ["bret_hart", "scott_hall"],
     "player_policy": "methodical"
   },
   "scores": {
     "fun": {
       "value": 2,
-      "confidence": "medium",
+      "confidence": "high",
       "evidence": [
         {
           "turn": 1,
-          "note": "repetition=0.563, near_falls=0"
+          "note": "Opening menu offers real intents (Grapple control / Set up / Safe offense) and collar note warns 'repeat loops lose steam' — early tactical clarity that the match later ignores."
+        },
+        {
+          "turn": 49,
+          "note": "Early snowball climax tease: missile dropkick drops Hall to HP 1 with 'Hall is rattled — when they're forced up, big payoffs may open.' Bret still at 120 — finish window is wide open."
+        },
+        {
+          "turn": 61,
+          "note": "Finish is curated (Cover + Sharpshooter 90%) while Hall is GROUNDED at HP 1, but methodical picks Climb instead; same skip repeats at t65/125/137/141/157 — zero Finish selections all match."
+        },
+        {
+          "turn": 89,
+          "note": "Collar-and-elbow → CPU Grapple counter becomes the match: 26 such pairs overall; longest streak t89–106 (9 pairs) chips Bret from 63→18 while Hall stays at 1 — no risk/reward, just attrition."
+        },
+        {
+          "turn": 224,
+          "note": "Late anti-drama: Hall Recover raises him to 15/20 HP while Bret floors at 1 for 121 turns; move_repetition_rate 0.563 and turn_count 238 (gate fail) erase the early arc. near_fall_count 0 before the eventual pin."
         }
       ]
     },
     "ease_of_use": {
-      "value": 3,
-      "confidence": "medium",
+      "value": 4,
+      "confidence": "high",
       "evidence": [
         {
-          "turn": 1,
-          "note": "gates_passed=False"
+          "turn": 50,
+          "note": "Groggy reads as a modifier, not a position: 'Hall rises — still groggy from the impact!' with state.groggy [false, true] while position is STANDING/STANDING."
+        },
+        {
+          "turn": 61,
+          "note": "Pin honesty holds: Cover — pinfall attempt under Finish (label 'pin') sits beside Sharpshooter 90%; curation_pin_visible true across all 10 pin-legal player turns. Optimal finish was shown, not hidden."
+        },
+        {
+          "turn": 127,
+          "note": "Intent labels stay legible on top rope: Big swing Diving crossbody vs Pressure Missile dropkick vs Climb down — outcomes match notes (19 dmg + blood/rattled foreshadow)."
+        },
+        {
+          "turn": 237,
+          "note": "Single-choice turns (also t75, t235) are honest constraints: only 'Fight to your feet' / 'Kill the run' when grounded or running; log explains 'still down and vulnerable to a cover!' so the forced option is clear."
         }
       ]
     },
     "stickiness": {
-      "value": 3,
-      "confidence": "medium",
+      "value": 2,
+      "confidence": "high",
       "evidence": [
         {
-          "turn": 1,
-          "note": "position_diversity=10, turn_count=238"
+          "turn": 125,
+          "note": "Both wrestlers already at HP [1,1] with Hall failed-rise 'vulnerable to a cover!' yet player climbs again — curiosity is mostly 'would finishing here have ended the slog?' rather than wanting another full methodical marathon."
+        },
+        {
+          "turn": 171,
+          "note": "After ~100 turns of collar spam (67 collar_elbow total), menu still pushes Grapple control at 64% with the same 'repeat loops lose steam' note — discovery is exhausted; log_uniqueness_ratio 0.185."
+        },
+        {
+          "turn": 238,
+          "note": "CPU pinfall after 238 turns makes a rematch only worth it as a controlled experiment (take Finish at the t61 window), not as entertainment."
         }
       ],
       "rematch_intent": "maybe",
-      "rematch_reason": "Pilot heuristic from telemetry anchors.",
-      "next_experiment": "Try aggressive policy on same seed."
+      "rematch_reason": "Not for fun — only to test whether cashing Finish (pin/Sharpshooter) when Hall is grounded at HP 1 around t61 collapses the 200-turn collar/counter/recover death spiral.",
+      "next_experiment": "Re-run seed 107 with aggressive (or finish-first) policy: select Cover or Sharpshooter on the first grounded HP-1 window (t61/t65), and avoid collar_elbow once Hall is at 1 to measure turn_count vs the methodical 238-turn baseline."
     },
     "juiciness": {
       "value": 2,
-      "confidence": "medium",
+      "confidence": "high",
       "evidence": [
         {
-          "turn": 1,
-          "note": "near_fall_count=0"
+          "turn": 49,
+          "note": "Strong spot text: 'Hitman snaps off missile dropkick — Hall takes 19 damage.' plus rattled foreshadow; Hall hits HP floor immediately after."
+        },
+        {
+          "turn": 127,
+          "note": "Rare narrative spike: missile dropkick + 'The crowd gasps — Hall is busted open; blood streams down their face.' — then juice dies as the grapple loop resumes."
+        },
+        {
+          "turn": 234,
+          "note": "Late reversal beat ('Hitman reverses the missile dropkick — only 1 damage, and turns the tables!') briefly spikes drama before the finish."
+        },
+        {
+          "turn": 238,
+          "note": "finish_sequence pinfall with delays (1.0s / 1.5s / 0.0s): Referee 1… 2… 3! / *** PINFALL — Hall wins *** — pin text lands, but near_fall_count 0 and no prior kickout means the marathon ends in a clean three-count with almost no payoff buildup."
         }
       ]
     }
   },
-  "top_issues": [],
-  "highlight_moments": []
+  "top_issues": [
+    {
+      "severity": "critical",
+      "dimension": "fun",
+      "summary": "Pacing collapse: 238 turns (gate fail vs [8,40]) driven by collar_elbow ↔ grapple_counter loops (26 pairs; 9-pair streak t89–106), HP floor at 1 for ~120 turns, and CPU recover letting Hall climb back while Bret cannot close.",
+      "suggested_area": "grapple_counter frequency / 1-HP stalemate / recover-at-floor / finish urgency when opponent is grounded worn-down"
+    },
+    {
+      "severity": "major",
+      "dimension": "juiciness",
+      "summary": "near_fall_count 0 despite ≥10 curated pin windows and multiple failed-rise 'vulnerable to a cover!' teases (t62/t124/t158/t237); log_uniqueness_ratio 0.185 and move_repetition_rate 0.563 flatten feedback for most of the match.",
+      "suggested_area": "near-fall / kickout beats before decisive pin; break repetitive collar/counter log lines"
+    },
+    {
+      "severity": "major",
+      "dimension": "stickiness",
+      "summary": "Methodical policy never selected Finish (0/10 pin-legal menus) and kept climbing or re-tying instead; game did show Finish, but the resulting marathon makes rematch intent weak without a finish-first experiment.",
+      "suggested_area": "playtest policy finish bias when opponent HP≤1 and grounded; optional UI urgency on Finish when worn-down"
+    },
+    {
+      "severity": "minor",
+      "dimension": "ease_of_use",
+      "summary": "Three single-choice turns (t75, t235 Kill the run, t237 Fight to your feet) are clear but underline how often the match reduces to forced recover while the other side sets up offense.",
+      "suggested_area": "grounded / running-ropes option breadth"
+    }
+  ],
+  "highlight_moments": [
+    {
+      "turn": 49,
+      "type": "big_spot",
+      "quote": "Hitman snaps off missile dropkick — Hall takes 19 damage. Hall is rattled — when they're forced up, big payoffs may open."
+    },
+    {
+      "turn": 50,
+      "type": "groggy",
+      "quote": "Hall rises — still groggy from the impact!"
+    },
+    {
+      "turn": 61,
+      "type": "missed_finish",
+      "quote": "Finish menu shows Cover — pinfall attempt and Sharpshooter 90% with Hall GROUNDED at HP 1; methodical selects Climb to the top rope."
+    },
+    {
+      "turn": 127,
+      "type": "crowd_pop",
+      "quote": "Hitman snaps off missile dropkick — Hall takes 19 damage. The crowd gasps — Hall is busted open; blood streams down their face."
+    },
+    {
+      "turn": 234,
+      "type": "reversal",
+      "quote": "Hitman reverses the missile dropkick — only 1 damage, and turns the tables!"
+    },
+    {
+      "turn": 238,
+      "type": "pinfall",
+      "quote": "Referee: 1… Referee: 2… Referee: 3! *** PINFALL — Hall wins ***"
+    }
+  ]
 }

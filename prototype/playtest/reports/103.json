@@ -33,49 +33,153 @@
   },
   "scores": {
     "fun": {
-      "value": 3,
-      "confidence": "medium",
+      "value": 2,
+      "confidence": "high",
       "evidence": [
         {
-          "turn": 1,
-          "note": "repetition=0.4435, near_falls=0"
+          "turn": 5,
+          "note": "Early payoff: \"Hitman snaps off missile dropkick — Hall takes 19 damage. / Hall is rattled…\" — real setup tension before the slog."
+        },
+        {
+          "turn": 47,
+          "note": "Hall already at 1 HP ([117,1]) after missile dropkick; match still has ~200 turns left. Gate failure: turn_count 248 outside [8,40]."
+        },
+        {
+          "turn": 71,
+          "note": "Finish menu offers Cover + Sharpshooter 89% while Hall is GROUNDED at 1 HP; methodical selects Climb (index 3) instead — repeated across 16 pin-offer turns with 0 covers taken."
+        },
+        {
+          "turn": 93,
+          "note": "Mid-match loop t90–102: climb → get_up → missile/elbow → get_up while HP stuck ~[87,1]; same intents with no climax. move_repetition_rate=0.4435; Grapple control streak spans player turns ~147–201."
+        },
+        {
+          "turn": 178,
+          "note": "Comeback window exists (Hall grinds Hitman to 1 HP via grapple counters) but without near-falls (near_fall_count=0), so the swing feels like attrition not drama."
         }
       ]
     },
     "ease_of_use": {
-      "value": 3,
-      "confidence": "medium",
+      "value": 4,
+      "confidence": "high",
       "evidence": [
         {
           "turn": 1,
-          "note": "gates_passed=False"
+          "note": "Curated intents readable (Grapple control / Set up position / Safe offense / Reset) with % labels; collar note warns \"repeat loops lose steam.\""
+        },
+        {
+          "turn": 8,
+          "note": "Groggy logged as modifier, not position: \"Hall rises — still groggy from the impact!\" with state groggy=[false,true] while position STANDING."
+        },
+        {
+          "turn": 71,
+          "note": "When cover is legal, Finish shows Cover — pinfall attempt first (curation_pin_visible=true); Sharpshooter label 89% reads as apply-chance style %, not a hidden win meter."
+        },
+        {
+          "turn": 211,
+          "note": "Stall feedback is explicit: \"The repeated tie-up stalls out — Hall gains escape momentum.\" single_choice_turns=3 (e.g. t247 only Fight to your feet) are honest grounded prompts."
         }
       ]
     },
     "stickiness": {
-      "value": 3,
-      "confidence": "medium",
+      "value": 2,
+      "confidence": "high",
       "evidence": [
         {
-          "turn": 1,
-          "note": "position_diversity=11, turn_count=248"
+          "turn": 100,
+          "note": "After Hall fails get_up (\"vulnerable… Escape momentum builds\") the match still refuses to end for another 148 turns — curiosity drains into fatigue."
+        },
+        {
+          "turn": 211,
+          "note": "Late both-at-1HP stretch still spam-collars (55 player collar-elbows total); log_uniqueness_ratio=0.1641 signals a samey rematch."
+        },
+        {
+          "turn": 248,
+          "note": "Only the CPU’s first cover ends it; no player finish experiment was tried despite 16 curated Finish offers — little reason to queue the same methodical loop again."
         }
       ],
-      "rematch_intent": "maybe",
-      "rematch_reason": "Pilot heuristic from telemetry anchors.",
-      "next_experiment": "Try aggressive policy on same seed."
+      "rematch_intent": "no",
+      "rematch_reason": "248-turn methodical climb/missile/collar grind with zero near-falls and zero player covers makes another full match feel like a chore, not a curiosity pull.",
+      "next_experiment": "Replay seed 103 with aggressive (or a finish-biased policy) that takes Cover/Sharpshooter when Hall is at 1 HP and pin is curated; compare turn_count and near_fall_count vs this methodical refusal loop."
     },
     "juiciness": {
       "value": 2,
-      "confidence": "medium",
+      "confidence": "high",
       "evidence": [
         {
-          "turn": 1,
-          "note": "near_fall_count=0"
+          "turn": 5,
+          "note": "Strong early beat: missile dropkick + \"Hall is rattled\" foreshadows groggy payoffs."
+        },
+        {
+          "turn": 40,
+          "note": "Cover window text appears (\"still down and vulnerable to a cover!\") but never converts into a pin/kickout sequence — drama teed up, not paid off."
+        },
+        {
+          "turn": 91,
+          "note": "Mid stretch flattens into repeated \"Hitman snaps off missile dropkick — Hall takes 19 damage\" / \"Hall: Fight to your feet\" lines; uniqueness 0.1641; 45 identical \"Hitman: Collar-and-elbow tie-up.\" logs."
+        },
+        {
+          "turn": 248,
+          "note": "Sole finish_sequence: pinfall with delays_sec 1.0 then 1.5, clean 1-2-3 (won=true). near_fall_count=0 — count pacing without prior kickout climax."
         }
       ]
     }
   },
-  "top_issues": [],
-  "highlight_moments": []
+  "top_issues": [
+    {
+      "severity": "critical",
+      "dimension": "fun",
+      "summary": "Match runs 248 turns (6× over the [8,40] band) after Hall hits 1 HP at turn 47; climb/missile/get_up and collar↔counter loops replace a climax.",
+      "suggested_area": "finish incentives / methodical policy finish bias / soft pressure to cover when opponent is worn down"
+    },
+    {
+      "severity": "major",
+      "dimension": "juiciness",
+      "summary": "near_fall_count=0 despite many \"vulnerable to a cover\" windows; pin offered 16 times and never taken, then CPU’s first cover is a clean 1-2-3.",
+      "suggested_area": "near-fall generation when get_up fails at low HP; agent/policy finish sampling"
+    },
+    {
+      "severity": "major",
+      "dimension": "fun",
+      "summary": "move_repetition_rate=0.4435 with 55 collar-elbows and long Grapple control streaks; position_diversity=11 cannot rescue the stale mid-match arc.",
+      "suggested_area": "stronger diminishing returns on repeat tie-ups / top-rope pressure loops"
+    },
+    {
+      "severity": "minor",
+      "dimension": "ease_of_use",
+      "summary": "Three single-choice Fight to your feet / Kill the run turns are clear but remove agency at critical grounded moments (t143, t145, t247).",
+      "suggested_area": "grounded option depth without hiding pin defense"
+    }
+  ],
+  "highlight_moments": [
+    {
+      "turn": 5,
+      "type": "big_spot",
+      "quote": "Hitman snaps off missile dropkick — Hall takes 19 damage. Hall is rattled — when they're forced up, big payoffs may open."
+    },
+    {
+      "turn": 8,
+      "type": "groggy",
+      "quote": "Hall rises — still groggy from the impact!"
+    },
+    {
+      "turn": 40,
+      "type": "cover_window",
+      "quote": "Hall tries to rise but can't find it — still down and vulnerable to a cover!"
+    },
+    {
+      "turn": 178,
+      "type": "comeback",
+      "quote": "Hall snaps off grapple counter — Hitman takes 5 damage."
+    },
+    {
+      "turn": 211,
+      "type": "stall_feedback",
+      "quote": "The repeated tie-up stalls out — Hall gains escape momentum."
+    },
+    {
+      "turn": 248,
+      "type": "pinfall",
+      "quote": "*** PINFALL — Hall wins ***"
+    }
+  ]
 }

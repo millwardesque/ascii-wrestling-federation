@@ -1,0 +1,175 @@
+{
+  "rubric_version": "2026-07-30",
+  "meta": {
+    "match_seed": 213,
+    "wrestlers": [
+      "bret_hart",
+      "scott_hall"
+    ],
+    "player_policy": "chaotic",
+    "turn_count": 11,
+    "winner": "player"
+  },
+  "telemetry": {
+    "gates_passed": true,
+    "gate_failures": [],
+    "turn_count": 11,
+    "winner": "player",
+    "reason": "submission",
+    "near_fall_count": 0,
+    "curation_pin_visible": true,
+    "log_uniqueness_ratio": 0.875,
+    "move_repetition_rate": 0.3333,
+    "position_diversity": 5,
+    "single_choice_turns": 0,
+    "match_seed": 213,
+    "wrestlers": [
+      "bret_hart",
+      "scott_hall"
+    ],
+    "player_policy": "chaotic"
+  },
+  "scores": {
+    "fun": {
+      "value": 3,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 5,
+          "note": "Real trade-off on offer: 'Vertical suplex (76%) — TARGET GROGGY payoff: heavy damage is available now' versus 'Collar-and-elbow tie-up (91%)'; the safer 91% tie-up was taken and immediately punished on T6."
+        },
+        {
+          "turn": 6,
+          "note": "Opponent's only offense of the match is the punish: 'Hall snaps off grapple counter — Hitman takes 5 damage', which also breaks GRAPPLED back to STANDING — a clean cause-and-effect swing."
+        },
+        {
+          "turn": 7,
+          "note": "Loop tax actually worked here: after the countered tie-up the menu warned 'tie-up is going stale — pay it off or reset before they steal momentum' and the player reset to the top rope instead of re-grappling, so no loop formed (move_repetition_rate 0.3333)."
+        },
+        {
+          "turn": 9,
+          "note": "Position play pays off: climb (T7) → Hall hits the ropes (T8) → 'Hitman snaps off diving crossbody — Hall takes 21 damage' with 5 distinct positions across 11 turns."
+        },
+        {
+          "turn": 11,
+          "note": "Match is one-sided despite the tidy arc: Hall ends at 92/132 HP having landed 5 total damage, momentum sits [5,0], and near_fall_count=0, so the climax has no comeback tension."
+        }
+      ]
+    },
+    "ease_of_use": {
+      "value": 4,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 1,
+          "note": "Opening menu offers five distinct intents (Grapple control / Set up position / Safe offense x2 / Reset) with hit labels and plain-language notes; single_choice_turns=0 all match."
+        },
+        {
+          "turn": 4,
+          "note": "Groggy reads as a modifier, not a position: 'Hall rises — still groggy from the impact!' with position ['STANDING','STANDING'] and groggy=[false,true], and T5 labels the payoff 'TARGET GROGGY payoff: heavy damage is available now'."
+        },
+        {
+          "turn": 11,
+          "note": "Pin is visible when legal — 'Cover — pinfall attempt (pin)' listed alongside 'Sharpshooter (84%)' while Hall is GROUNDED (curation_pin_visible=true)."
+        },
+        {
+          "turn": 11,
+          "note": "Misread risk on submissions: sharpshooter shows '84%' with the note 'cash in momentum for a match-ending swing', and the hold both applies and wins on the same roll, which reinforces reading the number as a win chance rather than a chance to apply the hold."
+        },
+        {
+          "turn": 7,
+          "note": "Tax-warning timing is slightly off: the escalated 'tie-up is going stale' note fires after only one tie-up (T5) that was countered rather than repeated, which could teach a new player that a single grapple is already stale."
+        }
+      ]
+    },
+    "stickiness": {
+      "value": 3,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 5,
+          "note": "Clear unexplored line: the groggy-window 'Vertical suplex (76%)' was declined for the tie-up, so the obvious question is what the groggy payoff branch looks like."
+        },
+        {
+          "turn": 11,
+          "note": "The other open question is the pin-vs-submission fork — both were live at 92 HP and only the sharpshooter was tried."
+        },
+        {
+          "turn": 9,
+          "note": "The climb → ropes → dive pattern worked twice (T3 and T9) with no CPU counter, so the CPU's answer to a repeated top-rope game is still untested."
+        }
+      ],
+      "rematch_intent": "maybe",
+      "rematch_reason": "The 11-turn match reads cleanly and has two visible unexplored branches, but Hall never mounted a threat (5 total damage dealt, near_fall_count=0), so the session ends with curiosity about the systems rather than about the fight.",
+      "next_experiment": "Rerun seed 213 taking the T5 'Vertical suplex — TARGET GROGGY payoff' instead of the tie-up, and take the cover at T11 rather than the sharpshooter, to compare how much drama the groggy and pin branches add."
+    },
+    "juiciness": {
+      "value": 3,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 3,
+          "note": "Impact plus foreshadowing in one beat: 'Hitman snaps off missile dropkick — Hall takes 19 damage. / Hall is rattled — when they're forced up, big payoffs may open.'"
+        },
+        {
+          "turn": 10,
+          "note": "Failed get-up adds a genuine vulnerability beat: 'Hall tries to rise but can't find it — still down and vulnerable to a cover!'"
+        },
+        {
+          "turn": 11,
+          "note": "Submission finish is paced with real escalation (finish_sequence delays 1.0/1.5/0.0): 'Hitman hooks in sharpshooter! / Hall reaches for daylight… / The hold is cinched in deeper! / Hall taps out!'"
+        },
+        {
+          "turn": 11,
+          "note": "Payoff is undercut by state: Hall taps at 92/132 HP with near_fall_count=0 and no escape attempt resolved against him, so the tap-out feels administrative rather than earned."
+        },
+        {
+          "turn": 6,
+          "note": "Log stays fresh across the short match (log_uniqueness_ratio 0.875), e.g. 'Hall snaps off grapple counter — Hitman takes 5 damage' is the only repeated-style line."
+        }
+      ]
+    }
+  },
+  "top_issues": [
+    {
+      "severity": "major",
+      "dimension": "juiciness",
+      "summary": "The match ends by submission with the loser at 70% health (92/132) and near_fall_count=0; the sharpshooter applies and wins on its first attempt with no escape beat, so the finish has no near-miss tension.",
+      "suggested_area": "Submission escape rolls / near-fall beat before a first-attempt finish"
+    },
+    {
+      "severity": "minor",
+      "dimension": "ease_of_use",
+      "summary": "The escalated 'tie-up is going stale — pay it off or reset before they steal momentum' warning appears on T7 after a single tie-up (T5) that was countered rather than spammed, which risks teaching that one grapple is already stale.",
+      "suggested_area": "Stale-grapple counter should key on repeated player use, not on a countered first attempt"
+    },
+    {
+      "severity": "minor",
+      "dimension": "fun",
+      "summary": "Hall lands one 5-damage move all match and never leads on momentum ([5,0] or [5,1] from T3 onward), so there is no comeback window despite the match passing all gates.",
+      "suggested_area": "CPU aggression when badly behind on momentum"
+    }
+  ],
+  "highlight_moments": [
+    {
+      "turn": 3,
+      "type": "big_spot",
+      "quote": "Hitman snaps off missile dropkick — Hall takes 19 damage.\n  Hall is rattled — when they're forced up, big payoffs may open."
+    },
+    {
+      "turn": 6,
+      "type": "reversal",
+      "quote": "Hall snaps off grapple counter — Hitman takes 5 damage."
+    },
+    {
+      "turn": 9,
+      "type": "big_spot",
+      "quote": "Hitman snaps off diving crossbody — Hall takes 21 damage."
+    },
+    {
+      "turn": 11,
+      "type": "submission",
+      "quote": "Hitman hooks in sharpshooter!\n  Hall reaches for daylight…\n  The hold is cinched in deeper!\n  Hall taps out!\n  *** SUBMISSION — Hitman wins ***"
+    }
+  ]
+}

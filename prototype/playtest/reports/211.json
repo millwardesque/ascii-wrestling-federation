@@ -1,0 +1,172 @@
+{
+  "rubric_version": "2026-07-30",
+  "meta": {
+    "match_seed": 211,
+    "wrestlers": ["bret_hart", "scott_hall"],
+    "player_policy": "aggressive",
+    "turn_count": 51,
+    "winner": "player"
+  },
+  "telemetry": {
+    "gates_passed": false,
+    "gate_failures": ["turn_count 51 outside band [8, 40]"],
+    "turn_count": 51,
+    "near_fall_count": 0,
+    "curation_pin_visible": true,
+    "log_uniqueness_ratio": 0.5738,
+    "move_repetition_rate": 0.6154,
+    "position_diversity": 6,
+    "single_choice_turns": 1,
+    "winner": "player",
+    "reason": "submission"
+  },
+  "scores": {
+    "fun": {
+      "value": 3,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 9,
+          "note": "First loop is the rope-rebound loop: the player throws 'Rebound clothesline' at T5, T7, T9, T13 against a running opponent and is reversed each time ('Hall reverses the rebound clothesline — only 2 damage; Hitman whiffs — Hall shrugs it off.'). No loop-tax line fires for this repetition."
+        },
+        {
+          "turn": 15,
+          "note": "That loop does eventually pay off, which is the good version of risk/reward: 'Hitman snaps off rebound clothesline — Hall takes 17 damage' and Hall is knocked GROUNDED, momentum swinging to [4,3]."
+        },
+        {
+          "turn": 23,
+          "note": "Second and dominant loop is the tie-up loop, T17-T43: 'The repeated tie-up stalls out — Hall gains escape momentum.' HP is unchanged from T17 (HP[104,107]) through T21, and the pattern repeats through T39."
+        },
+        {
+          "turn": 49,
+          "note": "Real setup/payoff chain closes the match: T45 'Hitman snaps off pull off the top rope', T48 the CPU's grapple counter is reversed, T49 'Hitman snaps off hip toss — Hall takes 10 damage' puts Hall GROUNDED with player momentum at 5."
+        },
+        {
+          "turn": 51,
+          "note": "Genuine comeback arc: player was behind 72-103 at T37 and wins by submission at T51. Two distinct Finish options are offered (pin and Sharpshooter), so the last decision has an actual trade-off."
+        }
+      ]
+    },
+    "ease_of_use": {
+      "value": 3,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 19,
+          "note": "Loop feedback is legible on both sides of the turn: the log says 'The repeated tie-up stalls out — Hall gains escape momentum.' and the menu note for the same move has switched from 'repeat loops lose steam' (T1) to 'tie-up is going stale — pay it off or reset before they steal momentum'."
+        },
+        {
+          "turn": 26,
+          "note": "Counter-spam gets its own distinct, readable line: 'The counter is getting predictable — Hitman slips free with momentum.' (also T22, T36), so the player can tell which specific habit is being punished."
+        },
+        {
+          "turn": 51,
+          "note": "Submission percentage is presented in a way that invites the classic misread: 'Sharpshooter' is labelled '84%' with note 'cash in momentum for a match-ending swing'. 84% is the chance to APPLY the hold, not the chance to win the match, and nothing in the label or note says so."
+        },
+        {
+          "turn": 51,
+          "note": "Pin curation is correct: with Hall GROUNDED the menu shows 'Finish / Cover — pinfall attempt' at index 1 with note 'try to end it now; stronger when they're worn down', matching curation_pin_visible = true."
+        },
+        {
+          "turn": 25,
+          "note": "The stale warning stays text-only — collar_elbow is still option 1 with the top listed hit chance (64% here, 57% at T35/T37/T39), so the prompt keeps foregrounding the move it is telling the player to stop using."
+        },
+        {
+          "turn": 31,
+          "note": "Ambiguous outcome line: the tie-up is selected, outcome is 'ok', position stays STANDING/STANDING, and the log reads only 'Hall turns the tables!' with no statement that the move failed."
+        }
+      ]
+    },
+    "stickiness": {
+      "value": 3,
+      "confidence": "medium",
+      "evidence": [
+        {
+          "turn": 42,
+          "note": "A one-off flavour beat lands and creates curiosity about hidden state: 'The crowd gasps — Hitman is busted open; blood streams down their face.' This line appears exactly once in the match and is never explained in the menu."
+        },
+        {
+          "turn": 49,
+          "note": "The grounded-opponent state is where the game gets interesting — hip toss to GROUNDED at T49, Hall fails to rise at T50 ('still down and vulnerable to a cover!'), and the T51 menu finally opens up Finish options. Reaching that state faster is an obvious thing to try again."
+        },
+        {
+          "turn": 37,
+          "note": "Working against a rematch: turns 33-43 are the same stalled tie-up exchange with HP frozen at [77,103] then [72,103]."
+        }
+      ],
+      "rematch_intent": "yes",
+      "rematch_reason": "The last seven turns (pull off the top rope, reversed counter, hip toss to GROUNDED, Sharpshooter tap-out) show what the game is actually trying to be, and winning from behind at 72-103 was satisfying enough to want another run.",
+      "next_experiment": "Run seed 211 with the methodical policy and deliberately obey the 'tie-up is going stale' note — cash the grapple into a hip toss or headlock instead of re-tying — to see whether the grounded-plus-Finish state can be reached by turn 20 instead of turn 49."
+    },
+    "juiciness": {
+      "value": 3,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 10,
+          "note": "Big spots read well and move state: 'Hall snaps off springboard crossbody — Hitman takes 20 damage' with position flipping to GROUNDED."
+        },
+        {
+          "turn": 42,
+          "note": "Best single line in the batch: 'The crowd gasps — Hitman is busted open; blood streams down their face.'"
+        },
+        {
+          "turn": 51,
+          "note": "Submission finish is well paced via finish_sequence: 'Hitman hooks in sharpshooter! / Hall reaches for daylight…' (delay 1.0), 'The hold is cinched in deeper!' (delay 1.5), then 'Hall taps out! / *** SUBMISSION — Hitman wins ***'."
+        },
+        {
+          "turn": 39,
+          "note": "Dragging it down: near_fall_count is 0, no pin is ever attempted, and 29 of 51 log lines are distinct (log_uniqueness_ratio 0.5738) because the stalled-tie-up pair repeats 12 times."
+        }
+      ]
+    }
+  },
+  "top_issues": [
+    {
+      "severity": "major",
+      "dimension": "fun",
+      "summary": "The tie-up loop persists despite the loop tax. Between T17 and T47 the player selects Collar-and-elbow tie-up 11 times while 15 tax lines fire (7 'repeated tie-up stalls out', 5 'stale tie-up' resets, 3 'counter is getting predictable'), and HP moves only 104 -> 65 over 30 turns. The warning is legible but has no behavioural teeth.",
+      "suggested_area": "loop tax strength / curated menu ordering"
+    },
+    {
+      "severity": "major",
+      "dimension": "ease_of_use",
+      "summary": "At T51 the Sharpshooter shows '84%' next to the note 'cash in momentum for a match-ending swing', which reads as an 84% chance to win. That number is the chance to apply the hold; escape versus tap-out is resolved afterwards.",
+      "suggested_area": "curated move labels for submissions"
+    },
+    {
+      "severity": "minor",
+      "dimension": "fun",
+      "summary": "A second, untaxed loop runs at T5-T13: four Rebound clothesline attempts against RUNNING_ROPES, all reversed, with no loop-tax line firing for repeated big-swing attempts.",
+      "suggested_area": "loop tax coverage beyond tie-up/counter/climb"
+    },
+    {
+      "severity": "minor",
+      "dimension": "pacing",
+      "summary": "51 turns fails the [8, 40] gate band, driven almost entirely by the stalled middle third.",
+      "suggested_area": "game.py damage/momentum tuning"
+    }
+  ],
+  "highlight_moments": [
+    {
+      "turn": 15,
+      "type": "big_spot",
+      "quote": "Hitman snaps off rebound clothesline — Hall takes 17 damage."
+    },
+    {
+      "turn": 42,
+      "type": "flavor",
+      "quote": "The crowd gasps — Hitman is busted open; blood streams down their face."
+    },
+    {
+      "turn": 49,
+      "type": "setup",
+      "quote": "Hitman snaps off hip toss — Hall takes 10 damage."
+    },
+    {
+      "turn": 51,
+      "type": "finish",
+      "quote": "The hold is cinched in deeper!"
+    }
+  ]
+}

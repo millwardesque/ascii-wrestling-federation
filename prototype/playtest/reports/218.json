@@ -1,0 +1,189 @@
+{
+  "rubric_version": "2026-07-30",
+  "meta": {
+    "match_seed": 218,
+    "wrestlers": ["bret_hart", "scott_hall"],
+    "player_policy": "chaotic",
+    "turn_count": 111,
+    "winner": "player"
+  },
+  "telemetry": {
+    "gates_passed": false,
+    "gate_failures": ["turn_count 111 outside band [8, 40]"],
+    "turn_count": 111,
+    "near_fall_count": 0,
+    "curation_pin_visible": true,
+    "log_uniqueness_ratio": 0.4419,
+    "move_repetition_rate": 0.1786,
+    "position_diversity": 12,
+    "single_choice_turns": 6,
+    "winner": "player",
+    "reason": "submission",
+    "match_seed": 218,
+    "wrestlers": ["bret_hart", "scott_hall"],
+    "player_policy": "chaotic"
+  },
+  "scores": {
+    "fun": {
+      "value": 2,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 111,
+          "note": "No single move dominates (move_repetition_rate 0.1786), but the turn budget is eaten by non-damaging actions: 70 of 111 turns (63%) are recover/get_up/climb/shake_groggy/ropes/grapple-reset, and 54 of 111 turn outcomes are 'ok' with zero damage. The match is long because nothing sticks, not because one loop repeats."
+        },
+        {
+          "turn": 13,
+          "note": "Early game is a groggy ping-pong: CPU jabs for 7-9 ('Hall snaps off straight right - Hitman takes 7 damage. Hitman is GROGGY'), player answers with 'Shake the cobwebs' at turns 3, 5, 11, 13, 27, 29. Two turns burn per 8 damage, and turn 13 even fails ('Hitman tries to clear their head but they're still wobbly!')."
+        },
+        {
+          "turn": 68,
+          "note": "Player health reaches 1 at turn 58 and never dies: turns 68 ('Hitman takes 9 damage'), 70 (9 damage) and 72 (6 damage) all leave state.health[0] at 1. Damage cannot end the match, so 53 turns after the player is 'dead' there is still no lose condition in play."
+        },
+        {
+          "turn": 91,
+          "note": "Turns 89-95 are a mutual stall: player 'Catch your breath' at 89, 91, 93, 95 and CPU 'Hall recovers 5 stamina' at 90, with health drifting 6 -> 11 -> 9 -> 14. With no clock and no chip-damage threat, waiting is a legitimate strategy for both sides."
+        },
+        {
+          "turn": 109,
+          "note": "The climax repeats itself with no consequence: identical logs at turn 107 and 109, 'Hitman snaps off vertical suplex - Hall takes 16 damage. Hall is rattled', while Hall's health reads 1 both before and after. The biggest hits in the endgame are cosmetic."
+        },
+        {
+          "turn": 42,
+          "note": "Real tension does exist in isolated beats - 'Hitman reverses the springboard crossbody - only 2 damage; Hall whiffs' swings momentum from 4/5 to 5/3 - but seven reversals across 111 turns is too sparse to carry the arc."
+        }
+      ]
+    },
+    "ease_of_use": {
+      "value": 3,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 1,
+          "note": "Opening menu is legible: five distinct intents (Grapple control / Set up position / Safe offense x2 / Reset-recover) each with a percentage or 'auto' and a plain-language note such as 'steady damage and momentum without overcommitting'."
+        },
+        {
+          "turn": 87,
+          "note": "Pin curation holds up: whenever Hall is grounded the menu leads with 'Cover - pinfall attempt' under intent 'Finish' (turns 87 and 111), matching curation_pin_visible=true. No clearly optimal legal move was hidden in this match."
+        },
+        {
+          "turn": 87,
+          "note": "Failed submissions are unreadable. Sharpshooter is offered at '71%' and the entire result log is 'Hall turns the tables!' - nothing states the hold failed to APPLY. A new player reading 71% as a win chance gets no correction from the text."
+        },
+        {
+          "turn": 77,
+          "note": "The anti-loop system is nearly invisible here. Its only appearance in 111 turns is a silent note swap on the tie-up option: 'tie-up is going stale - pay it off or reset before they steal momentum'. No 'stalls out', 'getting predictable', 'telegraphed' or 'empty climb' log line ever fires, even though the player climbs 9 times and recovers 10 times."
+        },
+        {
+          "turn": 9,
+          "note": "Groggy is communicated well as a modifier rather than a position: 'Hitman rises - still groggy from the impact!' with state.position STANDING and state.groggy[0]=true, and turn 107's option note 'TARGET GROGGY payoff: heavy damage is available now' explains why the window matters."
+        },
+        {
+          "turn": 55,
+          "note": "Resource naming is inconsistent: 'Hitman recovers 5 stamina' but the value that moves is state.health (23 -> 28). Nothing on screen explains that health also floors at 1, so the player cannot tell why the opponent's damage stopped mattering after turn 58."
+        }
+      ]
+    },
+    "stickiness": {
+      "value": 2,
+      "confidence": "high",
+      "rematch_intent": "maybe",
+      "rematch_reason": "The finish itself is well built - turn 110 'Hall tries to rise but can't find it - still down and vulnerable to a cover!' into the turn 111 sharpshooter tap - and there is obvious unseen content (a pinfall was never resolved once in 111 turns, and Razor's Edge only landed as a reversal at turn 14). But the price of admission was roughly 50 turns of a 1 HP stalemate, and that memory dominates.",
+      "next_experiment": "Re-run seed 218 with the methodical policy and take the pin at turn 87 instead of the 71% sharpshooter, to see whether a resolved pinfall (and any near-fall kickout) produces a finish before the 40-turn band and whether the CPU ever covers a grounded, 1 HP opponent.",
+      "evidence": [
+        {
+          "turn": 111,
+          "note": "Payoff exists at the very end - 'Hitman hooks in sharpshooter! / Hall reaches for daylight... / The hold is cinched in deeper! / Hall taps out!' - which is the one moment that argues for another match."
+        },
+        {
+          "turn": 58,
+          "note": "Against that, the last 53 turns are a stalemate with the player pinned at 1 health and no route to a knockout, which reads as 'the match could not figure out how to end' rather than a dramatic escape."
+        },
+        {
+          "turn": 95,
+          "note": "Discovery is low: by the late game the player menu is the same five options seen at turn 1 (tie-up / climb / kick / punch / recover), so a rematch promises more of a layout the player has already exhausted."
+        }
+      ]
+    },
+    "juiciness": {
+      "value": 2,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 8,
+          "note": "Big spots do land when they happen: 'Hall snaps off superplex - Hitman takes 29 damage. Hitman is rattled - when they're forced up, big payoffs may open.' with both wrestlers dumped to GROUNDED - damage, state change and narrative all move together."
+        },
+        {
+          "turn": 111,
+          "note": "The submission finish is properly staged: finish_sequence.steps runs 1.0s ('hooks in sharpshooter' / 'reaches for daylight'), then 1.5s ('The hold is cinched in deeper!'), then the tap - a genuine beat of suspense."
+        },
+        {
+          "turn": 110,
+          "note": "near_fall_count is 0 and pin attempts are 0 across all 111 turns, so the loudest drama device in the game never appears - even at turn 110 with Hall grounded at 1 health and the cover explicitly flagged as available."
+        },
+        {
+          "turn": 93,
+          "note": "Feedback density collapses in the middle: log_uniqueness_ratio 0.4419, with 15 turns resolving as the identical 'recovers 5 stamina' line and long runs of bare 'Hall: Hit the ropes.' / 'Hitman: Climb to the top rope.' statements that carry no impact language."
+        },
+        {
+          "turn": 107,
+          "note": "The final sequence undercuts itself: two identical 16-damage vertical suplexes (turns 107, 109) on an opponent whose health reads 1 before and after, so the text promises escalation the state cannot deliver."
+        }
+      ]
+    }
+  },
+  "top_issues": [
+    {
+      "severity": "critical",
+      "dimension": "fun",
+      "summary": "Pacing gate failed hard at 111 turns (band 8-40). The cause is not one dominant move (repetition 0.1786) but that 70 of 111 turns are non-damaging setup/recovery and 54 outcomes are 'ok': shake_groggy vs jab exchanges, get_up cycles, repeated climbs that get pulled off, and 15 'recover' turns.",
+      "suggested_area": "game.py move resolution / CPU scoring: make setup turns cost something or advance a clock so neutral actions cannot be free"
+    },
+    {
+      "severity": "critical",
+      "dimension": "fun",
+      "summary": "Health floors at 1 and damage can never finish a match. The player sat at 1 health from turn 58 to the end, absorbing 9, 9 and 6 damage at turns 68/70/72 with no change, and Hall did the same at turns 107/109. Combined with zero pin attempts by either side, the only available ending was the player choosing a submission.",
+      "suggested_area": "game.py: knockout/TKO condition when health bottoms out, or make CPU cover a grounded low-health opponent"
+    },
+    {
+      "severity": "major",
+      "dimension": "ease_of_use",
+      "summary": "The loop persists despite the anti-loop change: no loop-tax log line ('stalls out', 'getting predictable', 'telegraphed', 'empty climb') fires anywhere in 111 turns. The only feedback is a curated note swap at turn 77, while the player still climbs 9 times, recovers 10 times and shakes off groggy 6 times.",
+      "suggested_area": "loop-tax trigger conditions: appears to require immediate back-to-back repeats, so alternating neutral loops (climb / recover / get_up) escape the tax entirely"
+    },
+    {
+      "severity": "major",
+      "dimension": "juiciness",
+      "summary": "Zero near-falls and zero pin attempts in a 111-turn match, so the game's main drama device never appeared even with a grounded 1 HP opponent at turns 86, 110.",
+      "suggested_area": "CPU move scoring for pin when target is grounded and worn down"
+    },
+    {
+      "severity": "minor",
+      "dimension": "ease_of_use",
+      "summary": "'Hitman recovers 5 stamina' (turns 15, 17, 31, 55, 59, ...) increases the health value, not a separate stamina value, so the message names a resource the player cannot see move.",
+      "suggested_area": "render/log wording for the recover move"
+    }
+  ],
+  "highlight_moments": [
+    {
+      "turn": 8,
+      "type": "big_spot",
+      "quote": "Hall snaps off superplex - Hitman takes 29 damage."
+    },
+    {
+      "turn": 42,
+      "type": "reversal",
+      "quote": "Hitman reverses the springboard crossbody - only 2 damage; Hall whiffs - Hitman shrugs it off."
+    },
+    {
+      "turn": 49,
+      "type": "big_spot",
+      "quote": "Hitman snaps off diving crossbody - Hall takes 21 damage."
+    },
+    {
+      "turn": 111,
+      "type": "finish",
+      "quote": "The hold is cinched in deeper! / Hall taps out! / *** SUBMISSION - Hitman wins ***"
+    }
+  ]
+}

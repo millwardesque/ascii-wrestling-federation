@@ -1,0 +1,167 @@
+{
+  "rubric_version": "2026-07-30",
+  "meta": {
+    "match_seed": 227,
+    "wrestlers": ["bret_hart", "scott_hall"],
+    "player_policy": "novice",
+    "turn_count": 33,
+    "winner": "player"
+  },
+  "telemetry": {
+    "gates_passed": true,
+    "gate_failures": [],
+    "turn_count": 33,
+    "near_fall_count": 0,
+    "curation_pin_visible": true,
+    "log_uniqueness_ratio": 0.6923,
+    "move_repetition_rate": 0.2353,
+    "position_diversity": 12,
+    "single_choice_turns": 2,
+    "winner": "player",
+    "reason": "submission"
+  },
+  "scores": {
+    "fun": {
+      "value": 3,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 8,
+          "note": "Real setup/payoff exchange: CPU lands 'Hall: Collar-and-elbow tie-up.' putting the player into GRAPPLED, and turn 9 offers a genuine choice between 'Grapple counter' (85%) and 'Break the grapple' (95%)."
+        },
+        {
+          "turn": 17,
+          "note": "Best trade-off moment of the match - a two-option menu ('Kill the run' 87% reset vs 'Collision course' 87% pressure) resolves into 'Hitman snaps off collision course - Hall takes 16 damage.' with both wrestlers grounded."
+        },
+        {
+          "turn": 22,
+          "note": "Clear momentum swing for the CPU: 'Hall snaps off diving crossbody - Hitman takes 20 damage.' moves state from [130, 97] to [110, 97] and CPU momentum from 2 to 5."
+        },
+        {
+          "turn": 29,
+          "note": "Risk actually bites - the 62% Missile dropkick is reversed ('Hall reverses the missile dropkick - only 1 damage, and turns the tables!'), and the retry at turn 31 at 76% connects for 19."
+        },
+        {
+          "turn": 33,
+          "note": "Finish arrives with modest buildup rather than a climax: no near-fall in the match (near_fall_count 0) and the Sharpshooter wins on the first attempt from a grounded opponent at 77 HP."
+        }
+      ]
+    },
+    "ease_of_use": {
+      "value": 4,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 33,
+          "note": "Pin is visible the moment it is legal - the menu leads with 'Finish | Cover - pinfall attempt | pin | try to end it now; stronger when they're worn down' alongside the Sharpshooter."
+        },
+        {
+          "turn": 19,
+          "note": "The single-option turn is self-explaining rather than confusing: 'Fight to your feet' 95% with the note 'stand before they cover you; misses build escape momentum'."
+        },
+        {
+          "turn": 12,
+          "note": "Reversal chronology is a little thin - the log is only 'Hitman turns the tables!' for the CPU's 'Kill the run', with no statement of what was reversed or what changed; position stays TOP_ROPE / RUNNING_ROPES."
+        },
+        {
+          "turn": 33,
+          "note": "Submission labeling is ambiguous: 'Sharpshooter | 86% | cash in momentum for a match-ending swing' reads as an 86% chance to win. The 86% is the chance to apply the hold, and because the hold applied and Hall tapped immediately the display reinforces the misreading."
+        },
+        {
+          "turn": 31,
+          "note": "State changes are explained in plain language: 'Hitman snaps off missile dropkick - Hall takes 19 damage. / Hall is rattled - when they're forced up, big payoffs may open.' tells the player what the grounded state now unlocks."
+        }
+      ]
+    },
+    "stickiness": {
+      "value": 3,
+      "confidence": "high",
+      "rematch_intent": "maybe",
+      "rematch_reason": "The match was readable and moved through 12 distinct position pairings in 33 turns, and the turn-17 double-down and turn-22 crossbody comeback were genuinely interesting. But it ended on an unresisted first-attempt tap with zero near-falls, so the pull is mild curiosity rather than a need to run it back.",
+      "next_experiment": "Replay seed 227 taking the 'Cover - pinfall attempt' at turn 33 instead of the Sharpshooter to see whether the pin path produces the near-fall drama the submission path skipped, and try an aggressive policy that takes 'Springboard crossbody' at turn 7 and the grounded windows at turns 13 and 17 rather than resetting.",
+      "evidence": [
+        {
+          "turn": 17,
+          "note": "'The crowd gasps - Hall is busted open; blood streams down their face.' is the kind of discovery moment that creates curiosity about what else can trigger."
+        },
+        {
+          "turn": 22,
+          "note": "The CPU's 20-damage diving crossbody shows the AI can actually punish a bad position, which makes a rematch feel non-trivial."
+        },
+        {
+          "turn": 33,
+          "note": "The tap-out comes on the first submission attempt with no escape drama, which blunts the finish and the appetite for an immediate rerun."
+        }
+      ]
+    },
+    "juiciness": {
+      "value": 3,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 17,
+          "note": "Standout narrative beat: 'Hitman snaps off collision course - Hall takes 16 damage. / The crowd gasps - Hall is busted open; blood streams down their face.'"
+        },
+        {
+          "turn": 22,
+          "note": "Big spot with a matching state shift: 'Hall snaps off diving crossbody - Hitman takes 20 damage.' drops the player to GROUNDED and CPU momentum to 5."
+        },
+        {
+          "turn": 32,
+          "note": "Pre-finish tension is set up properly: 'Hall tries to rise but can't find it - still down and vulnerable to a cover!'"
+        },
+        {
+          "turn": 33,
+          "note": "The finish uses a three-step delayed sequence (delays 1.0s, 1.5s, 0.0s) so the tap lands with pacing: 'Hitman hooks in sharpshooter! / Hall reaches for daylight... / The hold is cinched in deeper! / Hall taps out!'"
+        },
+        {
+          "turn": 33,
+          "note": "Ceiling limited by drama density - near_fall_count 0 and 22 of 33 turns resolve as 'ok' positional lines with no damage."
+        }
+      ]
+    }
+  },
+  "top_issues": [
+    {
+      "severity": "minor",
+      "dimension": "fun",
+      "summary": "Momentum saturates and stops being a decision. Player momentum hits 5 by turn 6 and sits at 5 through turn 28 while the CPU sits at 0 for the first 19 turns, so the resource that the loop tax is supposed to threaten has no headroom to matter here.",
+      "suggested_area": "game.py momentum cap / gain curve"
+    },
+    {
+      "severity": "minor",
+      "dimension": "ease_of_use",
+      "summary": "Submission percentage is presented as a bare 'Finish | Sharpshooter | 86%' with the note 'cash in momentum for a match-ending swing'. Nothing distinguishes apply-chance from win-chance, and the instant tap at turn 33 teaches the wrong lesson.",
+      "suggested_area": "render_fixed.py / _curate_move_choices() submission labeling"
+    },
+    {
+      "severity": "minor",
+      "dimension": "juiciness",
+      "summary": "Zero near-falls and no failed submission attempt, so the match has no kickout or escape beat; the finish resolves on the first try.",
+      "suggested_area": "pin / submission escape tuning"
+    },
+    {
+      "severity": "minor",
+      "dimension": "fun",
+      "summary": "The climb / pull-off-the-top exchange repeats at turns 25-26 and 27-28 with no anti-loop feedback of any kind. The loop tax appears to cover only the tie-up and grapple counter, so other neutral cycles get no 'losing steam' warning.",
+      "suggested_area": "game.py loop-tax coverage for climb and rope-running moves"
+    }
+  ],
+  "highlight_moments": [
+    {
+      "turn": 17,
+      "type": "big_spot",
+      "quote": "Hitman snaps off collision course - Hall takes 16 damage. / The crowd gasps - Hall is busted open; blood streams down their face."
+    },
+    {
+      "turn": 22,
+      "type": "comeback_beat",
+      "quote": "Hall snaps off diving crossbody - Hitman takes 20 damage."
+    },
+    {
+      "turn": 33,
+      "type": "finish",
+      "quote": "Hitman hooks in sharpshooter! / Hall reaches for daylight... / The hold is cinched in deeper! / Hall taps out! / *** SUBMISSION - Hitman wins ***"
+    }
+  ]
+}

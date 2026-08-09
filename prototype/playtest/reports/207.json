@@ -1,0 +1,176 @@
+{
+  "rubric_version": "2026-07-30",
+  "meta": {
+    "match_seed": 207,
+    "wrestlers": ["bret_hart", "scott_hall"],
+    "player_policy": "novice",
+    "turn_count": 126,
+    "winner": "cpu"
+  },
+  "telemetry": {
+    "gates_passed": false,
+    "gate_failures": ["turn_count 126 outside band [8, 40]"],
+    "turn_count": 126,
+    "near_fall_count": 0,
+    "curation_pin_visible": true,
+    "log_uniqueness_ratio": 0.3217,
+    "move_repetition_rate": 0.2222,
+    "position_diversity": 12,
+    "single_choice_turns": 8,
+    "winner": "cpu",
+    "reason": "pinfall"
+  },
+  "scores": {
+    "fun": {
+      "value": 2,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 92,
+          "note": "Player health floors at 1 ('Hall snaps off roundhouse kick - Hitman takes 9 damage', state health [1,59]) and stays at exactly 1 for the remaining 34 turns. From here the player cannot lose by damage and has no visible route to win, so the last quarter of the match has no stakes."
+        },
+        {
+          "turn": 126,
+          "note": "Across all 126 turns the curated menu never once contained a 'Finish' intent or the 'pin' move for the player - the opponent was always upright again by the player's turn. curation_pin_visible=true is therefore vacuously satisfied; the player had no offered path to end the match at any point."
+        },
+        {
+          "turn": 76,
+          "note": "CPU spends 12 turns on 'Catch your breath' ('Hall recovers 5 stamina', turns 46, 50, 62, 66, 72, 74, 76, 100, 108, 112, 116, 120), restoring roughly 60 to Hall - more than the player's total offense over the same span. Hall is at 51 after turn 95 and back to 72 by turn 120, so player damage is fully erased."
+        },
+        {
+          "turn": 47,
+          "note": "The real turn sink is a multi-move neutral cycle, not one repeated move: climb (14), hit the ropes (9), climb down carefully (7), fight to your feet (7), kill the run (5) account for the bulk of player turns. Turn 45 'Climb to the top rope' -> turn 47 'Climb down carefully' with no attack in between is the signature loop, and it recurs at 105/107, 117/119/121. This is why move_repetition_rate reads a benign 0.22 while the match still drags: the metric counts single-move repeats, not cyclic ones."
+        },
+        {
+          "turn": 31,
+          "note": "Positive: the middle of the match does produce real swings - 'Hitman snaps off hurricanrana - Hall takes 22 damage' drops Hall 106-74, and turn 42 'Hall snaps off diving crossbody - Hitman takes 20 damage' answers it. Those beats are why this is not a 1."
+        }
+      ]
+    },
+    "ease_of_use": {
+      "value": 3,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 23,
+          "note": "Loop-tax feedback is legible when it fires. The choice note changes ahead of time ('tie-up is going stale - pay it off or reset before they steal momentum') and the outcome line explains the cost ('The repeated tie-up stalls out - Hall gains escape momentum'), with momentum shifting 5/1 -> 4/2 in the same row. Cause, warning and consequence all line up."
+        },
+        {
+          "turn": 21,
+          "note": "Positive: groggy payoff is surfaced honestly. With Hall groggy the menu leads with 'Vertical suplex, 76%, TARGET GROGGY payoff: heavy damage is available now' at index 1, so the strong line is not hidden by curation."
+        },
+        {
+          "turn": 104,
+          "note": "Once health floors at 1, the log contradicts the state. 'Hall snaps off roundhouse kick - Hitman takes 9 damage' with state health unchanged at [1,56]; same at turn 114 (15 damage) and turn 124 (17 damage). Nothing tells the reader that HP has bottomed out and only a cover can end it, so seven damage reports in a row are functionally lies."
+        },
+        {
+          "turn": 46,
+          "note": "'Hall recovers 5 stamina' is the only text shown, but the tracked health value rises 74 -> 79 on the same row. The word 'stamina' and the stat that actually moves do not match, which makes the CPU's 12 recovery turns hard to read as the pacing problem they are."
+        },
+        {
+          "turn": 5,
+          "note": "Both groggy escapes are labelled intent 'Reset / recover' with the identical note 'clear the haze before they punish you', even though 'Shake the cobwebs' (93%) is a pure clear and 'Desperation strike' (77%) is an attack that also cleared the haze. The note does not distinguish the two options."
+        }
+      ]
+    },
+    "stickiness": {
+      "value": 2,
+      "confidence": "high",
+      "rematch_intent": "maybe",
+      "rematch_reason": "Curiosity about the systems rather than enjoyment of this match. The tie-up loop tax visibly worked at turns 23 and 57, and the mid-match top-rope exchanges (turn 31 hurricanrana, turn 42 diving crossbody) showed the game has good beats in it. But the last 34 turns were a player stuck at 1 HP with no finish ever offered, ending on a flat 1-2-3, which is an actively discouraging note to stop on.",
+      "next_experiment": "Rerun seed 207 with an aggressive policy that takes the index-1 'Big swing' from the top rope instead of the index-2 'Climb down carefully' the novice policy keeps selecting, to separate policy-driven drag from systemic drag. Then rerun with CPU 'Catch your breath' pressure-tested: check whether a match where the CPU heals 12 times can ever be closed out by the player.",
+      "evidence": [
+        {
+          "turn": 126,
+          "note": "The match ends 'Referee: 1... 2... 3! *** PINFALL - Hall wins ***' after the player has been at 1 HP for 34 turns with near_fall_count 0. There is no unresolved question at the end and no discovery in the final third."
+        },
+        {
+          "turn": 57,
+          "note": "The one genuinely interesting recurring beat - 'The repeated tie-up stalls out - Hall gains escape momentum' - fires only twice in 126 turns (turns 23 and 57), so the new anti-loop system barely gets to show itself in this seed."
+        }
+      ]
+    },
+    "juiciness": {
+      "value": 2,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 126,
+          "note": "Only 43 distinct log strings across 126 turns (log_uniqueness_ratio 0.3217). The same handful of lines - 'Hitman: Climb to the top rope.', 'Hitman: Climb down carefully.', 'Hall recovers 5 stamina.' - carry most of the match."
+        },
+        {
+          "turn": 126,
+          "note": "The finish has no tension. finish_sequence delays are 1.0 / 1.5 / 0.0 with steps 1, 2, 3 and no kickout beat; near_fall_count is 0 for the whole match. The opponent had been unkillable at 1 HP for 34 turns, so the three-count reads as bookkeeping rather than payoff."
+        },
+        {
+          "turn": 19,
+          "note": "Positive: the best-feeling beat in the match pairs damage with a forward-looking state hook - 'Hitman snaps off missile dropkick - Hall takes 19 damage. Hall is rattled - when they're forced up, big payoffs may open.' followed at turn 20 by 'Hall rises - still groggy from the impact!'"
+        },
+        {
+          "turn": 111,
+          "note": "Groggy beats become noise through repetition. 'Hitman is GROGGY - power moves and finishers are live!' followed by 'Hitman fights through - the groggy haze lifts!' plays out identically at turns 4/5, 12/13, 70/71, 92/93, 94/95 and 110/111 with the same 4-damage desperation strike each time."
+        }
+      ]
+    }
+  },
+  "top_issues": [
+    {
+      "severity": "critical",
+      "dimension": "fun",
+      "summary": "Health floors at 1 with no finish path, turning the last 34 turns into dead time. The player hits 1 HP at turn 92 and the match runs to turn 126; the CPU keeps reporting 9-17 damage hits that change nothing, and the player is never offered a Finish or pin option in the entire match. turn_count 126 fails the [8, 40] pacing gate.",
+      "suggested_area": "game.py finish conditions / pacing"
+    },
+    {
+      "severity": "major",
+      "dimension": "fun",
+      "summary": "A loop persists despite the anti-loop warnings. The loop tax fired only twice, both tie-up (turns 23 and 57). The dominant time sink was an untaxed climb -> dismount -> rope-run -> kill-the-run cycle: turns 45/47, 105/107, 117/119/121 all show a climb with no attack followed by 'Climb down carefully'. None of the climb warnings ('The climb looks telegraphed', 'Another empty climb') appear anywhere in this transcript.",
+      "suggested_area": "loop tax coverage for climb / rope-run / positional churn"
+    },
+    {
+      "severity": "major",
+      "dimension": "pacing",
+      "summary": "CPU 'Catch your breath' out-heals player offense. Hall recovers 5 on 12 separate turns (46, 50, 62, 66, 72, 74, 76, 100, 108, 112, 116, 120), climbing from 51 back to 72 between turns 95 and 120. Neither wrestler can close, which is the direct cause of the 126-turn length.",
+      "suggested_area": "CPU scoring for recover / diminishing returns on recovery"
+    },
+    {
+      "severity": "major",
+      "dimension": "ease_of_use",
+      "summary": "The damage log contradicts the state once health bottoms out. Turns 104, 106, 110, 114, 118 and 124 all report damage ('Hitman takes 15 damage') while state health stays at exactly 1, with no line explaining that HP has floored and only a cover can end the match.",
+      "suggested_area": "render/log text for the health floor"
+    },
+    {
+      "severity": "minor",
+      "dimension": "ease_of_use",
+      "summary": "'Hall recovers 5 stamina' is printed while the tracked health value increases by 5, so the named resource and the moving stat disagree.",
+      "suggested_area": "recover move log text"
+    },
+    {
+      "severity": "minor",
+      "dimension": "ease_of_use",
+      "summary": "move_repetition_rate 0.2222 under-detects this match's staleness because the loop is a multi-move cycle rather than one repeated move. A cycle-aware metric would flag seed 207 that the current metric passes.",
+      "suggested_area": "playtest/telemetry.py repetition metric"
+    }
+  ],
+  "highlight_moments": [
+    {
+      "turn": 19,
+      "type": "big_spot",
+      "quote": "Hitman snaps off missile dropkick - Hall takes 19 damage.\n  Hall is rattled - when they're forced up, big payoffs may open."
+    },
+    {
+      "turn": 23,
+      "type": "loop_tax_working",
+      "quote": "The repeated tie-up stalls out - Hall gains escape momentum."
+    },
+    {
+      "turn": 31,
+      "type": "big_spot",
+      "quote": "Hitman snaps off hurricanrana - Hall takes 22 damage."
+    },
+    {
+      "turn": 42,
+      "type": "momentum_swing",
+      "quote": "Hall snaps off diving crossbody - Hitman takes 20 damage."
+    }
+  ]
+}

@@ -1,0 +1,188 @@
+{
+  "rubric_version": "2026-07-30",
+  "meta": {
+    "match_seed": 221,
+    "wrestlers": [
+      "bret_hart",
+      "scott_hall"
+    ],
+    "player_policy": "aggressive",
+    "turn_count": 75,
+    "winner": "player"
+  },
+  "telemetry": {
+    "gates_passed": false,
+    "gate_failures": [
+      "turn_count 75 outside band [8, 40]"
+    ],
+    "turn_count": 75,
+    "winner": "player",
+    "reason": "pinfall",
+    "near_fall_count": 0,
+    "curation_pin_visible": true,
+    "log_uniqueness_ratio": 0.4074,
+    "move_repetition_rate": 0.5789,
+    "position_diversity": 5,
+    "single_choice_turns": 0,
+    "match_seed": 221,
+    "wrestlers": [
+      "bret_hart",
+      "scott_hall"
+    ],
+    "player_policy": "aggressive"
+  },
+  "scores": {
+    "fun": {
+      "value": 2,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 19,
+          "note": "Best beat of the match: top-rope duel resolves with 'Hitman snaps off hurricanrana — Hall takes 22 damage.' plus the pending-payoff tease 'Hall is rattled — when they're forced up, big payoffs may open.' Real risk/reward, both wrestlers TOP_ROPE."
+        },
+        {
+          "turn": 21,
+          "note": "Payoff lands: menu flags 'TARGET GROGGY payoff: heavy damage is available now' (Vertical suplex 77%) and it hits for 16. This is the one clean setup-to-payoff chain in 75 turns."
+        },
+        {
+          "turn": 37,
+          "note": "Dead zone begins. From T37 to T44 health is frozen at 99/64 across eight turns of tie-up / break-grapple with zero damage dealt either way; every player line is the same 'The repeated tie-up stalls out — Hall gains escape momentum.'"
+        },
+        {
+          "turn": 43,
+          "note": "Loop tax is fully saturated and inert: player momentum has already bottomed at 0 and Hall's is capped at 5, so the escalating warning has no remaining state to punish — the loop continues with no cost and no consequence."
+        },
+        {
+          "turn": 75,
+          "note": "Anticlimactic finish: Hall is at 9 HP and fails to rise on T74, then the cover is a clean 'Referee: 1… Referee: 2… Referee: 3!' with near_fall_count=0. 75 turns for a match with no near-fall and move_repetition_rate=0.5789."
+        }
+      ]
+    },
+    "ease_of_use": {
+      "value": 4,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 3,
+          "note": "Loop-tax warning is legible and arrives before the punishment: the collar_elbow option note changes from 'enter a tie-up to unlock throws and whips; repeat loops lose steam' to 'tie-up is going stale — pay it off or reset before they steal momentum' the second time it is offered."
+        },
+        {
+          "turn": 9,
+          "note": "The log line names the cause and the beneficiary in one sentence: 'The repeated tie-up stalls out — Hall gains escape momentum.' Momentum in state confirms it (player 2→1, Hall stays 5), so the feedback is verifiable, not just flavor."
+        },
+        {
+          "turn": 20,
+          "note": "Groggy is presented as a modifier, not a position: 'Hall rises — still groggy from the impact!' with position STANDING and groggy=[false,true], and T21 immediately labels the payoff move 'TARGET GROGGY payoff'."
+        },
+        {
+          "turn": 10,
+          "note": "Chronology friction: actor is cpu using break_grapple but the only log text is 'Hitman turns the tables!' — the opponent's attempt is never named, so a new player cannot tell what was countered or why they are still GRAPPLED. Same pattern at T44 and T66."
+        },
+        {
+          "turn": 75,
+          "note": "Pin honesty holds: with Hall grounded the menu leads with 'Cover — pinfall attempt' (intent Finish, note 'try to end it now; stronger when they're worn down') alongside Sharpshooter 89%; curation_pin_visible=true and single_choice_turns=0 all match."
+        }
+      ]
+    },
+    "stickiness": {
+      "value": 2,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 17,
+          "note": "One genuinely novel line to re-run: both wrestlers end up TOP_ROPE ('Hitman: Climb to the top rope.' with position ['TOP_ROPE','TOP_ROPE']), producing the Superplex vs Hurricanrana choice at T19 — the only spot that felt like a discovery."
+        },
+        {
+          "turn": 35,
+          "note": "Discovery collapses after this point: T35 through T53 is the same tie-up/escape exchange with the same four menu options at drifting percentages, so there is little left to explore in this line."
+        },
+        {
+          "turn": 51,
+          "note": "Unexplored alternative visible all match: Hip toss / Arm drag / Side headlock at 87–93% sit in the menu whenever the CPU fails to escape, and the three times they were taken (T13, T29, T57) they were the only real progress — a methodical policy has an obvious untested lane."
+        }
+      ],
+      "rematch_intent": "maybe",
+      "rematch_reason": "The top-rope hurricanrana into the groggy-suplex payoff (T19–T21) is worth chasing again, but 40-plus turns of the same tie-up exchange and a no-drama 1-2-3 leave little pull toward an immediate rerun.",
+      "next_experiment": "Replay seed 221 with a methodical policy that never re-enters collar_elbow after the 'tie-up is going stale' note appears, and instead cashes the Grapple-control payoffs (Hip toss/Arm drag/Side headlock, 87–93% at T51/T57) or climbs, to see whether the match lands inside the 8–40 turn band."
+    },
+    "juiciness": {
+      "value": 3,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 19,
+          "note": "Biggest hit of the match reads well and shifts state: 'Hitman snaps off hurricanrana — Hall takes 22 damage.' followed by 'Hall is rattled — when they're forced up, big payoffs may open.', with position flipping to GROUNDED."
+        },
+        {
+          "turn": 36,
+          "note": "Standout one-off spectacle: 'The crowd gasps — Hitman is busted open; blood streams down their face.' fires on an ordinary 7-damage straight right, the only blood callout in the match."
+        },
+        {
+          "turn": 74,
+          "note": "Good pre-finish tension line: 'Hall tries to rise but can't find it — still down and vulnerable to a cover!' correctly telegraphs the cover option that appears on T75."
+        },
+        {
+          "turn": 75,
+          "note": "Finish pacing is present but thin: finish_sequence steps use delays_sec 1.0 then 1.5 before 'Referee: 3!', with no kickout beat anywhere in the match (near_fall_count=0)."
+        },
+        {
+          "turn": 43,
+          "note": "Text fatigue drags the score down: 'The repeated tie-up stalls out — Hall gains escape momentum.' appears verbatim nine times (T9, T25, T27, T33, T37, T39, T41, T43, T65) and 'Hall uses the stale tie-up to reset with momentum.' five more; log_uniqueness_ratio=0.4074."
+        }
+      ]
+    }
+  },
+  "top_issues": [
+    {
+      "severity": "critical",
+      "dimension": "fun",
+      "summary": "The loop tax fires but does not break the loop. Nine 'The repeated tie-up stalls out' warnings plus five 'Hall uses the stale tie-up to reset with momentum' lines fail to stop a 40-turn collar_elbow → break_grapple/grapple_counter cycle; health is completely frozen at 99/64 from T37 to T44 and the match runs 75 turns against a [8, 40] band.",
+      "suggested_area": "Loop tax needs a consequence that survives momentum saturation — e.g. escalating damage/stamina cost or temporarily removing collar_elbow from curation after N stalls"
+    },
+    {
+      "severity": "major",
+      "dimension": "fun",
+      "summary": "Loop-tax momentum penalty becomes inert once momentum saturates. By T39 the player is at momentum 0 and Hall is capped at 5, so every further stall transfers nothing; the warning keeps printing while the game state stops changing (T39–T43 all identical).",
+      "suggested_area": "Momentum-based penalties should degrade to a different currency (stamina, hit%, position loss) when momentum is already floored/capped"
+    },
+    {
+      "severity": "minor",
+      "dimension": "ease_of_use",
+      "summary": "Reversal lines on CPU turns omit the attacker's move. T10, T44 and T66 are CPU break_grapple turns whose only output is 'Hitman turns the tables!', leaving the player unable to tell what was attempted or why the GRAPPLED state persisted.",
+      "suggested_area": "Reversal log text on opponent turns should name the countered move, as it does on hit reversals ('Hitman reverses the grapple counter — only 1 damage')"
+    },
+    {
+      "severity": "minor",
+      "dimension": "juiciness",
+      "summary": "No near-fall in a 75-turn match. Hall is ground down from 132 to 9 HP and the single cover on T75 is a clean three-count, so the longest match in the batch has no kickout beat at all.",
+      "suggested_area": "Near-fall / kickout tuning on the first cover attempt of a long match"
+    }
+  ],
+  "highlight_moments": [
+    {
+      "turn": 19,
+      "type": "big_swing",
+      "quote": "Hitman snaps off hurricanrana — Hall takes 22 damage.\n  Hall is rattled — when they're forced up, big payoffs may open."
+    },
+    {
+      "turn": 21,
+      "type": "groggy_payoff",
+      "quote": "Hitman snaps off vertical suplex — Hall takes 16 damage."
+    },
+    {
+      "turn": 36,
+      "type": "blood",
+      "quote": "The crowd gasps — Hitman is busted open; blood streams down their face."
+    },
+    {
+      "turn": 26,
+      "type": "loop_tax",
+      "quote": "Hall snaps off grapple counter — Hitman takes 5 damage.\n  The counter is getting predictable — Hitman slips free with momentum."
+    },
+    {
+      "turn": 75,
+      "type": "pinfall",
+      "quote": "Referee: 1…\n  Referee: 2…\n  Referee: 3!\n  *** PINFALL — Hitman wins ***"
+    }
+  ]
+}

@@ -2,19 +2,14 @@
   "rubric_version": "2026-07-30",
   "meta": {
     "match_seed": 109,
-    "wrestlers": [
-      "bret_hart",
-      "scott_hall"
-    ],
+    "wrestlers": ["bret_hart", "scott_hall"],
     "player_policy": "novice",
     "turn_count": 69,
     "winner": "player"
   },
   "telemetry": {
     "gates_passed": false,
-    "gate_failures": [
-      "turn_count 69 outside band [8, 40]"
-    ],
+    "gate_failures": ["turn_count 69 outside band [8, 40]"],
     "turn_count": 69,
     "winner": "player",
     "reason": "submission",
@@ -25,57 +20,139 @@
     "position_diversity": 9,
     "single_choice_turns": 1,
     "match_seed": 109,
-    "wrestlers": [
-      "bret_hart",
-      "scott_hall"
-    ],
+    "wrestlers": ["bret_hart", "scott_hall"],
     "player_policy": "novice"
   },
   "scores": {
     "fun": {
-      "value": 3,
-      "confidence": "medium",
+      "value": 2,
+      "confidence": "high",
       "evidence": [
         {
           "turn": 1,
-          "note": "repetition=0.4, near_falls=0"
+          "note": "Opens with climb; same Set up position → Hurricanrana pattern repeats across turns 1/3/5, 7/9, 11/13 — telemetry move_repetition_rate=0.4."
+        },
+        {
+          "turn": 15,
+          "note": "Menu offers Vertical suplex 78% ('TARGET GROGGY payoff: heavy damage is available now') but novice picks Collar-and-elbow; same skip again on turns 17, 53, 55 — trade-offs shown, path ignored, loop continues."
+        },
+        {
+          "turn": 36,
+          "note": "Hall hurricanrana (21 dmg) + rattled, then Razor's Edge whiffed on turn 38 — real comeback window, but buried in a 69-turn slog (gate: turn_count outside [8,40])."
+        },
+        {
+          "turn": 69,
+          "note": "Submission finish after Hall fails to rise (turn 68); near_fall_count=0 — climax exists but no near-fall beat and pacing is far past the band."
         }
       ]
     },
     "ease_of_use": {
-      "value": 2,
-      "confidence": "medium",
+      "value": 4,
+      "confidence": "high",
       "evidence": [
         {
-          "turn": 1,
-          "note": "gates_passed=False"
+          "turn": 15,
+          "note": "Groggy payoff labeled clearly as intent Big swing / 'TARGET GROGGY payoff'; status messaging on turn 14 ('Hall rises — still groggy') and turn 46 ('Hitman is GROGGY — power moves and finishers are live!') keeps modifier distinct from position."
+        },
+        {
+          "turn": 37,
+          "note": "Single-choice get_up menu when grounded (single_choice_turns=1) is honest; no hidden critical escape."
+        },
+        {
+          "turn": 69,
+          "note": "Pin curated and visible ('Cover — pinfall attempt', label pin) alongside Sharpshooter 87% Finish; curation_pin_visible=true. Submission % reads as apply/cash-in label, not a fake win%."
+        },
+        {
+          "turn": 31,
+          "note": "When Hall is RUNNING_ROPES, Rebound clothesline 77% is shown with 'rope sprint payoff' — optimal rope punish not hidden (novice climbed anyway)."
         }
       ]
     },
     "stickiness": {
-      "value": 3,
-      "confidence": "medium",
+      "value": 2,
+      "confidence": "high",
       "evidence": [
         {
-          "turn": 1,
-          "note": "position_diversity=9, turn_count=69"
+          "turn": 69,
+          "note": "69-turn climb/hurricanrana-heavy match (log_uniqueness_ratio=0.4231) feels samey; curiosity remains mainly to try the paths novice skipped."
+        },
+        {
+          "turn": 68,
+          "note": "Failed get-up ('still down and vulnerable to a cover!') plus dual Finish options on turn 69 suggest a rematch experiment around pin vs submission and taking groggy/rope payoffs."
         }
       ],
       "rematch_intent": "maybe",
-      "rematch_reason": "Pilot heuristic from telemetry anchors.",
-      "next_experiment": "Try aggressive policy on same seed."
+      "rematch_reason": "Late groggy/rope/finish beats are interesting, but the novice climb loop and out-of-band length make another full match a slog unless playstyle changes.",
+      "next_experiment": "Re-run seed 109 with methodical/aggressive policy: take Vertical suplex on groggy, capitalize RUNNING_ROPES with Rebound clothesline, and finish via pin when opponent fails to rise."
     },
     "juiciness": {
-      "value": 2,
-      "confidence": "medium",
+      "value": 3,
+      "confidence": "high",
       "evidence": [
         {
-          "turn": 1,
-          "note": "near_fall_count=0"
+          "turn": 13,
+          "note": "Hurricanrana hit plus 'Hall is rattled — when they're forced up, big payoffs may open.' then groggy rise on turn 14 — clear state-linked drama."
+        },
+        {
+          "turn": 23,
+          "note": "'Hall reverses the missile dropkick — only 1 damage, and turns the tables!' — reversal beat lands."
+        },
+        {
+          "turn": 38,
+          "note": "'Hitman reverses the razor's edge — only 2 damage; Hall whiffs' after player was groggy — finisher tease without payoff."
+        },
+        {
+          "turn": 69,
+          "note": "Submission sequence with delays_sec 1.0 / 1.5 / 0.0 ('hooks in sharpshooter' → 'cinched in deeper' → 'Hall taps out!') — juicy finish; diluted by many flat 'Climb to the top rope' lines and near_fall_count=0."
         }
       ]
     }
   },
-  "top_issues": [],
-  "highlight_moments": []
+  "top_issues": [
+    {
+      "severity": "critical",
+      "dimension": "fun",
+      "summary": "Match ran 69 turns (gate failure: outside [8,40]); pacing collapses into a long climb→hurricanrana→get up loop with HP snowball for most of the bout.",
+      "suggested_area": "pacing / CPU recover incentives / discourage repeat top-rope setups"
+    },
+    {
+      "severity": "major",
+      "dimension": "fun",
+      "summary": "move_repetition_rate=0.4 and log_uniqueness_ratio=0.4231 reflect a stale Set up position climb loop; novice also repeatedly ignored shown groggy/rope payoffs.",
+      "suggested_area": "curation weighting / repeat-setup steam loss / player-policy variety"
+    },
+    {
+      "severity": "minor",
+      "dimension": "juiciness",
+      "summary": "near_fall_count=0 despite a clear cover window after Hall failed to rise on turn 68; finish jumped to submission without a kickout beat.",
+      "suggested_area": "pin pressure / near-fall opportunities before submission"
+    }
+  ],
+  "highlight_moments": [
+    {
+      "turn": 23,
+      "type": "reversal",
+      "quote": "Hall reverses the missile dropkick — only 1 damage, and turns the tables!"
+    },
+    {
+      "turn": 38,
+      "type": "finisher_whiff",
+      "quote": "Hitman reverses the razor's edge — only 2 damage; Hall whiffs — Hitman shrugs it off."
+    },
+    {
+      "turn": 46,
+      "type": "groggy",
+      "quote": "Hitman is GROGGY — power moves and finishers are live!"
+    },
+    {
+      "turn": 68,
+      "type": "failed_rise",
+      "quote": "Hall tries to rise but can't find it — still down and vulnerable to a cover!"
+    },
+    {
+      "turn": 69,
+      "type": "submission_finish",
+      "quote": "Hall taps out! *** SUBMISSION — Hitman wins ***"
+    }
+  ]
 }

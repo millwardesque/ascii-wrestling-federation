@@ -32,48 +32,140 @@
   "scores": {
     "fun": {
       "value": 3,
-      "confidence": "medium",
+      "confidence": "high",
       "evidence": [
         {
           "turn": 1,
-          "note": "repetition=0.3571, near_falls=0"
+          "note": "Opening menu offers distinct intents (Grapple control / Set up / Safe offense); collar-and-elbow immediately reversed — 'Hall turns the tables!' — so aggression starts on the back foot."
+        },
+        {
+          "turn": 16,
+          "note": "Comeback window: 'Hitman reverses the missile dropkick — only 1 damage, and turns the tables!' while Hall is still TOP_ROPE; real risk/reward around the dive."
+        },
+        {
+          "turn": 20,
+          "note": "Climax setup: Razor's Edge finisher lands ('— FINISHER — the next cover packs extra heat') after pending-groggy get-up; HP already snowballed to 34–128."
+        },
+        {
+          "turn": 24,
+          "note": "Second reversal of missile dropkick creates another brief swing, but player never converts offense; Hall ends 128 HP vs player's 13."
+        },
+        {
+          "turn": 28,
+          "note": "Telemetry: near_fall_count=0, move_repetition_rate=0.3571, single_choice_turns=7 — climb→dive→get_up loop and first-pin finish mute tactical rematch feel despite two reversal beats."
         }
       ]
     },
     "ease_of_use": {
-      "value": 3,
-      "confidence": "medium",
+      "value": 4,
+      "confidence": "high",
       "evidence": [
         {
-          "turn": 1,
-          "note": "gates_passed=True"
+          "turn": 6,
+          "note": "Groggy modifier is explicit and separate from position: 'Hitman is GROGGY — power moves and finishers are live!' with state.groggy=[true,false] while both STANDING."
+        },
+        {
+          "turn": 7,
+          "note": "Groggy recovery choices labeled clearly (Shake the cobwebs 68% vs Desperation strike 57%); outcome aligns — 'the groggy haze lifts!'"
+        },
+        {
+          "turn": 19,
+          "note": "Pending groggy on get-up is readable: 'Hitman rises — still groggy from the impact!' after 'rattled' foreshadow on T18."
+        },
+        {
+          "turn": 17,
+          "note": "Friction: RUNNING_ROPES offers only Kill the run; miss leaves player stuck for another top-rope dive (T18) — single_choice_turns=7 overall."
+        },
+        {
+          "turn": 28,
+          "note": "Pin when legal is honest (curation_pin_visible=true); finish log ties finisher heat to cover ('+12 on the cover!') then Referee 1…2…3!"
         }
       ]
     },
     "stickiness": {
-      "value": 3,
-      "confidence": "medium",
+      "value": 4,
+      "confidence": "high",
       "evidence": [
         {
-          "turn": 1,
-          "note": "position_diversity=5, turn_count=28"
+          "turn": 3,
+          "note": "Menu offered Pull off the top rope (58%) vs Hit the ropes; aggressive policy chose ropes and ate diving crossbody on T4 — clear alternate line to try."
+        },
+        {
+          "turn": 15,
+          "note": "Same TOP_ROPE puzzle again (Pull off 69% available); Hit the ropes again → missile sequence — curiosity about methodical pull-offs."
+        },
+        {
+          "turn": 24,
+          "note": "Late reversal after failed shake_groggy (T23) suggests rematch value if player can punish Hall's repeated climbs instead of feeding dives."
         }
       ],
-      "rematch_intent": "maybe",
-      "rematch_reason": "Pilot heuristic from telemetry anchors.",
-      "next_experiment": "Try aggressive policy on same seed."
+      "rematch_intent": "yes",
+      "rematch_reason": "Two table-turning dive reversals and finisher-heat foreshadowing were memorable, but the aggressive climb/ropes answers fed Hall's loop; want to see if denying the top rope changes the match.",
+      "next_experiment": "Replay seed 110 with methodical policy that always picks Pull off the top rope when Hall is TOP_ROPE (shown T3/T9/T15/T25) instead of Hit the ropes."
     },
     "juiciness": {
-      "value": 2,
-      "confidence": "medium",
+      "value": 4,
+      "confidence": "high",
       "evidence": [
         {
-          "turn": 1,
-          "note": "near_fall_count=0"
+          "turn": 12,
+          "note": "Kick → groggy beat repeats with strong callout copy; power-move tease lands before player clears haze on T13."
+        },
+        {
+          "turn": 18,
+          "note": "Missile dropkick hit adds pending-payoff language: 'Hitman is rattled — when they're forced up, big payoffs may open.'"
+        },
+        {
+          "turn": 20,
+          "note": "Finisher banner plus cover-heat promise: 'Hall snaps off razor's edge… — FINISHER — the next cover packs extra heat.'"
+        },
+        {
+          "turn": 28,
+          "note": "Pinfall finish_sequence paced with delays_sec 0/1.0/1.5 and echo line '+12 on the cover!' before 1…2…3; log_uniqueness_ratio=0.6842. Missing near-fall kickout (near_fall_count=0) keeps this under a 5."
         }
       ]
     }
   },
-  "top_issues": [],
-  "highlight_moments": []
+  "top_issues": [
+    {
+      "severity": "major",
+      "dimension": "fun",
+      "summary": "One-sided snowball: Hall takes only 4 damage all match while Bret is grounded/groggy repeatedly; climb→dive→get_up loops (Hall climbs on T2/T8/T14/T22) and seven single-choice turns starve player agency despite two dive reversals.",
+      "suggested_area": "CPU top-rope aggression pacing / player comeback offense after reversal"
+    },
+    {
+      "severity": "minor",
+      "dimension": "ease_of_use",
+      "summary": "On T17, curated menu is only Kill the run while RUNNING_ROPES; a miss leaves the player stranded for a second missile dropkick with no alternate escape/offense choice.",
+      "suggested_area": "RUNNING_ROPES curation when opponent is TOP_ROPE"
+    },
+    {
+      "severity": "minor",
+      "dimension": "juiciness",
+      "summary": "Finisher heat on T20 foreshadows a dramatic cover, but the first pin on T28 is a clean 3-count (near_fall_count=0) with no kickout beat.",
+      "suggested_area": "Near-fall / kickout before finishing pin after finisher"
+    }
+  ],
+  "highlight_moments": [
+    {
+      "turn": 16,
+      "type": "reversal",
+      "quote": "Hitman reverses the missile dropkick — only 1 damage, and turns the tables!"
+    },
+    {
+      "turn": 20,
+      "type": "finisher",
+      "quote": "Hall snaps off razor's edge — Hitman takes 20 damage.\n  — FINISHER — the next cover packs extra heat."
+    },
+    {
+      "turn": 24,
+      "type": "reversal",
+      "quote": "Hitman reverses the missile dropkick — only 1 damage, and turns the tables!"
+    },
+    {
+      "turn": 28,
+      "type": "pinfall",
+      "quote": "The finisher still echoes — +12 on the cover!\n  Referee: 1…\n  Referee: 2…\n  Referee: 3!\n  *** PINFALL — Hall wins ***"
+    }
+  ]
 }

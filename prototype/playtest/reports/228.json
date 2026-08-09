@@ -1,0 +1,183 @@
+{
+  "rubric_version": "2026-07-30",
+  "meta": {
+    "match_seed": 228,
+    "wrestlers": ["bret_hart", "scott_hall"],
+    "player_policy": "chaotic",
+    "turn_count": 178,
+    "winner": "cpu"
+  },
+  "telemetry": {
+    "gates_passed": false,
+    "gate_failures": ["turn_count 178 outside band [8, 40]"],
+    "turn_count": 178,
+    "near_fall_count": 0,
+    "curation_pin_visible": true,
+    "log_uniqueness_ratio": 0.3819,
+    "move_repetition_rate": 0.1685,
+    "position_diversity": 12,
+    "single_choice_turns": 9,
+    "winner": "cpu",
+    "reason": "pinfall"
+  },
+  "scores": {
+    "fun": {
+      "value": 2,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 4,
+          "note": "Early match has real swings: 'Hall snaps off superplex - Hitman takes 29 damage' drops both wrestlers to GROUNDED after a reversed hurricanrana on turn 3. This opening stretch (turns 1-30) is the only part with genuine momentum trade-offs."
+        },
+        {
+          "turn": 87,
+          "note": "'Hitman snaps off missile dropkick - Hall takes 19 damage' puts Hall at 1 HP on turn 87. The match then runs 91 more turns without resolving, so the entire back half is played out at a health total that should have been decisive."
+        },
+        {
+          "turn": 92,
+          "note": "'Hall recovers 5 stamina' restores health from 1 to 6. Recover is used 36 times total, 22 of them after turn 90, so chip damage never sticks and the match cannot converge to a finish."
+        },
+        {
+          "turn": 104,
+          "note": "Loop tax fires - 'The counter is getting predictable - Hitman slips free with momentum' - but the tie-up/counter loop simply resumes: collar_elbow on turns 99, 103, 105, 113, 119, 123, 139, 155, 169 against grapple_counter on 100, 104, 114, 120, 140, 156, 170. The tax fired only twice in the whole match (turns 104 and 124) and broke nothing."
+        },
+        {
+          "turn": 133,
+          "note": "Both wrestlers sit at 1 HP with an identical five-option menu (tie-up 91%, climb, roundhouse 86%, straight right 91%, recover) repeated verbatim from turn 115 onward. No Finish intent is offered while the opponent is standing, so there is no decision that can end the match."
+        },
+        {
+          "turn": 178,
+          "note": "The finish arrives only because the CPU lands 'razor's edge' on turn 176 and the player fails 'Fight to your feet' on 177. Player agency in the climax is a single forced one-option turn."
+        }
+      ]
+    },
+    "ease_of_use": {
+      "value": 3,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 89,
+          "note": "State feedback is clear where it exists: 'Hall is yanked up - their legs aren't under them yet!' correctly narrates pending_groggy applied on pickup, and turn 88 'Escape momentum builds for Hall' explains the failed-rise reward."
+        },
+        {
+          "turn": 84,
+          "note": "Bare reversal log 'Hitman turns the tables!' names no move and no actor intent. The player chose Collar-and-elbow tie-up on turn 105 and read only 'Hall turns the tables!' - it is impossible to tell from the log whether the tie-up was attempted, blocked, or reversed."
+        },
+        {
+          "turn": 92,
+          "note": "'Hall recovers 5 stamina' increases the transcript health field from 1 to 6. Labeling a health restore as stamina is misleading; a new player watching HP tick back up has no vocabulary that matches the log line."
+        },
+        {
+          "turn": 89,
+          "note": "Curation is honest about pin: 'Finish | Cover - pinfall attempt | pin' is shown whenever the opponent is grounded (turns 41, 47, 61, 81, 89). But that is only 5 of 89 player turns, and from turn 91 onward the Finish intent never reappears despite Hall sitting at 1-11 HP, with no menu text explaining that a finish requires grounding first."
+        },
+        {
+          "turn": 81,
+          "note": "Percentage semantics read correctly: 'Finish | Sharpshooter | 86%' with note 'cash in momentum for a match-ending swing' sits next to the unlabeled 'pin', so the 86% is not presented as a win chance."
+        }
+      ]
+    },
+    "stickiness": {
+      "value": 2,
+      "confidence": "high",
+      "rematch_intent": "maybe",
+      "rematch_reason": "The first 30 turns were genuinely varied (top-rope exchanges, superplex, collision course, grapple counters), but the 90-turn attrition stalemate at 1-11 HP is a strong deterrent. I would only queue another match to see whether a different policy avoids the no-finish deadlock, not because this match created curiosity.",
+      "next_experiment": "Re-run seed 228 with the methodical policy and take the offered 'Finish | Cover - pinfall attempt' on turn 89 (Hall grounded at 1 HP) instead of 'Pull opponent up', to confirm the deadlock is a policy artifact rather than a missing standing-finish path.",
+      "evidence": [
+        {
+          "turn": 23,
+          "note": "Discovery moments exist early: 'Hitman snaps off top-rope brawl shot - Hall takes 11 damage' during a rare TOP_ROPE vs TOP_ROPE exchange, supported by position_diversity 12."
+        },
+        {
+          "turn": 121,
+          "note": "'The crowd gasps - Hall is busted open; blood streams down their face' is the kind of one-off surprise that drives rematch curiosity, but it changed nothing and the match continued for 57 more turns."
+        },
+        {
+          "turn": 149,
+          "note": "Turns 149-153 repeat roundhouse kick / recover / shake the cobwebs with logs already seen dozens of times; log_uniqueness_ratio 0.3819 means roughly three in five lines were reruns."
+        }
+      ]
+    },
+    "juiciness": {
+      "value": 2,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 176,
+          "note": "The finisher beat lands well: 'Hall snaps off razor's edge - Hitman takes 20 damage' plus '- FINISHER - the next cover packs extra heat', and turn 178 pays it off with 'The finisher still echoes - +12 on the cover!' followed by a stepped referee count (delays 0.0/1.0/1.5)."
+        },
+        {
+          "turn": 121,
+          "note": "The blood spot 'The crowd gasps - Hall is busted open; blood streams down their face' produced no state shift - health, momentum, and position are unchanged apart from the 9 damage - so the biggest narrative line in the match carries no mechanical weight."
+        },
+        {
+          "turn": 178,
+          "note": "near_fall_count is 0 across 178 turns; the only pin attempt in the match is the one that ends it, so there is never a kickout or two-count to build tension."
+        },
+        {
+          "turn": 116,
+          "note": "'Hall recovers 5 stamina' appears 36 times and 'Hitman tries to rise but can't find it' style lines 22 times; the dominant texture of the match is repeated low-stakes filler rather than payoff beats."
+        }
+      ]
+    }
+  },
+  "top_issues": [
+    {
+      "severity": "critical",
+      "dimension": "fun",
+      "summary": "No way to close out a standing, nearly dead opponent. From turn 91 to 178 Hall never drops below 1 HP and never rises above 11, but the curated menu offers Finish/pin only while the opponent is GROUNDED (5 of 89 player turns). The match ran 178 turns and failed the [8, 40] pacing gate as a direct result.",
+      "suggested_area": "game.py move resolution / _curate_move_choices() finish gating"
+    },
+    {
+      "severity": "critical",
+      "dimension": "fun",
+      "summary": "Loop persists despite the loop tax. The tie-up/counter loop ran nine iterations (collar_elbow on turns 99, 103, 105, 113, 119, 123, 139, 155, 169) and the anti-loop feedback fired only twice, on turn 104 ('The counter is getting predictable') and turn 124 ('Hall uses the stale tie-up to reset with momentum'). Neither instance changed the pattern.",
+      "suggested_area": "loop tax escalation in game.py"
+    },
+    {
+      "severity": "major",
+      "dimension": "fun",
+      "summary": "Recover out-paces chip damage at low health. 'Catch your breath' fired 22 times after turn 90, restoring 5 health each time against 5-9 damage strikes, producing a ~90-turn attrition stalemate with zero near-falls.",
+      "suggested_area": "recover tuning in config / game.py"
+    },
+    {
+      "severity": "major",
+      "dimension": "ease_of_use",
+      "summary": "'Catch your breath' logs 'recovers 5 stamina' but raises the health value (turn 92: 1 -> 6). The word in the log does not match the stat that moves.",
+      "suggested_area": "render/log text for recover"
+    },
+    {
+      "severity": "minor",
+      "dimension": "ease_of_use",
+      "summary": "Bare reversal lines like 'Hitman turns the tables!' (turn 84) and 'Hall turns the tables!' (turn 105) omit the attempted move, so the player cannot tell what failed.",
+      "suggested_area": "action log phrasing for reversed setup moves"
+    }
+  ],
+  "highlight_moments": [
+    {
+      "turn": 4,
+      "type": "big_spot",
+      "quote": "Hall snaps off superplex - Hitman takes 29 damage."
+    },
+    {
+      "turn": 24,
+      "type": "state_shift",
+      "quote": "Hall snaps off superplex - Hitman takes 29 damage.\n  Hitman is rattled - when they're forced up, big payoffs may open."
+    },
+    {
+      "turn": 89,
+      "type": "setup_payoff",
+      "quote": "Hall is yanked up - their legs aren't under them yet!"
+    },
+    {
+      "turn": 121,
+      "type": "crowd_pop",
+      "quote": "The crowd gasps - Hall is busted open; blood streams down their face."
+    },
+    {
+      "turn": 178,
+      "type": "finish",
+      "quote": "The finisher still echoes - +12 on the cover!\n  Referee: 1...\n  Referee: 2...\n  Referee: 3!\n  *** PINFALL - Hall wins ***"
+    }
+  ]
+}

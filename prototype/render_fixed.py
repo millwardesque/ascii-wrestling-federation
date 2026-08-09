@@ -153,12 +153,16 @@ def _move_choice_details(
         )
 
     if m.id == "collar_elbow":
+        pressure = state.grapple_loop_pressure
+        note = "enter a tie-up to unlock throws and whips; repeat loops lose steam"
+        if pressure >= 2:
+            note = "tie-up is going stale — pay it off or reset before they steal momentum"
         return _MoveChoice(
             rule_index,
             rule,
             "Grapple control",
-            "enter a tie-up to unlock throws and whips; repeat loops lose steam",
-            78.0 + score,
+            note,
+            78.0 + score - float(pressure) * 12.0,
         )
     if m.target_grappled:
         return _MoveChoice(
@@ -166,7 +170,7 @@ def _move_choice_details(
             rule,
             "Grapple control",
             "pay off the tie-up with a control move",
-            76.0 + score,
+            76.0 + score + float(state.grapple_loop_pressure) * 6.0,
         )
 
     if (
@@ -176,12 +180,22 @@ def _move_choice_details(
         or m.is_hit_ropes
         or m.id in {"pickup", "drag_to_center", "pull_off_top"}
     ):
+        setup = state.setup_loop_pressure
+        note = "changes ring position to unlock a stronger follow-up"
+        score_adj = 0.0
+        if m.is_climb:
+            score_adj -= float(setup) * 14.0
+            if setup >= 2:
+                note = "they've seen this climb — mix in mat work or cash a top-rope payoff"
+        elif m.id == "dismount_top" and setup >= 2:
+            note = "empty dismounts waste the setup — dive or climb down only to reset"
+            score_adj -= float(setup) * 8.0
         return _MoveChoice(
             rule_index,
             rule,
             "Set up position",
-            "changes ring position to unlock a stronger follow-up",
-            72.0 + score,
+            note,
+            72.0 + score + score_adj,
         )
 
     if m.requires_target_groggy or m.difficulty >= 5 or m.base_damage >= 17:

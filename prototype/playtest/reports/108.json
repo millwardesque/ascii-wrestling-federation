@@ -14,14 +14,14 @@
     "gates_passed": true,
     "gate_failures": [],
     "turn_count": 21,
-    "winner": "player",
-    "reason": "submission",
     "near_fall_count": 0,
     "curation_pin_visible": true,
     "log_uniqueness_ratio": 0.7308,
     "move_repetition_rate": 0.3636,
     "position_diversity": 6,
     "single_choice_turns": 0,
+    "winner": "player",
+    "reason": "submission",
     "match_seed": 108,
     "wrestlers": [
       "bret_hart",
@@ -32,48 +32,132 @@
   "scores": {
     "fun": {
       "value": 3,
-      "confidence": "medium",
+      "confidence": "high",
       "evidence": [
         {
-          "turn": 1,
-          "note": "repetition=0.3636, near_falls=0"
+          "turn": 3,
+          "note": "Real trade-off offered then abandoned: vs Hall RUNNING_ROPES, Big swing Diving crossbody / Missile dropkick (55%, \"top-rope payoff\") available, but Climb down carefully selected — setup with no payoff."
+        },
+        {
+          "turn": 5,
+          "note": "Payoff beat lands: Rebound clothesline \"Hall takes 17 damage\" → Hall GROUNDED; momentum 2→5. Distinct Big swing intent from earlier climbs."
+        },
+        {
+          "turn": 9,
+          "note": "Groggy window wasted: Vertical suplex shown as Big swing \"TARGET GROGGY payoff\" (76%) while Hall still groggy after failed shake (T8), but Climb to the top rope chosen; T10 Hall clears groggy unpunished."
+        },
+        {
+          "turn": 17,
+          "note": "Finish menu honest (Pin + Sharpshooter 85%) after failed get-up tease T16, yet climb selected again; Hall rises T18. One-sided HP (player ~129 vs Hall 87→66) and near_fall_count 0; move_repetition_rate 0.3636 from climb loops. Modest climax only at T21 Sharpshooter."
         }
       ]
     },
     "ease_of_use": {
       "value": 4,
-      "confidence": "medium",
+      "confidence": "high",
       "evidence": [
         {
-          "turn": 1,
-          "note": "gates_passed=True"
+          "turn": 7,
+          "note": "Groggy clearly a modifier: \"Hall is GROGGY — power moves and finishers are live!\" with positions STANDING/STANDING and groggy[false,true]."
+        },
+        {
+          "turn": 9,
+          "note": "Curated intents align with state: Big swing Vertical suplex labeled \"TARGET GROGGY payoff\" alongside Grapple/Set up/Safe/Reset — optimal power option visible, not hidden."
+        },
+        {
+          "turn": 17,
+          "note": "Pin visible when legal: Finish \"Cover — pinfall attempt\" (pin) plus Sharpshooter; curation_pin_visible true. Same Finish pair again at T21. single_choice_turns 0."
+        },
+        {
+          "turn": 21,
+          "note": "Sharpshooter label \"87%\" with note \"cash in momentum for a match-ending swing\" can be misread as win chance rather than apply chance (reminder: % = apply hold)."
         }
       ]
     },
     "stickiness": {
-      "value": 3,
-      "confidence": "medium",
+      "value": 4,
+      "confidence": "high",
       "evidence": [
         {
-          "turn": 1,
-          "note": "position_diversity=6, turn_count=21"
+          "turn": 9,
+          "note": "Missed groggy Big swing after T7–T8 wobble creates a clear \"what if I cash it?\" rematch hook."
+        },
+        {
+          "turn": 17,
+          "note": "After \"still down and vulnerable to a cover!\" (T16), Pin and Sharpshooter both offered then skipped for climb — curiosity about the unused pin path."
+        },
+        {
+          "turn": 21,
+          "note": "Multi-step submission finish lands cleanly; gates_passed, turn_count 21 in band, position_diversity 6 — short enough to want a cleaner intentional run."
         }
       ],
-      "rematch_intent": "maybe",
-      "rematch_reason": "Pilot heuristic from telemetry anchors.",
-      "next_experiment": "Try aggressive policy on same seed."
+      "rematch_intent": "yes",
+      "rematch_reason": "Match teases setup/payoff and finish windows (groggy, failed get-up, pin/submission menu) that chaotic climb loops abandoned; want to see those beats cashed.",
+      "next_experiment": "Replay seed 108 with methodical or aggressive: on T9-style groggy take Vertical suplex; after failed get-up (T16/T20 pattern) take Pin instead of Climb, or Sharpshooter only after a near-fall."
     },
     "juiciness": {
-      "value": 2,
-      "confidence": "medium",
+      "value": 3,
+      "confidence": "high",
       "evidence": [
         {
-          "turn": 1,
-          "note": "near_fall_count=0"
+          "turn": 5,
+          "note": "Impactful hit text: \"Hitman snaps off rebound clothesline — Hall takes 17 damage\" with GROUNDED state shift."
+        },
+        {
+          "turn": 8,
+          "note": "Groggy tension: \"Hall tries to clear their head but they're still wobbly!\" (groggy stays true) — good beat, but no power-move payoff before T10 clear."
+        },
+        {
+          "turn": 16,
+          "note": "Cover tease without counted near-fall: \"Hall tries to rise but can't find it — still down and vulnerable to a cover!\" (repeated T20); near_fall_count 0."
+        },
+        {
+          "turn": 21,
+          "note": "Submission finish_sequence with delays (1.0s, 1.5s): hooks in → reaches for daylight → cinched deeper → taps → SUBMISSION. Strong closing text; middle climb logs (\"Hitman: Climb to the top rope.\") stay flat and dilute density."
         }
       ]
     }
   },
-  "top_issues": [],
-  "highlight_moments": []
+  "top_issues": [
+    {
+      "severity": "major",
+      "dimension": "fun",
+      "summary": "Climb/dismount loops (T1→T3, T9→T11, T13, T17) repeatedly abandon legal Big swing and Finish payoffs; move_repetition_rate 0.3636 and a one-sided momentum freeze at [5,0] flatten the arc.",
+      "suggested_area": "top-rope setup/payoff pacing; discourage empty climb cycles"
+    },
+    {
+      "severity": "minor",
+      "dimension": "juiciness",
+      "summary": "Failed get-ups at T16 and T20 explicitly tease a cover, but near_fall_count stays 0 and the match ends on first Sharpshooter apply with no kickout/count drama.",
+      "suggested_area": "finish pacing / pin near-falls"
+    },
+    {
+      "severity": "minor",
+      "dimension": "ease_of_use",
+      "summary": "Sharpshooter Finish choices show apply% (85%/87%) with \"match-ending swing\" wording that can be read as win chance.",
+      "suggested_area": "submission apply% labeling"
+    }
+  ],
+  "highlight_moments": [
+    {
+      "turn": 5,
+      "type": "rope_payoff",
+      "quote": "Hitman snaps off rebound clothesline — Hall takes 17 damage."
+    },
+    {
+      "turn": 7,
+      "type": "groggy",
+      "quote": "Hall is GROGGY — power moves and finishers are live!"
+    },
+    {
+      "turn": 16,
+      "type": "failed_get_up",
+      "quote": "Hall tries to rise but can't find it — still down and vulnerable to a cover!"
+    },
+    {
+      "turn": 21,
+      "type": "submission_finish",
+      "quote": "Hitman hooks in sharpshooter! … Hall taps out! *** SUBMISSION — Hitman wins ***"
+    }
+  ]
 }

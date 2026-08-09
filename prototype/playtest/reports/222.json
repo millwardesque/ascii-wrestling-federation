@@ -1,0 +1,184 @@
+{
+  "rubric_version": "2026-07-30",
+  "meta": {
+    "match_seed": 222,
+    "wrestlers": ["bret_hart", "scott_hall"],
+    "player_policy": "aggressive",
+    "turn_count": 50,
+    "winner": "cpu"
+  },
+  "telemetry": {
+    "gates_passed": false,
+    "gate_failures": ["turn_count 50 outside band [8, 40]"],
+    "turn_count": 50,
+    "winner": "cpu",
+    "reason": "pinfall",
+    "near_fall_count": 0,
+    "curation_pin_visible": true,
+    "log_uniqueness_ratio": 0.4237,
+    "move_repetition_rate": 0.72,
+    "position_diversity": 6,
+    "single_choice_turns": 3,
+    "match_seed": 222,
+    "wrestlers": ["bret_hart", "scott_hall"],
+    "player_policy": "aggressive"
+  },
+  "scores": {
+    "fun": {
+      "value": 2,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 7,
+          "note": "A genuine risk/reward choice exists early: groggy menu offers 'Shake the cobwebs 71%' (safe) vs 'Desperation strike 58%' (damage). The aggressive pick pays off — 'Hitman snaps off desperation strike — Hall takes 4 damage. Hitman fights through — the groggy haze lifts!'"
+        },
+        {
+          "turn": 27,
+          "note": "The only tie-up that ever reaches a payoff: after Hall whiffs his break at t26, the menu opens up to Hip toss / Arm drag / Side headlock, but 'Hall reverses the hip toss — only 1 damage, and turns the tables!' The single setup/payoff beat in the match fails."
+        },
+        {
+          "turn": 33,
+          "note": "Dead loop: collar_elbow is 18 of 25 player turns (72.00%, exactly the reported move_repetition_rate), including seven straight player turns from t29 to t41. Health is frozen at [73, 123] from t29 through t41 — thirteen turns in which neither wrestler takes a point of damage."
+        },
+        {
+          "turn": 44,
+          "note": "No comeback structure: Hall ends the match at 123 of 132 HP, having lost 9 HP all match (two desperation strikes and two reversals), while the player falls 132 -> 28. position_diversity is 6 and near_fall_count is 0."
+        },
+        {
+          "turn": 50,
+          "note": "50 turns (gate fail, band [8, 40]) ending on a flat cover with no finisher heat and no kickout — the player's last three turns were all the forced single-option 'Fight to your feet'."
+        }
+      ]
+    },
+    "ease_of_use": {
+      "value": 3,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 11,
+          "note": "Loop-tax feedback reads clearly and the note text updates with it: 'tie-up is going stale — pay it off or reset before they steal momentum' paired with the log 'The repeated tie-up stalls out — Hall gains escape momentum.' The consequence is spelled out at t12 — 'Hall uses the stale tie-up to reset with momentum.'"
+        },
+        {
+          "turn": 31,
+          "note": "The mechanical cost is legible in the state: over t29-t32 the loop tax moves momentum from [0,2] to [0,5], handing Hall a maxed momentum bar purely through repetition."
+        },
+        {
+          "turn": 37,
+          "note": "But the menu keeps recommending the flagged move: Collar-and-elbow stays index 1 at 56%, tying Straight right 56% and beating Roundhouse kick 51%, on every stale turn. Ordering and odds both point at the move the note warns against, which is why the loop never breaks."
+        },
+        {
+          "turn": 43,
+          "note": "A risky option is under-labelled: with Hall on the TOP_ROPE, 'Hit the ropes' is offered as plain 'Set up position — changes ring position to unlock a stronger follow-up' with no hint that running the ropes under a top-rope opponent enables their bigger dive. It directly sets up t44's 20-damage running diving crossbody. The safer counter ('Pull off the top rope 56%') was visible at index 1, so nothing is hidden — the note just does not price the risk."
+        },
+        {
+          "turn": 21,
+          "note": "Groggy is presented correctly as a modifier (groggy [true, false] with position STANDING at t20), though both recovery options again share the identical note 'clear the haze before they punish you'."
+        },
+        {
+          "turn": 45,
+          "note": "Honest single-choice turns: at t45/47/49 only 'Fight to your feet' is legal and the note states the downside plainly — 'stand before they cover you; misses build escape momentum' (3 single_choice_turns)."
+        }
+      ]
+    },
+    "stickiness": {
+      "value": 2,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 35,
+          "note": "No discovery in the back half: turns 29-41 are one repeated exchange, with 'The repeated tie-up stalls out' firing 9 times and 'Hall uses the stale tie-up to reset with momentum' 8 times across the match."
+        },
+        {
+          "turn": 27,
+          "note": "The one thread worth pulling is the unresolved grapple payoff — Hip toss / Arm drag / Side headlock finally became available and the attempt was reversed, so the tie-up branch is still effectively unseen."
+        },
+        {
+          "turn": 50,
+          "note": "The finish gives nothing back: a plain 'Referee: 1… 2… 3!' with no finisher bonus and no near fall, after a match the player never led."
+        }
+      ],
+      "rematch_intent": "maybe",
+      "rematch_reason": "The tie-up branch is still unexplored — the one time Arm drag / Side headlock / Hip toss became available at t27 the attempt was reversed — but 72% of the match was a single move and the player never held an advantage, so there is little pull to replay this arc as-is.",
+      "next_experiment": "Re-run seed 222 with a policy that abandons Collar-and-elbow the first time the note reads 'tie-up is going stale' (switch to Straight right or Climb) and takes 'Pull off the top rope' at t43 instead of 'Hit the ropes', to test whether either the loop tax or the top-rope counter is escapable within the 8-40 turn band."
+    },
+    "juiciness": {
+      "value": 2,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 6,
+          "note": "Status beats land well when they occur: 'Hall snaps off roundhouse kick — Hitman takes 9 damage. Hitman is GROGGY — power moves and finishers are live!' followed by the t7 escape line 'Hitman fights through — the groggy haze lifts!'"
+        },
+        {
+          "turn": 24,
+          "note": "Best single spot in the match: 'Hitman reverses the roundhouse kick — only 1 damage, and turns the tables!' swinging momentum from [0,5] to [1,3] — the one moment the crowd would move."
+        },
+        {
+          "turn": 34,
+          "note": "Feedback density is the weakest of the batch: log_uniqueness_ratio 0.4237 and position_diversity 6, with turns 29-41 cycling two sentences and no HP change at all across thirteen turns."
+        },
+        {
+          "turn": 44,
+          "note": "The two big impacts are narratively identical: 'Hall snaps off diving crossbody — Hitman takes 20 damage' at t44 and again verbatim at t48, for exactly 20 each time, with no rattled/groggy tag on either."
+        },
+        {
+          "turn": 50,
+          "note": "Flattest possible finish: the pinfall sequence is staged (delays 1.0 / 1.5 / 0.0 / 0.0) but has no finisher echo line, no near fall anywhere in the match, and the count is never in doubt."
+        }
+      ]
+    }
+  },
+  "top_issues": [
+    {
+      "severity": "critical",
+      "dimension": "fun",
+      "summary": "The loop persists despite the warnings. Collar-and-elbow accounts for 18 of 25 player turns (72%) including seven consecutive turns t29-t41; 'The repeated tie-up stalls out' fires 9 times and 'Hall uses the stale tie-up to reset with momentum' 8 times, yet the state produces thirteen turns (t29-t41) with zero HP change on either side. The tax is communicated and applied but never forces a change of plan.",
+      "suggested_area": "escalating loop tax — gate or drop the stale move from curation after N repeats"
+    },
+    {
+      "severity": "major",
+      "dimension": "ease_of_use",
+      "summary": "Curation contradicts the loop-tax warning: on every stale turn Collar-and-elbow is still index 1 and still ties the highest hit chance shown (t37: tie-up 56%, punch 56%, kick 51%). Both the ordering and the percentages steer the player into the move the note tells them to abandon.",
+      "suggested_area": "curation ordering / hit-% presentation for moves flagged stale"
+    },
+    {
+      "severity": "major",
+      "dimension": "fun",
+      "summary": "Fairness and pacing: Hall finishes at 123 of 132 HP having conceded 9 damage in 50 turns while the player drops to 28. With near_fall_count 0, position_diversity 6 and a 50-turn gate fail, there is no arc — just a slow one-sided decline.",
+      "suggested_area": "comeback pressure / damage floor when one side lands nothing for many turns"
+    },
+    {
+      "severity": "minor",
+      "dimension": "ease_of_use",
+      "summary": "At t43 'Hit the ropes' is labelled only as a generic position setup while the opponent is on the top rope, and it directly enables the 20-damage running diving crossbody at t44. The safer 'Pull off the top rope' was visible, but nothing in the note flags the risk of running the ropes under a diving opponent.",
+      "suggested_area": "risk-aware note text for setup moves that improve the opponent's follow-up"
+    }
+  ],
+  "highlight_moments": [
+    {
+      "turn": 7,
+      "type": "recovery",
+      "quote": "Hitman snaps off desperation strike — Hall takes 4 damage.\n  Hitman fights through — the groggy haze lifts!"
+    },
+    {
+      "turn": 24,
+      "type": "reversal",
+      "quote": "Hitman reverses the roundhouse kick — only 1 damage, and turns the tables!"
+    },
+    {
+      "turn": 28,
+      "type": "loop_tax",
+      "quote": "Hall snaps off grapple counter — Hitman takes 5 damage.\n  The counter is getting predictable — Hitman slips free with momentum."
+    },
+    {
+      "turn": 44,
+      "type": "big_spot",
+      "quote": "Hall snaps off diving crossbody — Hitman takes 20 damage."
+    },
+    {
+      "turn": 50,
+      "type": "finish",
+      "quote": "Referee: 1…\n  Referee: 2…\n  Referee: 3!\n  *** PINFALL — Hall wins ***"
+    }
+  ]
+}

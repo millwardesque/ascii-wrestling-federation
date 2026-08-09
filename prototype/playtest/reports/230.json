@@ -1,0 +1,194 @@
+{
+  "rubric_version": "2026-07-30",
+  "meta": {
+    "match_seed": 230,
+    "wrestlers": ["bret_hart", "scott_hall"],
+    "player_policy": "novice",
+    "turn_count": 22,
+    "winner": "cpu"
+  },
+  "telemetry": {
+    "gates_passed": true,
+    "gate_failures": [],
+    "turn_count": 22,
+    "near_fall_count": 0,
+    "curation_pin_visible": true,
+    "log_uniqueness_ratio": 0.7857,
+    "move_repetition_rate": 0.5455,
+    "position_diversity": 7,
+    "single_choice_turns": 6,
+    "winner": "cpu",
+    "reason": "pinfall"
+  },
+  "scores": {
+    "fun": {
+      "value": 2,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 4,
+          "note": "Genuine high point: the player climbs at turns 1 and 3, Hall answers with 'Hall: Climb to the top rope.' and both wrestlers end up on the top rope at once - a real positional standoff with both sides at 4 momentum."
+        },
+        {
+          "turn": 6,
+          "note": "The standoff produces a two-way reversal exchange - turn 5 'Hall reverses the hurricanrana - only 2 damage' then turn 6 'Hitman reverses the superplex - only 3 damage, and turns the tables!' - the only stretch with real momentum swing (player 2 -> 5 -> 3)."
+        },
+        {
+          "turn": 7,
+          "note": "The trade-off collapses immediately: the player repeats Hurricanrana at a worse 49% and gets the identical outcome as turn 5, with no anti-loop warning to signal the repeat is going stale."
+        },
+        {
+          "turn": 8,
+          "note": "Hall wins the exchange with a 21-damage hurricanrana and the match becomes one-directional - the player's health goes 132 -> 39 while Hall only ever loses 4 HP, all from reversals."
+        },
+        {
+          "turn": 17,
+          "note": "Turns 13, 15, 17, 19 and 21 are all 'Fight to your feet' with exactly one legal option (6 single_choice_turns overall), so the last half of the match contains no decisions at all."
+        },
+        {
+          "turn": 22,
+          "note": "Finish arrives with no buildup - the first cover of the match wins 1-2-3, near_fall_count 0, and the player never reached a Finish option."
+        }
+      ]
+    },
+    "ease_of_use": {
+      "value": 3,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 5,
+          "note": "Top-rope menu is clear and well differentiated: two 'Big swing' options at 55% noted 'top-rope payoff: high risk, huge crowd pop', a 'Reset / recover' dismount, and a 'Pressure' option at 60% noted 'keep control and build toward a bigger chance'."
+        },
+        {
+          "turn": 16,
+          "note": "Pending groggy is explained as a modifier rather than a position: 'Hitman is rattled - when they're forced up, big payoffs may open.' and it resolves correctly at turn 19 with 'Hitman rises - still groggy from the impact!'"
+        },
+        {
+          "turn": 15,
+          "note": "Six of eleven player turns (9, 13, 15, 17, 19, 21) show a single option. The note explains the stake ('stand before they cover you; misses build escape momentum'), but being prompted to choose from one item repeatedly reads as friction."
+        },
+        {
+          "turn": 7,
+          "note": "The anti-loop feedback that this batch added never fires here. The player repeats climb on turns 1 and 3 and Hurricanrana on turns 5 and 7, and no telegraph or stale-loop line appears; the repeated climb even builds momentum (0 -> 2 -> 4), so the menu signals the repeat is fine."
+        },
+        {
+          "turn": 7,
+          "note": "Log freshness gap: turns 5 and 7 emit the byte-identical line 'Hall reverses the hurricanrana - only 2 damage; Hitman whiffs - Hall shrugs it off.', giving no new information about why the second attempt failed."
+        },
+        {
+          "turn": 1,
+          "note": "Probabilities are shown but the moving numbers are unexplained - the tie-up reads 58%-equivalent at 71% on turn 1 and 84% on turn 3 with no indication that momentum is driving the change."
+        }
+      ]
+    },
+    "stickiness": {
+      "value": 2,
+      "confidence": "high",
+      "rematch_intent": "maybe",
+      "rematch_reason": "The double-top-rope standoff at turns 4-8 is the most interesting thing in this batch and clearly has unexplored lines (Superplex, Top-rope brawl shot, or dismounting instead of repeating Hurricanrana). Against that, the match is a shutout in which the player lands no offense, spends half its turns on a forced 'Fight to your feet', and loses to the first cover attempted.",
+      "next_experiment": "Re-run seed 230 choosing 'Top-rope brawl shot' (60%, 'Pressure') at turn 5 instead of the 55% Hurricanrana, and dismounting rather than repeating at turn 7, to test whether the top-rope standoff can be converted into player offense before Hall's turn-8 hurricanrana takes over.",
+      "evidence": [
+        {
+          "turn": 5,
+          "note": "Unexplored content is visible in the menu itself - Superplex, Hurricanrana, Climb down carefully and Top-rope brawl shot were all live and only one was tried, twice."
+        },
+        {
+          "turn": 8,
+          "note": "A 21-damage hurricanrana from the top rope shows the payoff ceiling the player was reaching for, which is a concrete reason to try the position again."
+        },
+        {
+          "turn": 21,
+          "note": "Against rematch: the final five player turns are the same forced get-up attempt with no branching, and the player finishes at 39 HP having never damaged Hall with an intentional move."
+        },
+        {
+          "turn": 22,
+          "note": "The session ends on the first cover with zero near falls, so there is no cliffhanger pulling toward another match."
+        }
+      ]
+    },
+    "juiciness": {
+      "value": 3,
+      "confidence": "high",
+      "evidence": [
+        {
+          "turn": 4,
+          "note": "Position feedback carries the drama: both wrestlers reach TOP_ROPE simultaneously and momentum sits level at 4-4, which reads as a standoff without needing extra text."
+        },
+        {
+          "turn": 8,
+          "note": "Biggest payoff of the match lands with a clear state shift: 'Hall snaps off hurricanrana - Hitman takes 21 damage.' flipping the player to GROUNDED."
+        },
+        {
+          "turn": 20,
+          "note": "Finisher beat is properly tagged - 'Hall snaps off razor's edge - Hitman takes 20 damage.' plus '- FINISHER - the next cover packs extra heat.' - and cashed in at turn 22 as '+12 on the cover!'"
+        },
+        {
+          "turn": 22,
+          "note": "finish_sequence pacing metadata is intact (1.0s after 'Referee: 1...', 1.5s after 'Referee: 2...'), but with near_fall_count 0 the count never carries suspense."
+        },
+        {
+          "turn": 7,
+          "note": "Flat repetition undercuts the top-rope spot: the identical reversal line at turns 5 and 7 turns what should be two dramatic misses into one duplicated sentence (log_uniqueness_ratio 0.7857)."
+        },
+        {
+          "turn": 13,
+          "note": "The grounded stretch produces low-information text - 'Hitman tries to rise but can't find it - still down and vulnerable to a cover!' appears three times (13, 17, 21) with no escalation as the player's health falls."
+        }
+      ]
+    }
+  },
+  "top_issues": [
+    {
+      "severity": "major",
+      "dimension": "fun",
+      "summary": "The anti-loop feedback does not cover the loop that actually happened here. The player repeated Climb (turns 1, 3) and Hurricanrana (turns 5, 7) and no stale/telegraph line appeared in the entire transcript; the repeated climb even gained momentum (0 -> 2 -> 4). The loop tax appears to bite on the tie-up line but not on setup/big-swing repeats.",
+      "suggested_area": "loop tax coverage for climb and top-rope moves"
+    },
+    {
+      "severity": "major",
+      "dimension": "ease_of_use",
+      "summary": "6 of 11 player turns present exactly one option ('Fight to your feet' at 9, 13, 15, 17, 19, 21), so more than half the match asks for input without offering a decision. Turns 13-21 are an unbroken forced-choice stretch.",
+      "suggested_area": "grounded state moveset / curation"
+    },
+    {
+      "severity": "major",
+      "dimension": "fun",
+      "summary": "Shutout with no comeback window - the player never lands an intentional offensive move, Hall's health falls only 132 -> 128 entirely through reversals, and the player never sees a Finish option because Hall is never grounded.",
+      "suggested_area": "comeback / momentum systems"
+    },
+    {
+      "severity": "minor",
+      "dimension": "juiciness",
+      "summary": "Duplicate log text weakens two separate top-rope misses: turns 5 and 7 emit the byte-identical line 'Hall reverses the hurricanrana - only 2 damage; Hitman whiffs - Hall shrugs it off.'",
+      "suggested_area": "log text variation"
+    },
+    {
+      "severity": "minor",
+      "dimension": "juiciness",
+      "summary": "near_fall_count is 0 and the match's single cover ends it immediately at turn 22, so the pin drama system never engages.",
+      "suggested_area": "pin resolution"
+    }
+  ],
+  "highlight_moments": [
+    {
+      "turn": 4,
+      "type": "standoff",
+      "quote": "Hall: Climb to the top rope."
+    },
+    {
+      "turn": 6,
+      "type": "reversal",
+      "quote": "Hitman reverses the superplex - only 3 damage, and turns the tables!"
+    },
+    {
+      "turn": 8,
+      "type": "big_spot",
+      "quote": "Hall snaps off hurricanrana - Hitman takes 21 damage."
+    },
+    {
+      "turn": 20,
+      "type": "finisher",
+      "quote": "- FINISHER - the next cover packs extra heat."
+    }
+  ]
+}
