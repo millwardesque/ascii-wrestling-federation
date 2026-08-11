@@ -49,7 +49,11 @@ _KNOCKDOWN_HP_FRAC = 0.20
 # a single shared counter is cancelled out by the opponent's turn, so an every-other-turn
 # loop never accumulates.
 _LOOP_STALE_THRESHOLD = 2
-_LOOP_STALE_HIT_PENALTY = 0.07  # per stack past the threshold, so the menu % tells the truth
+_LOOP_STALE_HIT_PENALTY = 0.09  # per stack past the threshold, so the menu % tells the truth
+# Light tie-up throws keep the mat cycle alive — only soft-decay debt.
+_GRAPPLE_LIGHT_PAYOFF_IDS = frozenset({"arm_drag", "hip_toss", "side_headlock"})
+# Whips leave the standing/mat treadmill for a real setup.
+_GRAPPLE_REAL_EXIT_IDS = frozenset({"irish_whip", "turnbuckle_whip"})
 _FORCED_RESET_MOVE_IDS = frozenset(
     {"get_up", "shake_groggy", "recover", "escape_corner", "feet_plant", "desperation_strike"}
 )
@@ -96,10 +100,13 @@ class MatchState:
     pending_groggy: list[bool] = field(default_factory=list)
     # Failed get-up attempts increase the next get-up chance and can grant escape momentum.
     get_up_fail_streak: list[int] = field(default_factory=list)
-    # Per-actor loop debt. Grapple: raised by re-entering the tie-up, cleared by paying it off.
+    # Per-actor loop debt. Grapple: raised by re-entering the tie-up (hit or miss);
+    # light throws soft-decay it, whips / real exits clear it.
     grapple_loop_pressure: list[int] = field(default_factory=list)
     # Per-actor loop debt for climb / empty dismount spam; top-rope payoffs pay it down.
     setup_loop_pressure: list[int] = field(default_factory=list)
+    # Per-actor debt for answering every tie-up with the same counter chip.
+    counter_loop_pressure: list[int] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         if not self.health:
@@ -126,6 +133,8 @@ class MatchState:
             self.grapple_loop_pressure = [0, 0]
         if not self.setup_loop_pressure:
             self.setup_loop_pressure = [0, 0]
+        if not self.counter_loop_pressure:
+            self.counter_loop_pressure = [0, 0]
 
     def valid_rules(self, actor_idx: int) -> list[tuple[int, MoveRule]]:
         actor = self.wrestlers[actor_idx]
@@ -178,6 +187,8 @@ def loop_pressure_for(state: MatchState, actor_idx: int, m: Move) -> int:
     """This actor's accumulated debt for the loop family ``m`` belongs to (0 if none)."""
     if m.id == "collar_elbow":
         return state.grapple_loop_pressure[actor_idx]
+    if m.id == "grapple_counter":
+        return state.counter_loop_pressure[actor_idx]
     if m.id in {"climb", "dismount_top"}:
         return state.setup_loop_pressure[actor_idx]
     return 0
@@ -306,14 +317,17 @@ def _apply_loop_pressure(
 ) -> int:
     """Tax an actor for repeating their own neutral/setup loop. Returns effective momentum gain.
 
-    Only the wrestler who chooses to re-enter a loop pays. Breaking or countering a tie-up
-    is a forced escape, not a loop, so it never builds the escaper's debt.
+    Tie-up debt tracks the whole collar→chip→re-tie cycle: attempts count even on a miss,
+    light throws only soft-decay pressure, and only whips / real exits wipe it. Grapple
+    counter builds its own defender debt so the same answer cannot chip forever for free.
     """
     tgt = 1 - actor_idx
     target = state.wrestlers[tgt]
+    actor = state.wrestlers[actor_idx]
     mom_gain = m.momentum_gain
 
     grapple_before = state.grapple_loop_pressure[actor_idx]
+    counter_before = state.counter_loop_pressure[actor_idx]
     if m.id == "collar_elbow":
         state.grapple_loop_pressure[actor_idx] = min(4, grapple_before + 1)
         if grapple_before >= _LOOP_STALE_THRESHOLD:
@@ -323,12 +337,30 @@ def _apply_loop_pressure(
             lines.append(
                 f"  The repeated tie-up stalls out — {target.nickname} gains escape momentum."
             )
-    elif m.target_grappled:
+    elif m.id in _GRAPPLE_REAL_EXIT_IDS:
         state.grapple_loop_pressure[actor_idx] = 0
-    elif m.id in {"break_grapple", "grapple_counter"}:
+    elif m.id in _GRAPPLE_LIGHT_PAYOFF_IDS or m.target_grappled:
+        # Chip throws are the treadmill — leave debt alone so re-ties still accumulate.
+        pass
+    elif m.id == "grapple_counter":
+        state.counter_loop_pressure[actor_idx] = min(4, counter_before + 1)
+        if counter_before >= _LOOP_STALE_THRESHOLD:
+            mom_gain = 0
+            state.momentum[actor_idx] = max(0, state.momentum[actor_idx] - 1)
+            state.momentum[tgt] = min(5, state.momentum[tgt] + 1)
+            lines.append(
+                f"  The counter is getting predictable — {actor.nickname} loses the edge."
+            )
+    elif m.id == "break_grapple":
+        # Clean break is the non-loop escape; soft-decay counter debt only.
+        state.counter_loop_pressure[actor_idx] = max(0, counter_before - 1)
+    elif m.id in _FORCED_RESET_MOVE_IDS:
+        # get_up / recover sit inside the collar→throw→stand cycle; do not launder debt.
         pass
     else:
+        # Standing strikes, rope work, etc. — leave the tie-up diet.
         state.grapple_loop_pressure[actor_idx] = max(0, grapple_before - 1)
+        state.counter_loop_pressure[actor_idx] = max(0, counter_before - 1)
 
     setup_before = state.setup_loop_pressure[actor_idx]
     if m.id == "climb":
@@ -386,6 +418,10 @@ def apply_move(
         p = hit_probability(state, actor_idx, rule)
         if _rand_float(rng) >= p:
             lines.extend(_resolve_miss(state, actor_idx, rule, rng))
+            # Whiffed re-ties still feed the collar cycle; ignore returned mom gain
+            # because _resolve_miss already handled momentum on the miss path.
+            if m.id == "collar_elbow":
+                _apply_loop_pressure(state, actor_idx, m, lines)
             if actor_idx == 1:
                 state.cpu_last_move_id = m.id
             _tick_groggy_timer(state, actor_idx)
@@ -418,6 +454,8 @@ def apply_move(
         dmg = _damage_with_stats(
             m.base_damage, actor, target, agility_bonus=top or m.actor_running_ropes_only
         )
+        if m.id == "grapple_counter" and move_is_stale(state, actor_idx, m):
+            dmg = max(1, dmg - 2)
         state.health[tgt] = max(0, state.health[tgt] - dmg)
         lines.append(
             f"  {actor.nickname} snaps off {m.name.lower()} — "
@@ -811,8 +849,10 @@ def _cpu_rule_score(state: MatchState, cpu_idx: int, r: MoveRule) -> float:
         s += 100
     if m.id == "break_grapple":
         s += 65
+        s += float(state.counter_loop_pressure[cpu_idx]) * 8.0
     if m.id == "grapple_counter":
         s += 90
+        s -= float(state.counter_loop_pressure[cpu_idx]) * 28.0
     if state.cpu_last_move_id is not None and m.id == state.cpu_last_move_id:
         s -= _CPU_VARIETY_PENALTY
     if m.is_finisher:

@@ -3,186 +3,167 @@
   "meta": {
     "match_seed": 219,
     "wrestlers": ["bret_hart", "scott_hall"],
-    "player_policy": "chaotic",
-    "turn_count": 56,
-    "winner": "cpu"
+    "player_policy": "aggressive",
+    "turn_count": 33,
+    "winner": "player"
   },
   "telemetry": {
-    "gates_passed": false,
-    "gate_failures": ["turn_count 56 outside band [8, 40]"],
-    "turn_count": 56,
+    "gates_passed": true,
+    "gate_failures": [],
+    "turn_count": 33,
+    "winner": "player",
+    "reason": "pinfall",
     "near_fall_count": 0,
     "curation_pin_visible": true,
-    "log_uniqueness_ratio": 0.6389,
-    "move_repetition_rate": 0.1429,
-    "position_diversity": 9,
-    "single_choice_turns": 4,
-    "winner": "cpu",
-    "reason": "pinfall"
+    "log_uniqueness_ratio": 0.7105,
+    "move_repetition_rate": 0.3529,
+    "position_diversity": 8,
+    "single_choice_turns": 2,
+    "match_seed": 219,
+    "wrestlers": ["bret_hart", "scott_hall"],
+    "player_policy": "aggressive"
   },
   "scores": {
     "fun": {
-      "value": 3,
+      "value": 4,
       "confidence": "high",
       "evidence": [
         {
-          "turn": 37,
-          "note": "Best comeback arc of the batch. The player was down 15 to 116 after being pulled off the top at turn 34, then ran off Hurricanrana for 22 (37), Vertical suplex for 16 (39), Running dropkick for 19 (43), Straight right for 7 (45), Roundhouse kick for 9 (47) and Grapple counter for 5 (49) - taking Hall from 116 to 38 while never leaving 15 health themselves."
+          "turn": 9,
+          "note": "Setup/payoff lands: climb → 'Hitman snaps off missile dropkick — Hall takes 19 damage' plus 'Hall is rattled — when they're forced up, big payoffs may open.' Distinct Big swing intents on the top rope."
         },
         {
-          "turn": 39,
-          "note": "The one time in this batch a groggy setup was actually cashed: turn 38 'Hall rises - still groggy from the impact!', then the turn 39 menu offers index 1 Vertical suplex at 72% with note 'TARGET GROGGY payoff: heavy damage is available now', the player takes it, and it hits for 16. That is the setup/payoff loop working end to end."
+          "turn": 13,
+          "note": "Groggy cash-in is real: menu offers 'Vertical suplex 77% — TARGET GROGGY payoff: heavy damage is available now' vs Collar-and-elbow 92%; aggressive takes the suplex for 16 damage."
         },
         {
-          "turn": 41,
-          "note": "And the counter-example one turn later. With Hall still groggy the player chose 'Hit the ropes' instead of the same 72% suplex, and Hall simply cleared it at turn 42 with 'Hall steadies themselves - they're back!' Nothing warned that walking away from a groggy opponent forfeits the window."
+          "turn": 11,
+          "note": "Mid-match Finish swing: with Hall grounded at 105 HP, Cover + Sharpshooter 70% are offered; player fires Sharpshooter and gets 'Hall turns the tables!' — risky finish attempt with a clear miss beat."
         },
         {
-          "turn": 20,
-          "note": "Real two-way threat throughout: Hall's Superplex hit for 29 twice (turns 8 and 20), taking the player from 125 to 96 and then 68 to 39. Neither wrestler was ever safe, which is why 56 turns still reads as a fight rather than a stall."
+          "turn": 21,
+          "note": "Second big spot: both on TOP_ROPE → 'Hitman snaps off superplex — Hall takes 30 damage' and rattled again. Brief peril after both go GROUNDED (player fails get_up at t23) before the close."
         },
         {
-          "turn": 27,
-          "note": "The sag is in the middle: turns 21-32 are get_up (21, 22), shake the cobwebs (23, 25), a whiffed break (27), side headlock for 6 (28), break the grapple (29), a reversal (30), recover (31) - twelve turns for 22 damage and no position progress."
+          "turn": 33,
+          "note": "Climax is a clean pin after hip toss + failed Hall get_up; gates_passed and turn_count 33 inside [8,40]. Collar appears often (aggressive) but grapple_counter/break resolve quickly — not a long collar slog. Missing near-fall (near_fall_count 0) keeps this from a 5."
         }
       ]
     },
     "ease_of_use": {
-      "value": 3,
+      "value": 4,
       "confidence": "high",
       "evidence": [
         {
-          "turn": 39,
-          "note": "Intent, label and outcome align exactly where it matters most: 'Big swing' / 'Vertical suplex' / '72%' / 'TARGET GROGGY payoff: heavy damage is available now' produced 'Hitman snaps off vertical suplex - Hall takes 16 damage.' A new player could act on that prompt correctly with no prior knowledge."
-        },
-        {
-          "turn": 56,
-          "note": "The finisher-to-cover rule is explained in-line rather than assumed. Turn 54 states the setup ('- FINISHER - the next cover packs extra heat.') and turn 56 states the cash-in with a number ('The finisher still echoes - +12 on the cover!'), so the cause of the successful pin is legible after the fact."
-        },
-        {
-          "turn": 29,
-          "note": "Recurring mislabel: when grappled the only two options are 'Grapple counter' (69%) and 'Break the grapple' (79%), both filed under intent 'Safe offense' with the note 'steady damage and momentum without overcommitting'. Turn 29's successful break logs 'Hitman: Break the grapple.' with health unchanged at 24/116 - no damage at all. The higher percentage reads like the better attack when it is not an attack."
-        },
-        {
-          "turn": 55,
-          "note": "Four single-choice turns (9, 13, 21, 55) offer only 'Fight to your feet'. At turn 55, on 1 health after the Razor's Edge, the note 'stand before they cover you; misses build escape momentum' is honest about the stakes, but the player has no decision to make in the most tense moment of the match."
+          "turn": 11,
+          "note": "Pin is Finish index 1 whenever legal (also t33). curation_pin_visible true — Cover never hidden."
         },
         {
           "turn": 11,
-          "note": "Groggy-state prompts read cleanly as a modifier, not a position: state shows position STANDING with groggy true, and the failed attempt is explained plainly - 'Hitman lunges wildly but can't connect - still groggy!' with momentum dropping 3 -> 2."
+          "note": "Sharpshooter labeled '70% — cash in momentum for a match-ending swing' reads as apply-hold odds in the Finish lane (88% again at t33), not a win meter."
+        },
+        {
+          "turn": 12,
+          "note": "Groggy is clearly a modifier: 'Hall rises — still groggy from the impact!' with position STANDING and groggy [false, true]."
+        },
+        {
+          "turn": 13,
+          "note": "TARGET GROGGY payoff note makes the heavy line unmistakable above the safer tie-up."
+        },
+        {
+          "turn": 5,
+          "note": "Minor: grapple chip notes say 'whip out to break the cycle' but curated menu only shows Hip toss / Arm drag / Side headlock / Climb / Recover — whip itself is not listed among choices."
         }
       ]
     },
     "stickiness": {
       "value": 4,
       "confidence": "high",
-      "rematch_intent": "yes",
-      "rematch_reason": "This match produced the one thing the other two seeds never did: a clean, legible climax. The player survived on 15 health for eighteen turns and cut Hall down from 116 to 38, then lost to a Razor's Edge (54), a failed get-up (55) and a cover that explicitly cashed the finisher heat (56, '+12 on the cover!'). Losing that way makes me want to replay it, which is the strongest stickiness signal in the batch.",
-      "next_experiment": "Re-run seed 219 taking the 72% 'TARGET GROGGY payoff' Vertical suplex at turn 41 instead of Hit the ropes, and choosing Desperation strike over Shake the cobwebs at turn 53, to test whether cashing the second groggy window closes Hall out before the Razor's Edge lands - and whether the pin at 56 can be turned into a near-fall rather than a clean three.",
       "evidence": [
         {
-          "turn": 8,
-          "note": "The both-on-the-top-rope Superplex for 29 damage is the biggest single hit in the batch and it fired twice (8, 20), which makes the top-rope mirror position something I want to deliberately set up rather than fall into."
+          "turn": 11,
+          "note": "Early Sharpshooter reversal invites a rematch that commits to Cover instead when Hall fails get_up (t10/t32)."
         },
         {
-          "turn": 43,
-          "note": "The rope-running branch resolved for the first time in this batch - 'Hitman snaps off running dropkick - Hall takes 19 damage.' - out of a four-option menu (Springboard crossbody, Kill the run, Running dropkick, Spinning heel kick), leaving three named lines still unexplored."
+          "turn": 33,
+          "note": "Clean 1-2-3 with finish_sequence delays leaves curiosity about a kickout/near-fall beat that never fired (near_fall_count 0)."
         },
         {
-          "turn": 54,
-          "note": "The loss lands as earned rather than arbitrary: 'Hall snaps off razor's edge - Hitman takes 20 damage.' followed by the finisher-heat note, then the cover two turns later. Ignoring win/loss for fairness purposes, the sequencing is what creates the rematch pull."
+          "turn": 21,
+          "note": "Superplex + dual-ground sequence is a line worth replaying with different Finish timing."
         }
-      ]
+      ],
+      "rematch_intent": "yes",
+      "rematch_reason": "Match had real setup/payoff variety and a pin climax inside the turn band; want to see a kickout or submission path instead of a first-try 1-2-3.",
+      "next_experiment": "Re-run seed 219 taking Cover at t11 (or after the t32 failed get_up) aiming for a near-fall, or cash Sharpshooter at t33 to compare submission finish_sequence tension vs the clean pin."
     },
     "juiciness": {
       "value": 4,
       "confidence": "high",
       "evidence": [
         {
-          "turn": 56,
-          "note": "Strongest payoff chain in the batch, and it pays off a flag set two turns earlier. The pinfall finish_sequence runs five steps - '+12 on the cover!' (0.0s), 'Referee: 1...' (1.0s), 'Referee: 2...' (1.5s), 'Referee: 3!' (0.0s), '*** PINFALL - Hall wins ***' (0.0s) - so the count is paced rather than dumped, and the +12 explicitly ties the result back to the turn 54 finisher."
+          "turn": 9,
+          "note": "Missile dropkick + rattled line is a clear crowd-pop state shift (Hall 124→105, GROUNDED)."
         },
         {
-          "turn": 8,
-          "note": "Big spots hit hard and shift state visibly: 'Hall snaps off superplex - Hitman takes 29 damage.' plus 'Hitman is rattled - when they're forced up, big payoffs may open.', with both wrestlers dropping to GROUNDED - a distinctive state that no other move in the match produced."
+          "turn": 21,
+          "note": "Superplex 30 damage + rattled, both wrestlers GROUNDED — highest-impact offense of the match."
         },
         {
-          "turn": 37,
-          "note": "The comeback beats are individually flavoured rather than recycled: hurricanrana for 22 with a rattled callout (37), vertical suplex for 16 with another (39), running dropkick for 19 (43). log_uniqueness_ratio 0.6389 is the highest of the three seeds and it is noticeable in the read."
+          "turn": 33,
+          "note": "Pin finish_sequence stages delays_sec 1.0 then 1.5 before the three: 'Referee: 1… / 2… / 3! *** PINFALL — Hitman wins ***'."
         },
         {
-          "turn": 55,
-          "note": "The failed get-up right before the cover is a genuine dread beat: 'Hitman tries to rise but can't find it - still down and vulnerable to a cover!' on 1 health, immediately followed by the pin. The state feedback does the dramatic work without extra prose."
+          "turn": 10,
+          "note": "Failed get-ups telegraph cover heat ('still down and vulnerable to a cover!') at t10 and t32 — paid off by the pin, but no kickout beat so near_fall_count stays 0."
         },
         {
-          "turn": 56,
-          "note": "Held back from 5 by near_fall_count 0. The referee count went straight to three on the only cover of the match, so the count sequence never delivered a kickout - the single biggest drama beat available to the format is still unfired across this entire batch."
+          "turn": 33,
+          "note": "log_uniqueness_ratio 0.7105 supports varied phrasing; collar/chip lines repeat some but big spots stay distinct."
         }
       ]
     }
   },
   "top_issues": [
     {
-      "severity": "major",
-      "dimension": "fun",
-      "summary": "56 turns against a [8, 40] band. The overrun concentrates in turns 21-32, where get_up (21, 22), shake the cobwebs (23, 25), a whiffed break (27), a break (29), a reversal (30) and a recover (31) consume twelve turns for 22 total damage while both wrestlers stay STANDING or GRAPPLED.",
-      "suggested_area": "game.py turn economy for recovery-state moves (get_up, shake_groggy, break_grapple), which currently cost a full turn each and can chain"
-    },
-    {
-      "severity": "major",
-      "dimension": "juiciness",
-      "summary": "near_fall_count is 0 and only one cover was attempted in the whole match. The single pin at turn 56 went 1-2-3 clean, so the format's best drama device - the two-count kickout - never fired. Combined with seeds 226 and 210 also at zero, near-falls appear to be effectively unreachable in current tuning.",
-      "suggested_area": "pin resolution thresholds / PinSequence, so covers against a healthier opponent produce a two-count kickout instead of resolving binary"
-    },
-    {
       "severity": "minor",
       "dimension": "fun",
-      "summary": "Health floors at 1, so the last two turns played out with the player already unkillable-but-beaten: turn 54's Razor's Edge took 11 health down to 1, and the only remaining question was whether the cover connected. Damage stops carrying meaning once either wrestler bottoms out.",
-      "suggested_area": "finish conditions at minimum health - consider a ref stoppage or a visible 'on the brink' state so the last turns read differently"
+      "summary": "Finish is a clean first-attempt 1-2-3 with near_fall_count 0 despite two prior 'vulnerable to a cover' teases (t10/t32). Buildup is good; the kickout beat never appears.",
+      "suggested_area": "pin kickout frequency / near-fall staging when opponent is mid-HP or first cover"
     },
     {
       "severity": "minor",
       "dimension": "ease_of_use",
-      "summary": "The grappled menu presents 'Break the grapple' as intent 'Safe offense' with the note 'steady damage and momentum without overcommitting' at 79%, above 'Grapple counter' at 69% (turns 27, 29, 49). The break deals no damage - turn 29 logs only 'Hitman: Break the grapple.' - so the highest number in a two-option menu is the one that does nothing offensively.",
-      "suggested_area": "_curate_move_choices() intent assignment: break_grapple belongs under 'Reset / recover'"
+      "summary": "When grappled, chip-throw notes tell the player to 'whip out to break the cycle' but Irish whip is not among curated choices (only hip toss / arm drag / side headlock).",
+      "suggested_area": "curation: surface whip (or remove whip language from chip notes)"
     },
     {
       "severity": "minor",
       "dimension": "fun",
-      "summary": "No loop-tax feedback fired anywhere in these 56 turns - no 'stalls out', 'getting predictable', 'telegraphed' or 'empty climb' line appears. Back-to-back climbs at turns 33 and 35, with the player getting pulled off for 6 damage in between at turn 34, drew no telegraphed-climb warning, so a punished repeat went unremarked.",
-      "suggested_area": "loop-tax thresholds for climb repetition, especially repeats that follow a failed attempt"
+      "summary": "Aggressive policy still leans on Collar-and-elbow (six player uses) though counters/breaks exit quickly and move_repetition_rate 0.3529 is tolerable inside 33 turns — soft loop tax notes do not strongly deter re-entry.",
+      "suggested_area": "loop-tax escalation after repeated collar_elbow"
     }
   ],
   "highlight_moments": [
     {
-      "turn": 8,
-      "type": "big_spot",
-      "quote": "Hall snaps off superplex - Hitman takes 29 damage.\n  Hitman is rattled - when they're forced up, big payoffs may open."
+      "turn": 9,
+      "type": "big_move",
+      "quote": "Hitman snaps off missile dropkick — Hall takes 19 damage.\n  Hall is rattled — when they're forced up, big payoffs may open."
     },
     {
-      "turn": 37,
-      "type": "comeback",
-      "quote": "Hitman snaps off hurricanrana - Hall takes 22 damage.\n  Hall is rattled - when they're forced up, big payoffs may open."
-    },
-    {
-      "turn": 39,
+      "turn": 13,
       "type": "groggy_payoff",
-      "quote": "Hitman snaps off vertical suplex - Hall takes 16 damage."
+      "quote": "Vertical suplex 77% — TARGET GROGGY payoff: heavy damage is available now → Hitman snaps off vertical suplex — Hall takes 16 damage."
     },
     {
-      "turn": 54,
-      "type": "finisher",
-      "quote": "Hall snaps off razor's edge - Hitman takes 20 damage.\n  - FINISHER - the next cover packs extra heat."
+      "turn": 21,
+      "type": "big_move",
+      "quote": "Hitman snaps off superplex — Hall takes 30 damage.\n  Hall is rattled — when they're forced up, big payoffs may open."
     },
     {
-      "turn": 55,
-      "type": "dread_beat",
-      "quote": "Hitman tries to rise but can't find it - still down and vulnerable to a cover!"
-    },
-    {
-      "turn": 56,
+      "turn": 33,
       "type": "finish",
-      "quote": "The finisher still echoes - +12 on the cover!\n  Referee: 1...\n  Referee: 2...\n  Referee: 3!\n  *** PINFALL - Hall wins ***"
+      "quote": "Referee: 1…\n  Referee: 2…\n  Referee: 3!\n  *** PINFALL — Hitman wins ***"
     }
   ]
 }

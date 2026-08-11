@@ -1,21 +1,19 @@
 {
-  "gates_passed": false,
-  "gate_failures": [
-    "turn_count 210 outside band [8, 40]"
-  ],
-  "turn_count": 210,
+  "gates_passed": true,
+  "gate_failures": [],
+  "turn_count": 32,
   "winner": "cpu",
-  "reason": "pinfall",
+  "reason": "knockout",
   "near_fall_count": 0,
   "curation_pin_visible": true,
-  "log_uniqueness_ratio": 0.2096,
-  "move_repetition_rate": 0.4667,
-  "position_diversity": 8,
-  "single_choice_turns": 3,
+  "log_uniqueness_ratio": 0.7368,
+  "move_repetition_rate": 0.5,
+  "position_diversity": 10,
+  "single_choice_turns": 8,
   "match_seed": 216,
   "wrestlers": [
     "bret_hart",
     "scott_hall"
   ],
-  "player_policy": "methodical"
+  "player_policy": "aggressive"
 }

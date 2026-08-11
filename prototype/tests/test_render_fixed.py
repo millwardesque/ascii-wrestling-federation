@@ -60,6 +60,18 @@ class TestStaleMoveCuration(unittest.TestCase):
 
         self.assertEqual([ch.rule.move.id for ch in choices], ["collar_elbow"])
 
+    def test_stale_counter_loses_slot_to_break(self) -> None:
+        from moves import BodyPosition
+
+        state = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        state.position[0] = BodyPosition.GRAPPLED
+        state.counter_loop_pressure = [3, 0]
+
+        menu = self._menu(state)
+
+        self.assertEqual(menu[0], "break_grapple")
+        self.assertIn("grapple_counter", menu)
+
 
 class TestMomentumChart(unittest.TestCase):
     def test_chart_draws_player_above_and_cpu_below_axis(self) -> None:

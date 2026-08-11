@@ -165,7 +165,7 @@ def _move_choice_details(
         stale = move_is_stale(state, actor_idx, m)
         note = "enter a tie-up to unlock throws and whips; repeat loops lose steam"
         if stale:
-            note = "tie-up is going stale — pay it off or try something else"
+            note = "tie-up is going stale — whip out or mix strikes, don't re-tie"
         return _MoveChoice(
             rule_index,
             rule,
@@ -174,12 +174,39 @@ def _move_choice_details(
             78.0 + score - float(pressure) * 12.0,
             stale,
         )
+    if m.id == "grapple_counter":
+        pressure = loop_pressure_for(state, actor_idx, m)
+        stale = move_is_stale(state, actor_idx, m)
+        note = "reverse the tie-up with a short shot and reset"
+        if stale:
+            note = "same counter is getting predictable — break clean or strike after"
+        return _MoveChoice(
+            rule_index,
+            rule,
+            "Safe offense",
+            note,
+            70.0 + score - float(pressure) * 14.0,
+            stale,
+        )
+    if m.id == "break_grapple":
+        return _MoveChoice(
+            rule_index,
+            rule,
+            "Reset / recover",
+            "peel the hands and reset without the counter chip",
+            68.0 + float(state.counter_loop_pressure[actor_idx]) * 10.0,
+        )
     if m.target_grappled:
+        note = "pay off the tie-up with a control move"
+        if m.id in {"irish_whip", "turnbuckle_whip"}:
+            note = "exit the tie-up into a real setup — clears a stale loop"
+        elif state.grapple_loop_pressure[actor_idx] >= 2:
+            note = "chip throw keeps the loop warm — whip out to break the cycle"
         return _MoveChoice(
             rule_index,
             rule,
             "Grapple control",
-            "pay off the tie-up with a control move",
+            note,
             76.0 + score + float(state.grapple_loop_pressure[actor_idx]) * 6.0,
         )
 

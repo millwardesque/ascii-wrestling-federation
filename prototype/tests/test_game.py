@@ -221,7 +221,8 @@ class TestApplyMoveStochastic(unittest.TestCase):
         self.assertEqual(st.momentum[1], 1)
         self.assertIn("repeated tie-up stalls out", log)
 
-    def test_grapple_payoff_resets_loop_pressure(self) -> None:
+    def test_light_grapple_payoff_keeps_loop_pressure(self) -> None:
+        """Chip throws are the treadmill — they must not wipe collar debt."""
         st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
         st.position[1] = BodyPosition.GRAPPLED
         st.grapple_loop_pressure = [3, 0]
@@ -230,7 +231,45 @@ class TestApplyMoveStochastic(unittest.TestCase):
 
         apply_move(st, 0, arm_drag, _SeqRng([max(0.0, p - 0.2)]))
 
+        self.assertEqual(st.grapple_loop_pressure[0], 3)
+
+    def test_real_grapple_exit_clears_loop_pressure(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        st.position[1] = BodyPosition.GRAPPLED
+        st.grapple_loop_pressure = [3, 0]
+        whip = _rule_by_id("irish_whip")
+        p = hit_probability(st, 0, whip)
+
+        apply_move(st, 0, whip, _SeqRng([max(0.0, p - 0.2)]))
+
         self.assertEqual(st.grapple_loop_pressure[0], 0)
+
+    def test_collar_throw_cycle_accumulates_pressure(self) -> None:
+        """collar → arm_drag → get_up → collar must still go stale."""
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        collar = _rule_by_id("collar_elbow")
+        arm_drag = _rule_by_id("arm_drag")
+        get_up = _rule_by_id("get_up")
+        rng = _SeqRng([0.0] * 20)
+
+        logs = []
+        for _ in range(3):
+            st.position = [BodyPosition.STANDING, BodyPosition.STANDING]
+            logs.append(apply_move(st, 0, collar, rng)[0])
+            apply_move(st, 0, arm_drag, rng)
+            apply_move(st, 1, get_up, rng)
+
+        self.assertGreaterEqual(st.grapple_loop_pressure[0], 2)
+        self.assertTrue(any("repeated tie-up stalls out" in log for log in logs))
+
+    def test_missed_collar_still_builds_loop_pressure(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        collar = _rule_by_id("collar_elbow")
+        p = hit_probability(st, 0, collar)
+
+        apply_move(st, 0, collar, _SeqRng([min(0.999, p + 0.2), 0.99]))
+
+        self.assertEqual(st.grapple_loop_pressure[0], 1)
 
     def test_alternating_turns_do_not_erase_tie_up_pressure(self) -> None:
         """The opponent's turn must not launder the initiator's loop debt."""
@@ -249,7 +288,7 @@ class TestApplyMoveStochastic(unittest.TestCase):
         self.assertGreaterEqual(st.grapple_loop_pressure[0], 2)
         self.assertTrue(any("repeated tie-up stalls out" in log for log in logs))
 
-    def test_escaping_a_tie_up_does_not_build_escaper_pressure(self) -> None:
+    def test_escaping_a_tie_up_does_not_build_escaper_grapple_pressure(self) -> None:
         st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
         st.position[0] = BodyPosition.GRAPPLED
         counter = _rule_by_id("grapple_counter")
@@ -258,6 +297,35 @@ class TestApplyMoveStochastic(unittest.TestCase):
         apply_move(st, 0, counter, _SeqRng([max(0.0, p - 0.2), 0.99]))
 
         self.assertEqual(st.grapple_loop_pressure[0], 0)
+        self.assertEqual(st.counter_loop_pressure[0], 1)
+
+    def test_repeated_grapple_counter_gets_predictable(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        counter = _rule_by_id("grapple_counter")
+        rng = _SeqRng([0.0] * 12)
+        logs = []
+        for _ in range(3):
+            st.position[1] = BodyPosition.GRAPPLED
+            logs.append(apply_move(st, 1, counter, rng)[0])
+
+        self.assertGreaterEqual(st.counter_loop_pressure[1], 2)
+        self.assertTrue(any("counter is getting predictable" in log for log in logs))
+
+    def test_stale_grapple_counter_deals_less_damage(self) -> None:
+        fresh = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        stale = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        fresh.position[1] = BodyPosition.GRAPPLED
+        stale.position[1] = BodyPosition.GRAPPLED
+        stale.counter_loop_pressure = [0, 3]
+        counter = _rule_by_id("grapple_counter")
+        p_fresh = hit_probability(fresh, 1, counter)
+        p_stale = hit_probability(stale, 1, counter)
+        apply_move(fresh, 1, counter, _SeqRng([max(0.0, p_fresh - 0.2), 0.99]))
+        apply_move(stale, 1, counter, _SeqRng([max(0.0, p_stale - 0.2), 0.99]))
+
+        self.assertLess(stale.health[0], 132)
+        self.assertGreater(stale.health[0], fresh.health[0])
+        self.assertLess(p_stale, p_fresh)
 
     def test_non_grapple_move_soft_decays_loop_pressure(self) -> None:
         st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
@@ -266,6 +334,17 @@ class TestApplyMoveStochastic(unittest.TestCase):
         p = hit_probability(st, 0, punch)
 
         apply_move(st, 0, punch, _SeqRng([max(0.0, p - 0.2), 0.99, 0.99]))
+
+        self.assertEqual(st.grapple_loop_pressure[0], 2)
+
+    def test_get_up_does_not_launder_grapple_loop_debt(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        st.position[0] = BodyPosition.GROUNDED
+        st.grapple_loop_pressure = [2, 0]
+        get_up = _rule_by_id("get_up")
+        p = hit_probability(st, 0, get_up)
+
+        apply_move(st, 0, get_up, _SeqRng([max(0.0, p - 0.2)]))
 
         self.assertEqual(st.grapple_loop_pressure[0], 2)
 
@@ -508,6 +587,16 @@ class TestCpuExpectedValue(unittest.TestCase):
         counter_score = _cpu_rule_score(st, 1, _rule_by_id("grapple_counter"))
 
         self.assertGreater(counter_score, break_score)
+
+    def test_cpu_demotes_stale_grapple_counter(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        st.position[1] = BodyPosition.GRAPPLED
+        st.counter_loop_pressure = [0, 3]
+
+        break_score = _cpu_rule_score(st, 1, _rule_by_id("break_grapple"))
+        counter_score = _cpu_rule_score(st, 1, _rule_by_id("grapple_counter"))
+
+        self.assertGreater(break_score, counter_score)
 
     def test_cpu_discourages_its_own_stale_tie_up(self) -> None:
         st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))

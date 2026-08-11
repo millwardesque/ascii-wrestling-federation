@@ -3,25 +3,25 @@
   "meta": {
     "match_seed": 208,
     "wrestlers": ["bret_hart", "scott_hall"],
-    "player_policy": "chaotic",
-    "turn_count": 45,
-    "winner": "player"
+    "player_policy": "methodical",
+    "turn_count": 34,
+    "winner": "cpu"
   },
   "telemetry": {
-    "gates_passed": false,
-    "gate_failures": ["turn_count 45 outside band [8, 40]"],
-    "turn_count": 45,
+    "gates_passed": true,
+    "gate_failures": [],
+    "turn_count": 34,
+    "winner": "cpu",
+    "reason": "pinfall",
     "near_fall_count": 0,
     "curation_pin_visible": true,
-    "log_uniqueness_ratio": 0.7455,
-    "move_repetition_rate": 0.1304,
-    "position_diversity": 10,
-    "single_choice_turns": 3,
-    "winner": "player",
-    "reason": "submission",
+    "log_uniqueness_ratio": 0.7027,
+    "move_repetition_rate": 0.3529,
+    "position_diversity": 11,
+    "single_choice_turns": 4,
     "match_seed": 208,
     "wrestlers": ["bret_hart", "scott_hall"],
-    "player_policy": "chaotic"
+    "player_policy": "methodical"
   },
   "scores": {
     "fun": {
@@ -29,24 +29,20 @@
       "confidence": "high",
       "evidence": [
         {
-          "turn": 25,
-          "note": "The best stretch is a top-rope duel with both wrestlers on the turnbuckle: turn 22 'Hitman reverses the hurricanrana - only 2 damage, and turns the tables!', turn 23 top-rope brawl shot for 11, turn 24 'Hitman reverses the superplex', then turn 25 'Hitman snaps off hurricanrana - Hall takes 22 damage' dumping Hall to GROUNDED. Four consecutive turns where the risk was real on both sides."
+          "turn": 7,
+          "note": "Top-rope menu shows real trade-offs: Big swing Superplex/Hurricanrana 49%, Pressure top-rope brawl 54%, Reset dismount. Player picks Pressure and gets reversed."
+        },
+        {
+          "turn": 8,
+          "note": "Hall's superplex lands 29 damage and puts both GROUNDED — a clear big-spot beat after the dual climb setup (t5–t6)."
+        },
+        {
+          "turn": 28,
+          "note": "Brief comeback window: 'Hitman reverses the straight right — only 1 damage, and turns the tables!' momentum swings to [3,3] at 42 HP — but next collar is immediately countered (t30)."
         },
         {
           "turn": 34,
-          "note": "There is a genuine comeback window: Hall runs 17 damage (turn 30 spinning heel kick), 20 damage (turn 34 diving crossbody) and 8 damage (turn 36 stomp) to pull the player from 119 to 74 while grounding them twice."
-        },
-        {
-          "turn": 9,
-          "note": "Real trade-offs are offered and visibly declined - with Hall grounded, the menu shows 'Cover - pinfall attempt', 'Sharpshooter 83%', 'Pull opponent up' and 'Leg drop 87%', and the chaotic policy picks 'Catch your breath' at full health (132/132). The options were meaningful; the policy simply wasted them."
-        },
-        {
-          "turn": 45,
-          "note": "The finish is not a climax: the sharpshooter lands with the player at 74 health versus Hall's 19, and near_fall_count is 0, so the match ends comfortably ahead rather than on a knife edge."
-        },
-        {
-          "turn": 37,
-          "note": "Pacing still misses the band at 45 turns, with 25 of 45 turns (56%) spent on non-damaging setup/recovery - get_up appears 8 times across both wrestlers (turns 8, 10, 12, 26, 31, 35, 37, 44)."
+          "note": "One-sided arc: final health [20,130], near_fall_count 0, player never lands a damaging offensive hit — Hall only takes 2 chip from reverses. Snowball outweighs the position variety (position_diversity 11)."
         }
       ]
     },
@@ -55,75 +51,63 @@
       "confidence": "high",
       "evidence": [
         {
-          "turn": 10,
-          "note": "This is the one seed of the batch where anti-loop feedback actually fires and reads clearly: 'Hall tries to rise but can't find it - still down and vulnerable, but the crowd is pulling them up. / Escape momentum builds for Hall.' followed by momentum moving 0 -> 1 in state. Cause and effect are on the same screen."
-        },
-        {
-          "turn": 41,
-          "note": "Intent labels track the actual state. With Hall groggy, the menu promotes 'Vertical suplex 77%' under Big swing with the note 'TARGET GROGGY payoff: heavy damage is available now', so the modifier is explained as an opportunity rather than a position."
-        },
-        {
-          "turn": 45,
-          "note": "Pin is never hidden - it heads the Finish intent at turns 9, 11 and 45 whenever Hall is grounded, matching curation_pin_visible=true."
-        },
-        {
-          "turn": 45,
-          "note": "Submission percentage remains ambiguous: the option reads 'Sharpshooter 88%' and the log jumps straight to 'Hitman hooks in sharpshooter! ... Hall taps out!'. The number is the chance to apply the hold, but a successful apply and a successful win are never distinguished in the text."
+          "turn": 1,
+          "note": "Opening curation is legible: Grapple control 58% with 'repeat loops lose steam' note, Set up climb, Safe offense kick/punch, Reset recover."
         },
         {
           "turn": 9,
-          "note": "'Hitman recovers 5 stamina' but state.health rises 130 -> 132 (capped), so the log names stamina while the visible resource is health."
+          "note": "Grounded single-choice is honest: only 'Fight to your feet 72%' with note 'stand before they cover you; misses build escape momentum'."
         },
         {
-          "turn": 31,
-          "note": "single_choice_turns = 3 (turns 31, 35, 37) where 'Fight to your feet' is the only option; the note 'stand before they cover you; misses build escape momentum' at least explains why the turn is forced."
+          "turn": 33,
+          "note": "Failed rise explains the pin setup: 'Hitman tries to rise but can't find it — still down and vulnerable to a cover!' then CPU covers with curation_pin_visible true."
+        },
+        {
+          "turn": 3,
+          "note": "Clarity gap: collar attempt logs only 'Hall turns the tables!' (outcome ok) — move unnamed, no GRAPPLED state, reversal opaque."
         }
       ]
     },
     "stickiness": {
       "value": 3,
       "confidence": "high",
-      "rematch_intent": "yes",
-      "rematch_reason": "The turn 21-25 turnbuckle exchange is the kind of sequence a player wants to recreate, and the seed leaves obvious unexplored branches: the pin was offered three times and never taken, Hall's Razor's Edge never landed, and the superplex was reversed rather than hit. It is a short enough match that another run is cheap.",
-      "next_experiment": "Re-run seed 208 with the methodical or aggressive policy and take the cover at turn 9 or turn 44 instead of recovering/submitting, to see whether a resolved pinfall produces the first near-fall of the batch and pulls turn_count inside the 8-40 band.",
       "evidence": [
         {
+          "turn": 19,
+          "note": "Clear fork: Hall is RUNNING_ROPES and menu offers Big swing 'Rebound clothesline 53%' plus Pressure kitchen-sink/drop-toe; methodical player climbs instead and never capitalizes on the rope sprint."
+        },
+        {
           "turn": 25,
-          "note": "'Hitman snaps off hurricanrana - Hall takes 22 damage' as the payoff to a three-turn reversal exchange is the strongest memory the match leaves."
+          "note": "Another fork: Pull off the top rope 68% (Set up) is shown while Hall is TOP_ROPE; player climbs into shared top-rope and eats Hurricanrana 21 (t26)."
         },
         {
-          "turn": 11,
-          "note": "Curiosity is created rather than satisfied: the menu advertises 'Cover - pinfall attempt' twice with Hall grounded at 102 health, and the player never finds out what a pin sequence looks like."
-        },
-        {
-          "turn": 22,
-          "note": "Hall shows off moves the player has not tried - hurricanrana at 22, superplex at 24 - which suggests different lines are available on a rematch."
+          "turn": 1,
+          "note": "Collar-and-elbow is attempted five times (t1/t3/t11/t17/t23/t29) and answered by grapple_counter three times (t2/t12/t30) — loop-tax note is present, but curiosity remains about non-grapple paths."
         }
-      ]
+      ],
+      "rematch_intent": "maybe",
+      "rematch_reason": "Gates pass in-band at 34 turns with rich position diversity, and t19/t25 are concrete 'take the payoff instead of another setup' experiments — but Bret never ran meaningful offense, so rematch interest is narrow.",
+      "next_experiment": "Re-run seed 208 taking Rebound clothesline (Big swing 53%) on turn 19 while Hall is RUNNING_ROPES instead of Climb, and/or Pull off the top rope (68%) on turn 25 instead of climbing into Hall's top-rope offense."
     },
     "juiciness": {
       "value": 3,
       "confidence": "high",
       "evidence": [
         {
-          "turn": 43,
-          "note": "Impact language plus state change lands well: 'Hitman snaps off missile dropkick - Hall takes 19 damage. Hall is rattled - when they're forced up, big payoffs may open.' with Hall dropping to GROUNDED and momentum falling 5 -> 4."
+          "turn": 8,
+          "note": "Superplex beat: 'Hall snaps off superplex — Hitman takes 29 damage' with dual GROUNDED state shift."
         },
         {
-          "turn": 45,
-          "note": "The submission is properly paced via finish_sequence: 1.0s on 'hooks in sharpshooter / reaches for daylight', 1.5s on 'The hold is cinched in deeper!', then the tap - three beats rather than one line."
+          "turn": 34,
+          "note": "Pin finish_sequence paces counts with delay_sec 1.0 then 1.5 before '3!' and '*** PINFALL — Hall wins ***' — staged payoff despite near_fall_count 0."
         },
         {
-          "turn": 24,
-          "note": "Reversal phrasing varies enough to stay fresh (log_uniqueness_ratio 0.7455, the highest of this batch): 'Hitman reverses the superplex - only 3 damage; Hall whiffs - Hitman shrugs it off' reads differently from turn 22's 'turns the tables!'."
+          "turn": 26,
+          "note": "Hurricanrana 21 and later rebound clothesline 17 (t32) keep big-spot density on CPU side; log_uniqueness_ratio 0.7027 is acceptable but not sparkling."
         },
         {
-          "turn": 44,
-          "note": "near_fall_count 0 and no pin attempt in the match, so the count-of-two kickout beat never happens even at turn 44 with Hall grounded at 19 health and explicitly 'vulnerable to a cover'."
-        },
-        {
-          "turn": 28,
-          "note": "Setup turns are still flat: 'Hitman: Hit the ropes.' / 'Hall: Hit the ropes.' back to back at turns 27-28 give no crowd or momentum colour despite both wrestlers sprinting the ropes."
+          "turn": 34,
+          "note": "No groggy, no near-fall kickout, and player offense never lands — juiciness is CPU-spectacle only until the cover."
         }
       ]
     }
@@ -132,48 +116,48 @@
     {
       "severity": "major",
       "dimension": "fun",
-      "summary": "Pacing gate failed at 45 turns (band 8-40), just outside. 56% of turns are non-damaging setup/recovery, with get_up alone consuming 8 turns.",
-      "suggested_area": "game.py get_up / recover economics; consider a stronger grounded-pressure incentive so knockdowns resolve faster"
-    },
-    {
-      "severity": "major",
-      "dimension": "juiciness",
-      "summary": "near_fall_count 0 and zero pin attempts. The pin was legally available and clearly shown at turns 9, 11 and 44, but neither the chaotic player policy nor the CPU ever covered, so the match has no kickout drama.",
-      "suggested_area": "CPU move scoring for pin; playtest policy weighting for the Finish intent"
+      "summary": "Player never lands a real offensive hit; Hall ends at 130 HP while Bret drops to 20. Reversals and setups create positions but no comeback damage window before the cover.",
+      "suggested_area": "methodical offense payoff / hit rate after setup"
     },
     {
       "severity": "minor",
       "dimension": "fun",
-      "summary": "The finish is one-sided: the sharpshooter closes it at 74 health versus 19, so the climax lacks jeopardy even though Hall's turn 30-36 comeback had set one up.",
-      "suggested_area": "finisher gating relative to health differential"
+      "summary": "Collar-and-elbow → grapple_counter still taxes three times (t2/t12/t30) despite the 'repeat loops lose steam' note; methodical policy keeps re-entering the tie-up after counters.",
+      "suggested_area": "grapple control diminishing returns / CPU counter frequency"
+    },
+    {
+      "severity": "minor",
+      "dimension": "juiciness",
+      "summary": "near_fall_count 0 — failed get-up at t33 goes straight to a three-count with no kickout drama.",
+      "suggested_area": "pin success vs near-fall thresholds"
     },
     {
       "severity": "minor",
       "dimension": "ease_of_use",
-      "summary": "'Hitman recovers 5 stamina' at turn 9 raises health 130 -> 132; the message names a resource that is not the one displayed.",
-      "suggested_area": "render/log wording for the recover move"
+      "summary": "Turn 3 logs only 'Hall turns the tables!' for a failed collar attempt — attempted move unnamed and reversal unexplained.",
+      "suggested_area": "action log phrasing for reversed setup moves"
     }
   ],
   "highlight_moments": [
     {
-      "turn": 10,
-      "type": "anti_loop_feedback",
-      "quote": "Hall tries to rise but can't find it - still down and vulnerable, but the crowd is pulling them up. / Escape momentum builds for Hall."
+      "turn": 8,
+      "type": "big_spot",
+      "quote": "Hall snaps off superplex — Hitman takes 29 damage."
     },
     {
-      "turn": 25,
-      "type": "big_spot",
-      "quote": "Hitman snaps off hurricanrana - Hall takes 22 damage."
+      "turn": 28,
+      "type": "reversal",
+      "quote": "Hitman reverses the straight right — only 1 damage, and turns the tables!"
+    },
+    {
+      "turn": 33,
+      "type": "near_cover",
+      "quote": "Hitman tries to rise but can't find it — still down and vulnerable to a cover!"
     },
     {
       "turn": 34,
-      "type": "comeback",
-      "quote": "Hall snaps off diving crossbody - Hitman takes 20 damage."
-    },
-    {
-      "turn": 45,
       "type": "finish",
-      "quote": "The hold is cinched in deeper! / Hall taps out! / *** SUBMISSION - Hitman wins ***"
+      "quote": "Referee: 1…\n  Referee: 2…\n  Referee: 3!\n  *** PINFALL — Hall wins ***"
     }
   ]
 }
