@@ -44,8 +44,16 @@ _GROGGY_ON_STAND_CHANCE = 0.48  # slams & finishers — pending until they stand
 # makes pins/submissions legal again. Without this, a standing opponent stuck near zero
 # HP can never be finished and the match stalls.
 _KNOCKDOWN_HP_FRAC = 0.20
-
-# Loop taxes. Pressure is tracked per actor and only moves on that actor's own turns:
+# Below this, the first cover of the match may still go clean 1-2-3.
+# Keep under the knockdown floor (~20%) so the first post-collapse cover near-falls.
+_PIN_NEAR_FALL_FLOOR_HP_FRAC = 0.08
+# Trailing wrestlers get a small hit bounce so snowballs can crack.
+_UNDERDOG_HIT_GAP = 0.30
+_UNDERDOG_HIT_BONUS_MAX = 0.14
+# Cover heat after a knockdown: harder to rise, CPU strongly prefers the pin.
+_COVER_HEAT_GET_UP_PENALTY = 0.40
+_COVER_HEAT_PIN_BONUS = 3
+_COVER_HEAT_CPU_PIN_BIAS = 0.85# Loop taxes. Pressure is tracked per actor and only moves on that actor's own turns:
 # a single shared counter is cancelled out by the opponent's turn, so an every-other-turn
 # loop never accumulates.
 _LOOP_STALE_THRESHOLD = 2
@@ -107,6 +115,12 @@ class MatchState:
     setup_loop_pressure: list[int] = field(default_factory=list)
     # Per-actor debt for answering every tie-up with the same counter chip.
     counter_loop_pressure: list[int] = field(default_factory=list)
+    # After a worn-down knockdown: defender is hot for a cover until they rise or get pinned.
+    cover_heat: list[bool] = field(default_factory=list)
+    # First rise attempt after cover heat always fails so the pin window isn't a coin flip.
+    cover_heat_lock: list[bool] = field(default_factory=list)
+    # First pin of the match seeds a near-fall when the defender isn't critically down.
+    pins_attempted: int = 0
 
     def __post_init__(self) -> None:
         if not self.health:
@@ -135,6 +149,10 @@ class MatchState:
             self.setup_loop_pressure = [0, 0]
         if not self.counter_loop_pressure:
             self.counter_loop_pressure = [0, 0]
+        if not self.cover_heat:
+            self.cover_heat = [False, False]
+        if not self.cover_heat_lock:
+            self.cover_heat_lock = [False, False]
 
     def valid_rules(self, actor_idx: int) -> list[tuple[int, MoveRule]]:
         actor = self.wrestlers[actor_idx]
@@ -224,12 +242,25 @@ def hit_probability(state: MatchState, actor_idx: int, rule: MoveRule) -> float:
         p -= _GET_UP_FINISH_SHOCK_K * float(state.finisher_shock[actor_idx])
         if m.id == "get_up":
             p += _GET_UP_FAIL_RELIEF_BONUS * min(2, state.get_up_fail_streak[actor_idx])
+            if state.cover_heat[actor_idx]:
+                p -= _COVER_HEAT_GET_UP_PENALTY
     if m.is_finisher:
         p += _FINISHER_HIT_BONUS_MAX * _finisher_wear_fraction(state)
     pressure = loop_pressure_for(state, actor_idx, m)
     if pressure >= _LOOP_STALE_THRESHOLD:
         p -= _LOOP_STALE_HIT_PENALTY * float(pressure - _LOOP_STALE_THRESHOLD + 1)
-    return max(_HIT_P_MIN, min(_HIT_P_MAX, p))
+    # Underdog bounce: when far behind on health, offense connects a bit more often.
+    if m.base_damage > 0 and m.id not in {"grapple_counter", "desperation_strike"}:
+        gap = def_hp - att_hp
+        if gap > _UNDERDOG_HIT_GAP:
+            p += min(_UNDERDOG_HIT_BONUS_MAX, (gap - _UNDERDOG_HIT_GAP) * 0.35)
+    p = max(_HIT_P_MIN, min(_HIT_P_MAX, p))
+    # Cover heat must beat the normal hit floor, or kip-ups erase the pin window.
+    if m.id == "get_up" and state.cover_heat[actor_idx]:
+        if state.cover_heat_lock[actor_idx]:
+            return 0.0
+        p = min(p, 0.08)
+    return p
 
 
 def _rand_float(rng: random.Random | None) -> float:
@@ -494,6 +525,11 @@ def apply_move(
         if worn_down:
             state.position[tgt] = BodyPosition.GROUNDED
             state.pending_groggy[tgt] = True
+            state.cover_heat[tgt] = True
+            state.cover_heat_lock[tgt] = True
+            state.pin_bonus_next_cover[actor_idx] = max(
+                state.pin_bonus_next_cover[actor_idx], _COVER_HEAT_PIN_BONUS
+            )
             lines.append(
                 f"  {target.nickname} collapses to the canvas — the cover is there for the taking!"
             )
@@ -521,6 +557,8 @@ def apply_move(
     if m.id == "get_up" and state.position[actor_idx] == BodyPosition.STANDING:
         state.get_up_fail_streak[actor_idx] = 0
         state.finisher_shock[actor_idx] = max(0, state.finisher_shock[actor_idx] - 1)
+        state.cover_heat[actor_idx] = False
+        state.cover_heat_lock[actor_idx] = False
         if state.pending_groggy[actor_idx]:
             state.pending_groggy[actor_idx] = False
             state.groggy[actor_idx] = True
@@ -591,6 +629,7 @@ def _resolve_miss(
     lines: list[str] = []
 
     if m.id == "get_up":
+        state.cover_heat_lock[actor_idx] = False
         state.get_up_fail_streak[actor_idx] = min(
             3, state.get_up_fail_streak[actor_idx] + 1
         )
@@ -664,6 +703,12 @@ def _plan_pin(state: MatchState, actor_idx: int, rng: random.Random | None) -> t
     mom = state.momentum[actor_idx]
     fin_bonus = state.pin_bonus_next_cover[actor_idx]
     state.pin_bonus_next_cover[actor_idx] = 0
+    # Seed drama: the first cover of the match near-falls unless they're critically down.
+    force_near_fall = (
+        state.pins_attempted == 0 and hp_frac > _PIN_NEAR_FALL_FLOOR_HP_FRAC
+    )
+    state.pins_attempted += 1
+    state.cover_heat[tgt] = False
     if fin_bonus > 0:
         steps.append(
             ([f"  The finisher still echoes — +{fin_bonus} on the cover!"], 0.0)
@@ -679,6 +724,8 @@ def _plan_pin(state: MatchState, actor_idx: int, rng: random.Random | None) -> t
         )
         defe = defender.endurance + _rand_int(rng, 1, 10) + int(hp_frac * 18)
         kicks_out = att <= defe
+        if force_near_fall and count == 2:
+            kicks_out = True
 
         if count == 3:
             if kicks_out:
@@ -805,6 +852,10 @@ def _cpu_rule_score(state: MatchState, cpu_idx: int, r: MoveRule) -> float:
         if opp_hp >= 0.35:
             s -= 40
         s += float(state.pin_bonus_next_cover[cpu_idx]) * 3.0
+        if state.cover_heat[opp]:
+            s += 120
+        if state.position[opp] == BodyPosition.GROUNDED and opp_hp < 0.30:
+            s += 35
         return s
 
     if move_needs_hit_roll(m):
@@ -813,6 +864,15 @@ def _cpu_rule_score(state: MatchState, cpu_idx: int, r: MoveRule) -> float:
         s = ev_damage + p * m.momentum_gain * 1.5
     else:
         s = float(m.base_damage) + m.momentum_gain * 1.5
+
+    # Prefer the cover tease over murdering a grounded, worn opponent.
+    if state.position[opp] == BodyPosition.GROUNDED and (
+        state.cover_heat[opp] or opp_hp < 0.25
+    ):
+        if m.base_damage > 0:
+            s -= 55.0
+        if m.is_finisher:
+            s -= 25.0
 
     if m.actor_top and m.target_grounded:
         s += 24
@@ -889,6 +949,12 @@ def cpu_choose_rule(state: MatchState, cpu_idx: int) -> MoveRule:
         raise RuntimeError("CPU has no valid moves — state bug.")
     _, rules = zip(*options)
     rules_list = list(rules)
+    opp = 1 - cpu_idx
+    # Cash cover heat: usually take the pin when it's legal instead of softmaxing into a KO.
+    if state.cover_heat[opp]:
+        pin_rules = [r for r in rules_list if r.move.is_pin]
+        if pin_rules and random.random() < _COVER_HEAT_CPU_PIN_BIAS:
+            return pin_rules[0]
     scores = [_cpu_rule_score(state, cpu_idx, r) for r in rules_list]
     idx = _softmax_sample_index(scores, _CPU_SOFTMAX_TEMPERATURE)
     return rules_list[idx]

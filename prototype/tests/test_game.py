@@ -474,6 +474,57 @@ class TestKnockoutAndKnockdown(unittest.TestCase):
         legal_ids = {rule.move.id for _, rule in st.valid_rules(0)}
         self.assertIn("pin", legal_ids)
 
+    def test_knockdown_sets_cover_heat(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        st.health[1] = int(st.wrestlers[1].max_health * 0.2)
+        punch = _rule_by_id("punch")
+        p = hit_probability(st, 0, punch)
+
+        apply_move(st, 0, punch, _SeqRng([max(0.0, p - 0.2), 0.99, 0.99]))
+
+        self.assertTrue(st.cover_heat[1])
+        self.assertGreaterEqual(st.pin_bonus_next_cover[0], 3)
+
+    def test_cover_heat_makes_get_up_harder(self) -> None:
+        cold = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        hot = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        cold.position[0] = BodyPosition.GROUNDED
+        hot.position[0] = BodyPosition.GROUNDED
+        hot.cover_heat[0] = True
+        hot.cover_heat_lock[0] = True
+        get_up = _rule_by_id("get_up")
+
+        self.assertEqual(hit_probability(hot, 0, get_up), 0.0)
+        self.assertGreater(hit_probability(cold, 0, get_up), 0.0)
+
+    def test_first_rise_after_knockdown_always_fails(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        st.health[1] = int(st.wrestlers[1].max_health * 0.2)
+        punch = _rule_by_id("punch")
+        p = hit_probability(st, 0, punch)
+        apply_move(st, 0, punch, _SeqRng([max(0.0, p - 0.2), 0.99, 0.99]))
+        self.assertTrue(st.cover_heat_lock[1])
+
+        get_up = _rule_by_id("get_up")
+        log, _, _ = apply_move(st, 1, get_up, _SeqRng([0.0]))  # would normally hit
+
+        self.assertEqual(st.position[1], BodyPosition.GROUNDED)
+        self.assertFalse(st.cover_heat_lock[1])
+        self.assertTrue(st.cover_heat[1])
+        self.assertIn("vulnerable to a cover", log)
+
+    def test_successful_get_up_clears_cover_heat(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        st.position[0] = BodyPosition.GROUNDED
+        st.cover_heat[0] = True
+        get_up = _rule_by_id("get_up")
+        p = hit_probability(st, 0, get_up)
+
+        apply_move(st, 0, get_up, _SeqRng([max(0.0, p - 0.2)]))
+
+        self.assertFalse(st.cover_heat[0])
+        self.assertEqual(st.position[0], BodyPosition.STANDING)
+
     def test_healthy_target_is_not_knocked_down(self) -> None:
         st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
         punch = _rule_by_id("punch")
@@ -507,6 +558,82 @@ class TestPinUnchanged(unittest.TestCase):
         self.assertIsNotNone(pin_seq)
         self.assertIn("Referee:", log)
         self.assertTrue(winner is None or winner == 1)
+
+    def test_first_pin_seeds_a_near_fall_when_defender_not_critical(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        st.position[1] = BodyPosition.GROUNDED
+        st.health[1] = int(st.wrestlers[1].max_health * 0.40)
+        pin = _rule_by_id("pin")
+
+        log, winner, seq = apply_move(st, 0, pin, _SeqRng([], [9, 1, 9, 1, 9, 1]))
+
+        self.assertIsNone(winner)
+        self.assertIsNotNone(seq)
+        self.assertFalse(seq.won)
+        self.assertIn("kicks out", log)
+        self.assertEqual(st.pins_attempted, 1)
+        self.assertIn("Referee: 2…", log)
+
+    def test_first_pin_can_finish_when_critically_down(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        st.position[1] = BodyPosition.GROUNDED
+        st.health[1] = int(st.wrestlers[1].max_health * 0.05)
+        st.momentum[0] = 5
+        pin = _rule_by_id("pin")
+        # Huge attacker rolls, tiny defender rolls → clean fall if allowed.
+        log, winner, seq = apply_move(st, 0, pin, _SeqRng([], [10, 1, 10, 1, 10, 1]))
+
+        self.assertEqual(winner, 0)
+        self.assertTrue(seq.won)
+        self.assertIn("PINFALL", log)
+        self.assertNotIn("kicks out", log)
+
+    def test_first_pin_after_knockdown_hp_near_falls(self) -> None:
+        """Knockdown-band HP (~15%) must still seed a near-fall on the first cover."""
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        st.position[1] = BodyPosition.GROUNDED
+        st.health[1] = int(st.wrestlers[1].max_health * 0.15)
+        pin = _rule_by_id("pin")
+
+        log, winner, seq = apply_move(st, 0, pin, _SeqRng([], [10, 1, 10, 1, 10, 1]))
+
+        self.assertIsNone(winner)
+        self.assertFalse(seq.won)
+        self.assertIn("kicks out", log)
+
+    def test_second_pin_can_finish_after_near_fall(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        st.position[1] = BodyPosition.GROUNDED
+        st.health[1] = int(st.wrestlers[1].max_health * 0.40)
+        pin = _rule_by_id("pin")
+        apply_move(st, 0, pin, _SeqRng([], [9, 1, 9, 1, 9, 1]))
+        self.assertEqual(st.pins_attempted, 1)
+
+        log, winner, seq = apply_move(st, 0, pin, _SeqRng([], [10, 1, 10, 1, 10, 1]))
+
+        self.assertEqual(winner, 0)
+        self.assertTrue(seq.won)
+        self.assertIn("PINFALL", log)
+
+    def test_cpu_prefers_pin_over_finisher_during_cover_heat(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["scott_hall"]))
+        st.position[0] = BodyPosition.GROUNDED
+        st.health[0] = int(st.wrestlers[0].max_health * 0.18)
+        st.cover_heat[0] = True
+        st.pin_bonus_next_cover[1] = 3
+
+        pin_score = _cpu_rule_score(st, 1, _rule_by_id("pin"))
+        heavy = _rule_by_id("leg_drop")
+        self.assertGreater(pin_score, _cpu_rule_score(st, 1, heavy))
+
+    def test_underdog_gets_hit_bonus_when_far_behind(self) -> None:
+        even = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        behind = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        behind.health[0] = int(behind.wrestlers[0].max_health * 0.25)
+        punch = _rule_by_id("punch")
+
+        self.assertGreater(hit_probability(behind, 0, punch), hit_probability(even, 0, punch))
+
 
 
 class TestSubmission(unittest.TestCase):

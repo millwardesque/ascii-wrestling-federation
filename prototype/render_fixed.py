@@ -113,12 +113,15 @@ def _move_choice_details(
     score = float(m.base_damage * 2 + m.momentum_gain * 7 - m.difficulty * 2)
 
     if m.is_pin:
+        note = "try to end it now; stronger when they're worn down"
+        if state.cover_heat[target_idx]:
+            note = "COVER HEAT — cash the knockdown before they rise"
         return _MoveChoice(
             rule_index,
             rule,
             "Finish",
-            "try to end it now; stronger when they're worn down",
-            120.0 + (1.0 - target_hp_frac) * 40.0,
+            note,
+            120.0 + (1.0 - target_hp_frac) * 40.0 + (25.0 if state.cover_heat[target_idx] else 0.0),
         )
     if m.is_finisher:
         note = "cash in momentum for a match-ending swing"
@@ -144,6 +147,8 @@ def _move_choice_details(
         note = "get back to a safer ring position"
         if m.id == "get_up":
             note = "stand before they cover you; misses build escape momentum"
+            if state.cover_heat[actor_idx]:
+                note = "COVER HEAT — rising is harder; they may go for the pin"
         return _MoveChoice(
             rule_index,
             rule,
