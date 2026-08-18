@@ -1,0 +1,170 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://awf.local/schemas/dialog-report.json",
+  "title": "AWF Dialog Judge Report",
+  "type": "object",
+  "required": ["rubric_version", "meta", "dialog_telemetry", "scores"],
+  "properties": {
+    "rubric_version": { "type": "string" },
+    "meta": {
+      "type": "object",
+      "required": ["match_seed", "wrestlers", "player_policy", "turn_count"],
+      "properties": {
+        "match_seed": { "type": "integer" },
+        "wrestlers": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "player_policy": { "type": "string" },
+        "turn_count": { "type": "integer", "minimum": 0 },
+        "line_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "dialog_telemetry": {
+      "description": "Layer 1 output passed through unmodified. Judges must not edit these numbers.",
+      "type": "object",
+      "required": ["gates_passed", "accuracy", "variety"],
+      "properties": {
+        "gates_passed": { "type": "boolean" },
+        "gate_failures": { "type": "array", "items": { "type": "string" } },
+        "accuracy": {
+          "type": "object",
+          "required": ["errors", "warnings", "claim_verifiability_ratio"],
+          "properties": {
+            "checked_claims": { "type": "integer" },
+            "errors": { "type": "integer" },
+            "warnings": { "type": "integer" },
+            "unverifiable_claims": { "type": "integer" },
+            "claim_verifiability_ratio": { "type": "number" },
+            "schema_gaps": { "type": "array", "items": { "type": "string" } }
+          },
+          "additionalProperties": true
+        },
+        "variety": {
+          "type": "object",
+          "required": [
+            "line_count",
+            "flat_line_ratio",
+            "phrasing_diversity",
+            "max_consecutive_repeat"
+          ],
+          "properties": {
+            "line_count": { "type": "integer" },
+            "unique_line_ratio": { "type": "number" },
+            "phrasing_template_count": { "type": "integer" },
+            "phrasing_diversity": { "type": "number" },
+            "top_phrasing_share": { "type": "number" },
+            "max_consecutive_repeat": { "type": "integer" },
+            "flat_line_ratio": { "type": "number" }
+          },
+          "additionalProperties": true
+        },
+        "readability": { "type": "object", "additionalProperties": true }
+      },
+      "additionalProperties": true
+    },
+    "scores": {
+      "type": "object",
+      "required": ["clarity", "fidelity", "voice", "freshness", "escalation"],
+      "properties": {
+        "clarity": { "$ref": "#/$defs/dimension_score" },
+        "fidelity": { "$ref": "#/$defs/dimension_score" },
+        "voice": { "$ref": "#/$defs/dimension_score" },
+        "freshness": { "$ref": "#/$defs/dimension_score" },
+        "escalation": { "$ref": "#/$defs/dimension_score" }
+      },
+      "additionalProperties": false
+    },
+    "hallucinated_claims": {
+      "description": "Lines consistent with state that still assert facts the game never modelled. Any entry caps fidelity at 2.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["turn", "quote", "invented_fact"],
+        "properties": {
+          "turn": { "type": "integer" },
+          "quote": { "type": "string" },
+          "invented_fact": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "rewrite_suggestions": {
+      "description": "Concrete replacement copy for the worst offending lines.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["turn", "before", "after", "reason"],
+        "properties": {
+          "turn": { "type": "integer" },
+          "before": { "type": "string" },
+          "after": { "type": "string" },
+          "reason": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "top_issues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["severity", "dimension", "summary"],
+        "properties": {
+          "severity": {
+            "type": "string",
+            "enum": ["minor", "major", "critical"]
+          },
+          "dimension": { "type": "string" },
+          "summary": { "type": "string" },
+          "suggested_area": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "best_lines": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["turn", "quote", "why"],
+        "properties": {
+          "turn": { "type": "integer" },
+          "quote": { "type": "string" },
+          "why": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "evidence_item": {
+      "type": "object",
+      "required": ["turn", "note"],
+      "properties": {
+        "turn": { "type": "integer" },
+        "note": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "dimension_score": {
+      "type": "object",
+      "required": ["value", "confidence", "evidence"],
+      "properties": {
+        "value": { "type": "integer", "minimum": 1, "maximum": 5 },
+        "confidence": {
+          "type": "string",
+          "enum": ["high", "medium", "low"]
+        },
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/evidence_item" }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
