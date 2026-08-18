@@ -7,6 +7,7 @@ import sys
 from typing import IO, Sequence
 
 from game import MatchState, PinSequence, move_landing_probability_label, outcome_label
+from commentators import CommentatorPair
 from moves import BodyPosition, MoveRule
 from playtest.policies import choose_policy_index
 from render_fixed import _MoveChoice, _curate_move_choices
@@ -115,18 +116,25 @@ class PlaytestRenderer:
     def show_opponent_chosen(self, opponent: Wrestler) -> None:
         return
 
-    def match_start_banner(self, *, match_seed: int | None = None) -> None:
+    def match_start_banner(
+        self,
+        *,
+        match_seed: int | None = None,
+        commentary_team: CommentatorPair | None = None,
+    ) -> None:
         self._match_seed = match_seed
         self._turn_count = 0
         wrestlers = list(self._wrestler_ids or ("", ""))
-        self._emit(
-            {
-                "event": "match_start",
-                "match_seed": match_seed,
-                "wrestlers": wrestlers,
-                "player_policy": self._policy,
-            }
-        )
+        payload: dict[str, object] = {
+            "event": "match_start",
+            "match_seed": match_seed,
+            "wrestlers": wrestlers,
+            "player_policy": self._policy,
+        }
+        if commentary_team is not None:
+            payload["commentary_team"] = list(commentary_team.ids)
+            payload["commentary_team_label"] = commentary_team.label()
+        self._emit(payload)
 
     def show_status(self, state: MatchState, display_names: tuple[str, str]) -> None:
         return

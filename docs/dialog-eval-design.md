@@ -179,8 +179,9 @@ is worth sequencing after the cheap layers are paying off, not before.
    aggregate.
 7. **Structured events in `apply_move`** — the seam above, once 1–6 are earning
    their keep.
-8. **Commentary team on top of events** — the backlog feature, now with a
-   framework that can tell whether it is any good.
+8. **Commentary team on top of events** — roster and pair selection done; see
+   [`docs/commentary-design.md`](../docs/commentary-design.md). Dual-voice move
+   log follows once `apply_move` emits events.
 
 ## How we know the framework itself works
 

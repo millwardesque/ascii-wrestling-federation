@@ -8,6 +8,7 @@ import random
 import secrets
 
 from game import MatchState, apply_move, cpu_choose_rule
+from commentators import CommentatorPair, choose_commentary_team
 from render import MatchRenderer, ReturnToTitle
 from render_fixed import FixedLayoutRenderer
 from render_playtest import PlaytestRenderer
@@ -78,8 +79,9 @@ def run_match(
     state = MatchState(wrestlers=(pw, cw))
     names = ("YOU (" + pw.nickname + ")", "CPU (" + cw.nickname + ")")
     playtest = isinstance(ui, PlaytestRenderer)
+    booth = choose_commentary_team(match_seed)
 
-    ui.match_start_banner(match_seed=match_seed)
+    ui.match_start_banner(match_seed=match_seed, commentary_team=booth)
     ui.show_status(state, names)
 
     while True:

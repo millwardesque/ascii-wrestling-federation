@@ -16,6 +16,8 @@ Important files:
 - `prototype/render.py`: renderer protocol and shared UI helpers.
 - `prototype/render_fixed.py`: current full-screen terminal UI.
 - `prototype/wrestlers.py`: roster data; `list_roster()` controls playable roster.
+- `prototype/commentators.py`: commentary booth roster and seeded pair selection.
+- `prototype/commentary_events.py`: `MatchEvent` contract for future dual-voice rendering.
 - `prototype/config.py` and `prototype/config.json`: hot-reloadable tuning config, currently timing values.
 - `prototype/tests/`: unit tests.
 - `prototype/playtest/`: headless JSONL playtest mode and evaluation telemetry.
@@ -27,6 +29,7 @@ Two tracks share the playtest transcripts:
 
 - **Gameplay:** `playtest/telemetry.py` + `docs/playtest-rubric.md` + `/awf-playtest-judge`.
 - **Narration:** `playtest/dialog_telemetry.py` + `docs/dialog-rubric.md` + `/awf-dialog-judge`.
+- **Commentary booth (in progress):** `commentators.py` + `docs/commentary-design.md` — pair at bell today; dual-voice move log after events ship from `apply_move`.
 
 Narration accuracy is deterministic, not judged: `dialog_telemetry.py` compares
 numeric and state claims in the `log` text against the `state` snapshots in the

@@ -93,7 +93,15 @@
         "player_policy": {
           "type": "string",
           "enum": ["novice", "aggressive", "methodical", "chaotic"]
-        }
+        },
+        "commentary_team": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 2,
+          "maxItems": 2,
+          "description": "[play_by_play_id, color_id]"
+        },
+        "commentary_team_label": { "type": "string" }
       },
       "additionalProperties": false
     },
