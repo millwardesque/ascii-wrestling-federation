@@ -1,0 +1,105 @@
+{
+  "gates_passed": true,
+  "gate_failures": [],
+  "match_seed": 109,
+  "wrestlers": [
+    "bret_hart",
+    "scott_hall"
+  ],
+  "player_policy": "novice",
+  "turn_count": 69,
+  "accuracy": {
+    "checked_claims": 30,
+    "claims_by_kind": {
+      "condition_delta": 24,
+      "groggy": 5,
+      "position": 1
+    },
+    "errors": 0,
+    "warnings": 6,
+    "unverifiable_claims": 3,
+    "claim_verifiability_ratio": 0.9091,
+    "schema_gaps": [
+      "state.pending_groggy"
+    ]
+  },
+  "variety": {
+    "line_count": 78,
+    "unique_line_ratio": 0.3718,
+    "phrasing_template_count": 16,
+    "phrasing_diversity": 0.2051,
+    "top_phrasing_share": 0.5,
+    "max_consecutive_repeat": 7,
+    "flat_line_ratio": 0.5
+  },
+  "readability": {
+    "max_line_chars": 88,
+    "avg_line_chars": 38.1,
+    "over_width_lines": 0
+  },
+  "findings": [
+    {
+      "severity": "info",
+      "code": "unverifiable_claim",
+      "turn": 13,
+      "line": "Hall is rattled \u2014 when they're forced up, big payoffs may open.",
+      "detail": "claim needs state.pending_groggy in the transcript to check"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 15,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 17,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED, groggy True->False) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 18,
+      "line": "Hitman reverses the grapple counter \u2014 only 1 damage; Hall whiffs \u2014 Hitman shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    },
+    {
+      "severity": "info",
+      "code": "unverifiable_claim",
+      "turn": 36,
+      "line": "Hitman is rattled \u2014 when they're forced up, big payoffs may open.",
+      "detail": "claim needs state.pending_groggy in the transcript to check"
+    },
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 38,
+      "line": "Hitman reverses the razor's edge \u2014 only 2 damage; Hall whiffs \u2014 Hitman shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    },
+    {
+      "severity": "info",
+      "code": "unverifiable_claim",
+      "turn": 51,
+      "line": "Hall is rattled \u2014 when they're forced up, big payoffs may open.",
+      "detail": "claim needs state.pending_groggy in the transcript to check"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 53,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 55,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED, groggy True->False) but is never named"
+    }
+  ]
+}

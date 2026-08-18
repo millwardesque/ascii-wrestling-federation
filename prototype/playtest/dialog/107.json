@@ -1,0 +1,981 @@
+{
+  "gates_passed": true,
+  "gate_failures": [],
+  "match_seed": 107,
+  "wrestlers": [
+    "bret_hart",
+    "scott_hall"
+  ],
+  "player_policy": "methodical",
+  "turn_count": 238,
+  "accuracy": {
+    "checked_claims": 132,
+    "claims_by_kind": {
+      "condition_delta": 112,
+      "groggy": 4,
+      "position": 16
+    },
+    "errors": 0,
+    "warnings": 128,
+    "unverifiable_claims": 6,
+    "claim_verifiability_ratio": 0.9565,
+    "schema_gaps": [
+      "state.bloodied",
+      "state.pending_groggy"
+    ]
+  },
+  "variety": {
+    "line_count": 254,
+    "unique_line_ratio": 0.1496,
+    "phrasing_template_count": 17,
+    "phrasing_diversity": 0.0669,
+    "top_phrasing_share": 0.3583,
+    "max_consecutive_repeat": 3,
+    "flat_line_ratio": 0.3583
+  },
+  "readability": {
+    "max_line_chars": 99,
+    "avg_line_chars": 46.9,
+    "over_width_lines": 0
+  },
+  "findings": [
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 2,
+      "line": "Hitman reverses the grapple counter \u2014 only 1 damage; Hall whiffs \u2014 Hitman shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    },
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 8,
+      "line": "Hitman reverses the grapple counter \u2014 only 1 damage; Hall whiffs \u2014 Hitman shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 11,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 13,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 17,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 18,
+      "line": "Hitman reverses the grapple counter \u2014 only 1 damage; Hall whiffs \u2014 Hitman shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 21,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 22,
+      "line": "Hitman reverses the grapple counter \u2014 only 1 damage; Hall whiffs \u2014 Hitman shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 29,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 30,
+      "line": "Hitman reverses the grapple counter \u2014 only 1 damage; Hall whiffs \u2014 Hitman shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    },
+    {
+      "severity": "info",
+      "code": "unverifiable_claim",
+      "turn": 37,
+      "line": "Hall is rattled \u2014 when they're forced up, big payoffs may open.",
+      "detail": "claim needs state.pending_groggy in the transcript to check"
+    },
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 41,
+      "line": "Hall reverses the flying splash \u2014 only 2 damage; Hitman whiffs \u2014 Hall shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    },
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 43,
+      "line": "Hall reverses the missile dropkick \u2014 only 1 damage; Hitman whiffs \u2014 Hall shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 49,
+      "line": "Hitman snaps off missile dropkick \u2014 Hall takes 19 damage.",
+      "detail": "text claims 19 against Hall but only 18 was applied after clamping"
+    },
+    {
+      "severity": "info",
+      "code": "unverifiable_claim",
+      "turn": 49,
+      "line": "Hall is rattled \u2014 when they're forced up, big payoffs may open.",
+      "detail": "claim needs state.pending_groggy in the transcript to check"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 51,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 53,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED, groggy True->False) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 54,
+      "line": "Hitman reverses the grapple counter \u2014 only 1 damage; Hall whiffs \u2014 Hitman shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 55,
+      "line": "Hitman snaps off arm drag \u2014 Hall takes 8 damage.",
+      "detail": "text claims 8 against Hall but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 57,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 58,
+      "line": "Hitman reverses the grapple counter \u2014 only 1 damage; Hall whiffs \u2014 Hitman shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 59,
+      "line": "Hitman snaps off hip toss \u2014 Hall takes 10 damage.",
+      "detail": "text claims 10 against Hall but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 63,
+      "line": "Hitman snaps off diving elbow drop \u2014 Hall takes 24 damage.",
+      "detail": "text claims 24 against Hall but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 67,
+      "line": "Hall reverses the missile dropkick \u2014 only 1 damage; Hitman whiffs \u2014 Hall shrugs it off.",
+      "detail": "text claims 1 against Hall but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 67,
+      "line": "Hall reverses the missile dropkick \u2014 only 1 damage; Hitman whiffs \u2014 Hall shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 69,
+      "line": "Hall reverses the top-rope brawl shot \u2014 only 1 damage; Hitman whiffs \u2014 Hall shrugs it off.",
+      "detail": "text claims 1 against Hall but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 69,
+      "line": "Hall reverses the top-rope brawl shot \u2014 only 1 damage; Hitman whiffs \u2014 Hall shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 71,
+      "line": "Hitman snaps off top-rope brawl shot \u2014 Hall takes 11 damage.",
+      "detail": "text claims 11 against Hall but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 72,
+      "line": "Hitman reverses the top-rope brawl shot \u2014 only 1 damage; Hall whiffs \u2014 Hitman shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 73,
+      "line": "Hitman snaps off top-rope brawl shot \u2014 Hall takes 11 damage.",
+      "detail": "text claims 11 against Hall but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 77,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 79,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 81,
+      "line": "Hitman snaps off arm drag \u2014 Hall takes 8 damage.",
+      "detail": "text claims 8 against Hall but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 83,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 85,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 86,
+      "line": "Hitman reverses the grapple counter \u2014 only 1 damage; Hall whiffs \u2014 Hitman shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 87,
+      "line": "Hall reverses the hip toss \u2014 only 1 damage; Hitman whiffs \u2014 Hall shrugs it off.",
+      "detail": "text claims 1 against Hall but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 87,
+      "line": "Hall reverses the hip toss \u2014 only 1 damage; Hitman whiffs \u2014 Hall shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 89,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 91,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 93,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 95,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 97,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 99,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 101,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 103,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 105,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 107,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 109,
+      "line": "Hitman snaps off arm drag \u2014 Hall takes 8 damage.",
+      "detail": "text claims 8 against Hall but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 111,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 113,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 115,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 117,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 118,
+      "line": "Hall snaps off grapple counter \u2014 Hitman takes 5 damage.",
+      "detail": "text claims 5 against Hitman but only 2 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 119,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 120,
+      "line": "Hall snaps off grapple counter \u2014 Hitman takes 5 damage.",
+      "detail": "text claims 5 against Hitman but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 121,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 122,
+      "line": "Hitman reverses the grapple counter \u2014 only 1 damage; Hall whiffs \u2014 Hitman shrugs it off.",
+      "detail": "text claims 1 against Hitman but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 122,
+      "line": "Hitman reverses the grapple counter \u2014 only 1 damage; Hall whiffs \u2014 Hitman shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 123,
+      "line": "Hitman snaps off arm drag \u2014 Hall takes 8 damage.",
+      "detail": "text claims 8 against Hall but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 127,
+      "line": "Hitman snaps off missile dropkick \u2014 Hall takes 19 damage.",
+      "detail": "text claims 19 against Hall but only 0 was applied after clamping"
+    },
+    {
+      "severity": "info",
+      "code": "unverifiable_claim",
+      "turn": 127,
+      "line": "The crowd gasps \u2014 Hall is busted open; blood streams down their face.",
+      "detail": "claim needs state.bloodied in the transcript to check"
+    },
+    {
+      "severity": "info",
+      "code": "unverifiable_claim",
+      "turn": 127,
+      "line": "Hall is rattled \u2014 when they're forced up, big payoffs may open.",
+      "detail": "claim needs state.pending_groggy in the transcript to check"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 129,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 130,
+      "line": "Hitman reverses the grapple counter \u2014 only 1 damage, and turns the tables!",
+      "detail": "text claims 1 against Hitman but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 131,
+      "line": "Hitman snaps off arm drag \u2014 Hall takes 8 damage.",
+      "detail": "text claims 8 against Hall but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 133,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 134,
+      "line": "Hitman reverses the grapple counter \u2014 only 1 damage, and turns the tables!",
+      "detail": "text claims 1 against Hitman but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 135,
+      "line": "Hitman snaps off hip toss \u2014 Hall takes 10 damage.",
+      "detail": "text claims 10 against Hall but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 139,
+      "line": "Hitman snaps off diving elbow drop \u2014 Hall takes 24 damage.",
+      "detail": "text claims 24 against Hall but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 143,
+      "line": "Hitman snaps off missile dropkick \u2014 Hall takes 19 damage.",
+      "detail": "text claims 19 against Hall but only 0 was applied after clamping"
+    },
+    {
+      "severity": "info",
+      "code": "unverifiable_claim",
+      "turn": 143,
+      "line": "Hall is rattled \u2014 when they're forced up, big payoffs may open.",
+      "detail": "claim needs state.pending_groggy in the transcript to check"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 145,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 146,
+      "line": "Hall snaps off grapple counter \u2014 Hitman takes 5 damage.",
+      "detail": "text claims 5 against Hitman but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 147,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED, groggy True->False) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 148,
+      "line": "Hitman reverses the grapple counter \u2014 only 1 damage, and turns the tables!",
+      "detail": "text claims 1 against Hitman but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 149,
+      "line": "Hitman snaps off side headlock \u2014 Hall takes 6 damage.",
+      "detail": "text claims 6 against Hall but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 150,
+      "line": "Hall snaps off grapple counter \u2014 Hitman takes 5 damage.",
+      "detail": "text claims 5 against Hitman but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 151,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 152,
+      "line": "Hall snaps off grapple counter \u2014 Hitman takes 5 damage.",
+      "detail": "text claims 5 against Hitman but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 153,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 155,
+      "line": "Hitman snaps off arm drag \u2014 Hall takes 8 damage.",
+      "detail": "text claims 8 against Hall but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 159,
+      "line": "Hitman snaps off flying splash \u2014 Hall takes 26 damage.",
+      "detail": "text claims 26 against Hall but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 161,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 162,
+      "line": "Hitman reverses the grapple counter \u2014 only 1 damage, and turns the tables!",
+      "detail": "text claims 1 against Hitman but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 163,
+      "line": "Hitman snaps off side headlock \u2014 Hall takes 6 damage.",
+      "detail": "text claims 6 against Hall but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 164,
+      "line": "Hall snaps off grapple counter \u2014 Hitman takes 5 damage.",
+      "detail": "text claims 5 against Hitman but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 167,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 168,
+      "line": "Hall snaps off grapple counter \u2014 Hitman takes 5 damage.",
+      "detail": "text claims 5 against Hitman but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 171,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 172,
+      "line": "Hall snaps off grapple counter \u2014 Hitman takes 5 damage.",
+      "detail": "text claims 5 against Hitman but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 173,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 174,
+      "line": "Hall snaps off grapple counter \u2014 Hitman takes 5 damage.",
+      "detail": "text claims 5 against Hitman but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 175,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 176,
+      "line": "Hall snaps off grapple counter \u2014 Hitman takes 5 damage.",
+      "detail": "text claims 5 against Hitman but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 179,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 180,
+      "line": "Hall snaps off grapple counter \u2014 Hitman takes 5 damage.",
+      "detail": "text claims 5 against Hitman but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 183,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 184,
+      "line": "Hall snaps off grapple counter \u2014 Hitman takes 5 damage.",
+      "detail": "text claims 5 against Hitman but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 185,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 186,
+      "line": "Hitman reverses the grapple counter \u2014 only 1 damage; Hall whiffs \u2014 Hitman shrugs it off.",
+      "detail": "text claims 1 against Hitman but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 186,
+      "line": "Hitman reverses the grapple counter \u2014 only 1 damage; Hall whiffs \u2014 Hitman shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 191,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 192,
+      "line": "Hall snaps off grapple counter \u2014 Hitman takes 5 damage.",
+      "detail": "text claims 5 against Hitman but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 193,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 194,
+      "line": "Hall snaps off grapple counter \u2014 Hitman takes 5 damage.",
+      "detail": "text claims 5 against Hitman but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 195,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 196,
+      "line": "Hall snaps off grapple counter \u2014 Hitman takes 5 damage.",
+      "detail": "text claims 5 against Hitman but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 199,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 200,
+      "line": "Hall snaps off grapple counter \u2014 Hitman takes 5 damage.",
+      "detail": "text claims 5 against Hitman but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 201,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 202,
+      "line": "Hitman reverses the grapple counter \u2014 only 1 damage; Hall whiffs \u2014 Hitman shrugs it off.",
+      "detail": "text claims 1 against Hitman but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 202,
+      "line": "Hitman reverses the grapple counter \u2014 only 1 damage; Hall whiffs \u2014 Hitman shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 205,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 206,
+      "line": "Hall snaps off grapple counter \u2014 Hitman takes 5 damage.",
+      "detail": "text claims 5 against Hitman but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 207,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 208,
+      "line": "Hall snaps off grapple counter \u2014 Hitman takes 5 damage.",
+      "detail": "text claims 5 against Hitman but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 209,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 210,
+      "line": "Hall snaps off grapple counter \u2014 Hitman takes 5 damage.",
+      "detail": "text claims 5 against Hitman but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 211,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 214,
+      "line": "Hitman reverses the grapple counter \u2014 only 1 damage, and turns the tables!",
+      "detail": "text claims 1 against Hitman but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 215,
+      "line": "Hall reverses the hip toss \u2014 only 1 damage; Hitman whiffs \u2014 Hall shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 216,
+      "line": "Hall snaps off grapple counter \u2014 Hitman takes 5 damage.",
+      "detail": "text claims 5 against Hitman but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 217,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 218,
+      "line": "Hall snaps off grapple counter \u2014 Hitman takes 5 damage.",
+      "detail": "text claims 5 against Hitman but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 219,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 220,
+      "line": "Hall snaps off grapple counter \u2014 Hitman takes 5 damage.",
+      "detail": "text claims 5 against Hitman but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 221,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 225,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 226,
+      "line": "Hall snaps off grapple counter \u2014 Hitman takes 5 damage.",
+      "detail": "text claims 5 against Hitman but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 230,
+      "line": "Hall snaps off straight right \u2014 Hitman takes 7 damage.",
+      "detail": "text claims 7 against Hitman but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 234,
+      "line": "Hitman reverses the missile dropkick \u2014 only 1 damage, and turns the tables!",
+      "detail": "text claims 1 against Hitman but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 236,
+      "line": "Hall snaps off missile dropkick \u2014 Hitman takes 18 damage.",
+      "detail": "text claims 18 against Hitman but only 0 was applied after clamping"
+    },
+    {
+      "severity": "info",
+      "code": "unverifiable_claim",
+      "turn": 236,
+      "line": "Hitman is rattled \u2014 when they're forced up, big payoffs may open.",
+      "detail": "claim needs state.pending_groggy in the transcript to check"
+    }
+  ]
+}

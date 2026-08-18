@@ -1,0 +1,133 @@
+{
+  "site_count": 39,
+  "covered_count": 35,
+  "coverage_ratio": 0.8974,
+  "uncovered": [
+    {
+      "id": "site_001",
+      "shape": "The counter is getting predictable \u2014 {} loses the edge.",
+      "source_lines": [
+        383
+      ]
+    },
+    {
+      "id": "site_002",
+      "shape": "The climb looks telegraphed \u2014 {} is ready for it.",
+      "source_lines": [
+        403
+      ]
+    },
+    {
+      "id": "site_017",
+      "shape": "\u2014 FINISHER \u2014 the bridge is hooked \u2014 pinfall attempt!",
+      "source_lines": [
+        590
+      ]
+    },
+    {
+      "id": "site_036",
+      "shape": "{} claws free and breaks the hold!",
+      "source_lines": [
+        793
+      ]
+    }
+  ],
+  "rarest_covered": [
+    {
+      "id": "site_003",
+      "shape": "Another empty climb \u2014 {} takes the momentum.",
+      "hits": 1
+    },
+    {
+      "id": "site_008",
+      "shape": "{} crumples and doesn't move \u2014 they are out cold!",
+      "hits": 1
+    },
+    {
+      "id": "site_009",
+      "shape": "*** KNOCKOUT \u2014 the match is waved off; {} wins ***",
+      "hits": 1
+    },
+    {
+      "id": "site_015",
+      "shape": "{} is yanked up \u2014 their legs aren't under them yet!",
+      "hits": 2
+    },
+    {
+      "id": "site_010",
+      "shape": "{} collapses to the canvas \u2014 the cover is there for the taking!",
+      "hits": 4
+    },
+    {
+      "id": "site_029",
+      "shape": "{} kicks out!",
+      "hits": 4
+    },
+    {
+      "id": "site_007",
+      "shape": "The crowd gasps \u2014 {} is busted open; blood streams down their face.",
+      "hits": 8
+    },
+    {
+      "id": "site_023",
+      "shape": "{} lunges wildly but can't connect \u2014 still groggy!",
+      "hits": 8
+    },
+    {
+      "id": "site_028",
+      "shape": "The finisher still echoes \u2014 +{} on the cover!",
+      "hits": 11
+    },
+    {
+      "id": "site_018",
+      "shape": "\u2014 FINISHER \u2014 the next cover packs extra heat.",
+      "hits": 13
+    }
+  ],
+  "unmatched_line_count": 110,
+  "unmatched_examples": [
+    "Hall uses the stale tie-up to reset with momentum.",
+    "The counter is getting predictable \u2014 Hitman slips free with momentum."
+  ],
+  "hits": {
+    "site_000": 116,
+    "site_001": 0,
+    "site_002": 0,
+    "site_003": 1,
+    "site_004": 41,
+    "site_005": 949,
+    "site_006": 742,
+    "site_007": 8,
+    "site_008": 1,
+    "site_009": 1,
+    "site_010": 4,
+    "site_011": 64,
+    "site_012": 71,
+    "site_013": 20,
+    "site_014": 51,
+    "site_015": 2,
+    "site_016": 116,
+    "site_017": 0,
+    "site_018": 13,
+    "site_019": 24,
+    "site_020": 24,
+    "site_021": 102,
+    "site_022": 16,
+    "site_023": 8,
+    "site_024": 130,
+    "site_025": 135,
+    "site_026": 87,
+    "site_027": 91,
+    "site_028": 11,
+    "site_029": 4,
+    "site_030": 19,
+    "site_031": 46,
+    "site_032": 19,
+    "site_033": 20,
+    "site_034": 20,
+    "site_035": 20,
+    "site_036": 0,
+    "site_037": 20,
+    "site_038": 20
+  }
+}

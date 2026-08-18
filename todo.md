@@ -21,8 +21,18 @@
 
 ### Content & polish
 
-- Change UX for move output and outcomes to be more like a two-man commentary team (like Jerry Lawler and Jim Ross, Gorilla Monsoon and Bobby Heenan, etc.)
+- Change UX for move output and outcomes to be more like a two-man commentary team (like Jerry Lawler and Jim Ross, Gorilla Monsoon and Bobby Heenan, etc.) — see `docs/commentary-design.md`
 - Save replay (and random seed value) to file
+
+### Dialog quality (see `docs/dialog-eval-design.md`)
+
+- Refresh `playtest/transcripts/` — 110 lines predate the current narration copy
+- **`apply_move` → `MatchEvent[]`** then `CommentaryEngine.render_turn` (see `docs/commentary-design.md`)
+- Scenario fixtures for the 4 narration sites no evaluation has ever exercised
+- Replace `Nickname: Move name.` fallback lines with real narration (baseline median 31% of lines)
+- Stop claiming damage that clamping never applied
+- Split the reverse-and-whiff line that reports contact and a miss at once
+- Return structured events from `apply_move` so narration renders from facts
 
 ### Documentation
 

@@ -1,0 +1,83 @@
+{
+  "gates_passed": true,
+  "gate_failures": [],
+  "match_seed": 105,
+  "wrestlers": [
+    "bret_hart",
+    "scott_hall"
+  ],
+  "player_policy": "novice",
+  "turn_count": 39,
+  "accuracy": {
+    "checked_claims": 17,
+    "claims_by_kind": {
+      "condition_delta": 15,
+      "position": 2
+    },
+    "errors": 0,
+    "warnings": 5,
+    "unverifiable_claims": 1,
+    "claim_verifiability_ratio": 0.9444,
+    "schema_gaps": [
+      "state.pending_groggy"
+    ]
+  },
+  "variety": {
+    "line_count": 44,
+    "unique_line_ratio": 0.4773,
+    "phrasing_template_count": 12,
+    "phrasing_diversity": 0.2727,
+    "top_phrasing_share": 0.4545,
+    "max_consecutive_repeat": 3,
+    "flat_line_ratio": 0.4545
+  },
+  "readability": {
+    "max_line_chars": 94,
+    "avg_line_chars": 42.5,
+    "over_width_lines": 0
+  },
+  "findings": [
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 14,
+      "line": "Hitman reverses the pull off the top rope \u2014 only 1 damage; Hall whiffs \u2014 Hitman shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    },
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 16,
+      "line": "Hitman reverses the straight right \u2014 only 1 damage; Hall whiffs \u2014 Hitman shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    },
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 19,
+      "line": "Hall reverses the hurricanrana \u2014 only 2 damage; Hitman whiffs \u2014 Hall shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    },
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 20,
+      "line": "Hitman reverses the superplex \u2014 only 3 damage; Hall whiffs \u2014 Hitman shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    },
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 35,
+      "line": "Hall reverses the hurricanrana \u2014 only 2 damage; Hitman whiffs \u2014 Hall shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    },
+    {
+      "severity": "info",
+      "code": "unverifiable_claim",
+      "turn": 37,
+      "line": "Hall is rattled \u2014 when they're forced up, big payoffs may open.",
+      "detail": "claim needs state.pending_groggy in the transcript to check"
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "gates_passed": true,
+  "gate_failures": [],
+  "match_seed": 110,
+  "wrestlers": [
+    "bret_hart",
+    "scott_hall"
+  ],
+  "player_policy": "aggressive",
+  "turn_count": 28,
+  "accuracy": {
+    "checked_claims": 17,
+    "claims_by_kind": {
+      "condition_delta": 10,
+      "groggy": 6,
+      "position": 1
+    },
+    "errors": 0,
+    "warnings": 0,
+    "unverifiable_claims": 4,
+    "claim_verifiability_ratio": 0.8095,
+    "schema_gaps": [
+      "state.pending_groggy",
+      "state.pin_bonus_next_cover"
+    ]
+  },
+  "variety": {
+    "line_count": 38,
+    "unique_line_ratio": 0.6316,
+    "phrasing_template_count": 17,
+    "phrasing_diversity": 0.4474,
+    "top_phrasing_share": 0.2632,
+    "max_consecutive_repeat": 2,
+    "flat_line_ratio": 0.2632
+  },
+  "readability": {
+    "max_line_chars": 78,
+    "avg_line_chars": 42.5,
+    "over_width_lines": 0
+  },
+  "findings": [
+    {
+      "severity": "info",
+      "code": "unverifiable_claim",
+      "turn": 18,
+      "line": "Hitman is rattled \u2014 when they're forced up, big payoffs may open.",
+      "detail": "claim needs state.pending_groggy in the transcript to check"
+    },
+    {
+      "severity": "info",
+      "code": "unverifiable_claim",
+      "turn": 20,
+      "line": "Hitman is rattled \u2014 when they're forced up, big payoffs may open.",
+      "detail": "claim needs state.pending_groggy in the transcript to check"
+    },
+    {
+      "severity": "info",
+      "code": "unverifiable_claim",
+      "turn": 20,
+      "line": "\u2014 FINISHER \u2014 the next cover packs extra heat.",
+      "detail": "claim needs state.pin_bonus_next_cover in the transcript to check"
+    },
+    {
+      "severity": "info",
+      "code": "unverifiable_claim",
+      "turn": 28,
+      "line": "The finisher still echoes \u2014 +12 on the cover!",
+      "detail": "claim needs state.pin_bonus_next_cover in the transcript to check"
+    }
+  ]
+}

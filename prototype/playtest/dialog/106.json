@@ -1,0 +1,116 @@
+{
+  "gates_passed": true,
+  "gate_failures": [],
+  "match_seed": 106,
+  "wrestlers": [
+    "bret_hart",
+    "scott_hall"
+  ],
+  "player_policy": "aggressive",
+  "turn_count": 38,
+  "accuracy": {
+    "checked_claims": 19,
+    "claims_by_kind": {
+      "condition_delta": 17,
+      "position": 2
+    },
+    "errors": 0,
+    "warnings": 11,
+    "unverifiable_claims": 0,
+    "claim_verifiability_ratio": 1.0,
+    "schema_gaps": []
+  },
+  "variety": {
+    "line_count": 41,
+    "unique_line_ratio": 0.4634,
+    "phrasing_template_count": 10,
+    "phrasing_diversity": 0.2439,
+    "top_phrasing_share": 0.3415,
+    "max_consecutive_repeat": 3,
+    "flat_line_ratio": 0.3415
+  },
+  "readability": {
+    "max_line_chars": 90,
+    "avg_line_chars": 44.9,
+    "over_width_lines": 0
+  },
+  "findings": [
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 3,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 6,
+      "line": "Hitman reverses the grapple counter \u2014 only 1 damage; Hall whiffs \u2014 Hitman shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 9,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 11,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 13,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 17,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 19,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 21,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 23,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 25,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 29,
+      "line": "Hall reverses the rebound clothesline \u2014 only 2 damage; Hitman whiffs \u2014 Hall shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    }
+  ]
+}

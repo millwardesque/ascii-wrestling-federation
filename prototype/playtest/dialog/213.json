@@ -1,0 +1,63 @@
+{
+  "gates_passed": true,
+  "gate_failures": [],
+  "match_seed": 213,
+  "wrestlers": [
+    "bret_hart",
+    "scott_hall"
+  ],
+  "player_policy": "chaotic",
+  "turn_count": 11,
+  "accuracy": {
+    "checked_claims": 5,
+    "claims_by_kind": {
+      "condition_delta": 3,
+      "groggy": 1,
+      "position": 1
+    },
+    "errors": 0,
+    "warnings": 2,
+    "unverifiable_claims": 1,
+    "claim_verifiability_ratio": 0.8333,
+    "schema_gaps": [
+      "state.pending_groggy"
+    ]
+  },
+  "variety": {
+    "line_count": 16,
+    "unique_line_ratio": 0.875,
+    "phrasing_template_count": 10,
+    "phrasing_diversity": 0.625,
+    "top_phrasing_share": 0.3125,
+    "max_consecutive_repeat": 2,
+    "flat_line_ratio": 0.3125
+  },
+  "readability": {
+    "max_line_chars": 76,
+    "avg_line_chars": 38.3,
+    "over_width_lines": 0
+  },
+  "findings": [
+    {
+      "severity": "info",
+      "code": "unverifiable_claim",
+      "turn": 3,
+      "line": "Hall is rattled \u2014 when they're forced up, big payoffs may open.",
+      "detail": "claim needs state.pending_groggy in the transcript to check"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 5,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 7,
+      "line": "Hitman: Climb to the top rope.",
+      "detail": "Hall changed (groggy True->False) but is never named"
+    }
+  ]
+}

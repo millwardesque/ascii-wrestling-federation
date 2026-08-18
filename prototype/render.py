@@ -8,6 +8,7 @@ import sys
 from typing import Callable, Protocol, Sequence, runtime_checkable
 
 from game import MatchState, PinSequence, move_landing_probability_label
+from commentators import CommentatorPair
 from moves import BodyPosition, MoveRule
 from wrestlers import Wrestler
 
@@ -111,7 +112,12 @@ class MatchRenderer(Protocol):
         """Announce CPU opponent after selection."""
         ...
 
-    def match_start_banner(self, *, match_seed: int | None = None) -> None:
+    def match_start_banner(
+        self,
+        *,
+        match_seed: int | None = None,
+        commentary_team: CommentatorPair | None = None,
+    ) -> None:
         """Banner when the bell rings; ``match_seed`` is set for replay/debug when applicable."""
         ...
 

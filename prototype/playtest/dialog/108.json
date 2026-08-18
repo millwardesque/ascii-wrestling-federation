@@ -1,0 +1,47 @@
+{
+  "gates_passed": true,
+  "gate_failures": [],
+  "match_seed": 108,
+  "wrestlers": [
+    "bret_hart",
+    "scott_hall"
+  ],
+  "player_policy": "chaotic",
+  "turn_count": 21,
+  "accuracy": {
+    "checked_claims": 11,
+    "claims_by_kind": {
+      "condition_delta": 7,
+      "groggy": 2,
+      "position": 2
+    },
+    "errors": 0,
+    "warnings": 1,
+    "unverifiable_claims": 0,
+    "claim_verifiability_ratio": 1.0,
+    "schema_gaps": []
+  },
+  "variety": {
+    "line_count": 26,
+    "unique_line_ratio": 0.7308,
+    "phrasing_template_count": 13,
+    "phrasing_diversity": 0.5,
+    "top_phrasing_share": 0.3462,
+    "max_consecutive_repeat": 3,
+    "flat_line_ratio": 0.3462
+  },
+  "readability": {
+    "max_line_chars": 94,
+    "avg_line_chars": 44.3,
+    "over_width_lines": 0
+  },
+  "findings": [
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 14,
+      "line": "Hitman reverses the pull off the top rope \u2014 only 1 damage; Hall whiffs \u2014 Hitman shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    }
+  ]
+}

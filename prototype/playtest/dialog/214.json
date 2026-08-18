@@ -1,0 +1,56 @@
+{
+  "gates_passed": true,
+  "gate_failures": [],
+  "match_seed": 214,
+  "wrestlers": [
+    "bret_hart",
+    "scott_hall"
+  ],
+  "player_policy": "novice",
+  "turn_count": 35,
+  "accuracy": {
+    "checked_claims": 14,
+    "claims_by_kind": {
+      "condition_delta": 11,
+      "groggy": 2,
+      "position": 1
+    },
+    "errors": 0,
+    "warnings": 1,
+    "unverifiable_claims": 1,
+    "claim_verifiability_ratio": 0.9333,
+    "schema_gaps": [
+      "state.pending_groggy"
+    ]
+  },
+  "variety": {
+    "line_count": 40,
+    "unique_line_ratio": 0.55,
+    "phrasing_template_count": 14,
+    "phrasing_diversity": 0.35,
+    "top_phrasing_share": 0.45,
+    "max_consecutive_repeat": 2,
+    "flat_line_ratio": 0.45
+  },
+  "readability": {
+    "max_line_chars": 94,
+    "avg_line_chars": 40.0,
+    "over_width_lines": 0
+  },
+  "findings": [
+    {
+      "severity": "info",
+      "code": "unverifiable_claim",
+      "turn": 5,
+      "line": "Hall is rattled \u2014 when they're forced up, big payoffs may open.",
+      "detail": "claim needs state.pending_groggy in the transcript to check"
+    },
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 10,
+      "line": "Hitman reverses the pull off the top rope \u2014 only 1 damage; Hall whiffs \u2014 Hitman shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    }
+  ]
+}

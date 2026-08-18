@@ -46,6 +46,9 @@ class TestPlaytestRenderer(unittest.TestCase):
         lines = [json.loads(line) for line in buf.getvalue().splitlines() if line.strip()]
         self.assertEqual(lines[0]["event"], "match_start")
         self.assertEqual(lines[0]["match_seed"], 42)
+        self.assertIn("commentary_team", lines[0])
+        self.assertEqual(len(lines[0]["commentary_team"]), 2)
+        self.assertIn("commentary_team_label", lines[0])
         self.assertEqual(lines[-1]["event"], "match_end")
         turns = [row for row in lines if row["event"] == "turn"]
         self.assertGreater(len(turns), 0)

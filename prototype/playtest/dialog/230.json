@@ -1,0 +1,78 @@
+{
+  "gates_passed": true,
+  "gate_failures": [],
+  "match_seed": 230,
+  "wrestlers": [
+    "bret_hart",
+    "scott_hall"
+  ],
+  "player_policy": "novice",
+  "turn_count": 22,
+  "accuracy": {
+    "checked_claims": 14,
+    "claims_by_kind": {
+      "condition_delta": 10,
+      "groggy": 1,
+      "position": 3
+    },
+    "errors": 0,
+    "warnings": 2,
+    "unverifiable_claims": 3,
+    "claim_verifiability_ratio": 0.8235,
+    "schema_gaps": [
+      "state.pending_groggy",
+      "state.pin_bonus_next_cover"
+    ]
+  },
+  "variety": {
+    "line_count": 28,
+    "unique_line_ratio": 0.7143,
+    "phrasing_template_count": 12,
+    "phrasing_diversity": 0.4286,
+    "top_phrasing_share": 0.25,
+    "max_consecutive_repeat": 2,
+    "flat_line_ratio": 0.25
+  },
+  "readability": {
+    "max_line_chars": 83,
+    "avg_line_chars": 47.2,
+    "over_width_lines": 0
+  },
+  "findings": [
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 5,
+      "line": "Hall reverses the hurricanrana \u2014 only 2 damage; Hitman whiffs \u2014 Hall shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    },
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 7,
+      "line": "Hall reverses the hurricanrana \u2014 only 2 damage; Hitman whiffs \u2014 Hall shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    },
+    {
+      "severity": "info",
+      "code": "unverifiable_claim",
+      "turn": 16,
+      "line": "Hitman is rattled \u2014 when they're forced up, big payoffs may open.",
+      "detail": "claim needs state.pending_groggy in the transcript to check"
+    },
+    {
+      "severity": "info",
+      "code": "unverifiable_claim",
+      "turn": 20,
+      "line": "\u2014 FINISHER \u2014 the next cover packs extra heat.",
+      "detail": "claim needs state.pin_bonus_next_cover in the transcript to check"
+    },
+    {
+      "severity": "info",
+      "code": "unverifiable_claim",
+      "turn": 22,
+      "line": "The finisher still echoes \u2014 +12 on the cover!",
+      "detail": "claim needs state.pin_bonus_next_cover in the transcript to check"
+    }
+  ]
+}

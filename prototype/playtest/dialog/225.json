@@ -1,0 +1,75 @@
+{
+  "gates_passed": true,
+  "gate_failures": [],
+  "match_seed": 225,
+  "wrestlers": [
+    "bret_hart",
+    "scott_hall"
+  ],
+  "player_policy": "novice",
+  "turn_count": 37,
+  "accuracy": {
+    "checked_claims": 18,
+    "claims_by_kind": {
+      "condition_delta": 15,
+      "groggy": 2,
+      "position": 1
+    },
+    "errors": 0,
+    "warnings": 5,
+    "unverifiable_claims": 0,
+    "claim_verifiability_ratio": 1.0,
+    "schema_gaps": []
+  },
+  "variety": {
+    "line_count": 43,
+    "unique_line_ratio": 0.6279,
+    "phrasing_template_count": 14,
+    "phrasing_diversity": 0.3256,
+    "top_phrasing_share": 0.4186,
+    "max_consecutive_repeat": 3,
+    "flat_line_ratio": 0.4186
+  },
+  "readability": {
+    "max_line_chars": 94,
+    "avg_line_chars": 44.4,
+    "over_width_lines": 0
+  },
+  "findings": [
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 4,
+      "line": "Hitman reverses the pull off the top rope \u2014 only 1 damage; Hall whiffs \u2014 Hitman shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    },
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 16,
+      "line": "Hitman reverses the rebound clothesline \u2014 only 2 damage; Hall whiffs \u2014 Hitman shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    },
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 20,
+      "line": "Hitman reverses the pull off the top rope \u2014 only 1 damage; Hall whiffs \u2014 Hitman shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    },
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 30,
+      "line": "Hitman reverses the missile dropkick \u2014 only 1 damage; Hall whiffs \u2014 Hitman shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    },
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 34,
+      "line": "Hitman reverses the superplex \u2014 only 3 damage; Hall whiffs \u2014 Hitman shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    }
+  ]
+}

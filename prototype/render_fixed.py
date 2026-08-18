@@ -16,6 +16,7 @@ import time
 from typing import NamedTuple, Sequence
 
 from awf_logo import AWF_LOGO_LINES, INTRO_LINES, PROMPT_LINE
+from commentators import CommentatorPair
 from config import get_config
 from game import (
     MatchState,
@@ -735,10 +736,18 @@ class FixedLayoutRenderer:
         )
         read_any_key()
 
-    def match_start_banner(self, *, match_seed: int | None = None) -> None:
+    def match_start_banner(
+        self,
+        *,
+        match_seed: int | None = None,
+        commentary_team: CommentatorPair | None = None,
+    ) -> None:
         self._last_pre_match_body = None
         self._banner = "BELL RINGS — singles match, pinfall only"
-        self._header_extra = self._banner
+        if commentary_team is not None:
+            self._header_extra = commentary_team.intro_line()
+        else:
+            self._header_extra = self._banner
         self._match_seed = match_seed
         self._player_turn_starts = 0
         self._action_chain = []

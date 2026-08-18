@@ -1,0 +1,56 @@
+{
+  "gates_passed": true,
+  "gate_failures": [],
+  "match_seed": 217,
+  "wrestlers": [
+    "bret_hart",
+    "scott_hall"
+  ],
+  "player_policy": "methodical",
+  "turn_count": 10,
+  "accuracy": {
+    "checked_claims": 8,
+    "claims_by_kind": {
+      "condition_delta": 4,
+      "groggy": 3,
+      "position": 1
+    },
+    "errors": 0,
+    "warnings": 0,
+    "unverifiable_claims": 2,
+    "claim_verifiability_ratio": 0.8,
+    "schema_gaps": [
+      "state.pin_bonus_next_cover"
+    ]
+  },
+  "variety": {
+    "line_count": 17,
+    "unique_line_ratio": 0.8824,
+    "phrasing_template_count": 12,
+    "phrasing_diversity": 0.7059,
+    "top_phrasing_share": 0.2353,
+    "max_consecutive_repeat": 2,
+    "flat_line_ratio": 0.0588
+  },
+  "readability": {
+    "max_line_chars": 78,
+    "avg_line_chars": 41.5,
+    "over_width_lines": 0
+  },
+  "findings": [
+    {
+      "severity": "info",
+      "code": "unverifiable_claim",
+      "turn": 8,
+      "line": "\u2014 FINISHER \u2014 the next cover packs extra heat.",
+      "detail": "claim needs state.pin_bonus_next_cover in the transcript to check"
+    },
+    {
+      "severity": "info",
+      "code": "unverifiable_claim",
+      "turn": 10,
+      "line": "The finisher still echoes \u2014 +12 on the cover!",
+      "detail": "claim needs state.pin_bonus_next_cover in the transcript to check"
+    }
+  ]
+}
