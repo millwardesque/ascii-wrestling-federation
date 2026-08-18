@@ -75,11 +75,33 @@ individual *lines*, and rare lines are where bugs hide. Across 40 transcripts,
 `busted open` appears 8 times and `KNOCKOUT` once — a judge sampling seeds will
 essentially never audit them, and a copy change to a rare line can ship broken.
 
-Dialog coverage therefore needs a scenario harness that pins `MatchState` and
-the RNG and forces each narration site to fire, then reports which sites were
-never exercised. This is the same shape as
+Dialog coverage is therefore measured over narration sites, in the same spirit as
 [`tests/test_position_coverage.py`](../prototype/tests/test_position_coverage.py),
 which already guarantees every position/status combination has a legal move.
+[`prototype/playtest/narration_coverage.py`](../prototype/playtest/narration_coverage.py)
+reads the site catalog out of `game.py` itself — every string literal carrying the
+two-space narration indent — so the catalog cannot drift from the code, and then
+reports which sites a corpus exercised.
+
+The committed corpus covers **35 of 39 sites (90%)**. Four have never been read
+by any evaluation:
+
+| Site | `game.py` |
+|------|-----------|
+| `The counter is getting predictable — {} loses the edge.` | 383 |
+| `The climb looks telegraphed — {} is ready for it.` | 403 |
+| `— FINISHER — the bridge is hooked — pinfall attempt!` | 590 |
+| `{} claws free and breaks the hold!` | 793 |
+
+The same run also caught the corpus being stale: 110 transcript lines match no
+site at all, because `The counter is getting predictable — Hitman slips free with
+momentum.` and `Hall uses the stale tie-up to reset with momentum.` were rewritten
+in `game.py` after those transcripts were recorded. A framework that cannot tell
+you its own inputs are out of date will quietly grade the wrong build.
+
+Forcing the four uncovered sites needs fixtures that pin `MatchState` and the RNG
+rather than more seeds. `TestLiveMatchCoverage` already asserts the weaker
+invariant that every line a live match prints belongs to the catalog.
 
 ### 4. Golden snapshots are possible here
 
@@ -141,20 +163,22 @@ is worth sequencing after the cheap layers are paying off, not before.
 ## Build order
 
 1. **Layer 1 checker + baseline** — done. `dialog_telemetry.py`,
-   `compute_dialog_telemetry.py`, 23 tests, committed baseline over 40 seeds.
+   `compute_dialog_telemetry.py`, committed baseline over 40 seeds.
 2. **Rubric, report schema, judge skill** — done. `docs/dialog-rubric.md`,
    `docs/dialog-report.schema.json`, `/awf-dialog-judge`.
-3. **Scenario coverage harness** — pin state and RNG, force every narration site,
-   report unexercised sites. Extends the existing test-only pattern; no engine
-   changes.
-4. **Fix the three surfaced debts** — replace `Nickname: Move name.` fallbacks
-   with real lines, stop claiming clamped damage, split the reverse-and-whiff
-   line. Each is a copy change with a metric that moves.
-5. **Batch automation** — a `.cursor/automations/dialog-batch.md` mirroring the
+3. **Narration-site coverage** — done. `narration_coverage.py` plus the
+   `narration-coverage.json` baseline; scenario fixtures for the four uncovered
+   sites are still open.
+4. **Refresh the shared transcript corpus** so narration evaluation stops reading
+   pre-rewrite copy. Cheap, and it unblocks trustworthy baselines.
+5. **Fix the surfaced debts** — replace `Nickname: Move name.` fallbacks with real
+   lines, stop claiming clamped damage, split the reverse-and-whiff line. Each is
+   a copy change with a metric that moves.
+6. **Batch automation** — a `.cursor/automations/dialog-batch.md` mirroring the
    playtest batch template: record, check, judge in parallel, aggregate.
-6. **Structured events in `apply_move`** — the seam above, once 1–5 are earning
+7. **Structured events in `apply_move`** — the seam above, once 1–6 are earning
    their keep.
-7. **Commentary team on top of events** — the backlog feature, now with a
+8. **Commentary team on top of events** — the backlog feature, now with a
    framework that can tell whether it is any good.
 
 ## How we know the framework itself works
@@ -168,7 +192,10 @@ The same question a judge asks of the game: what is the evidence?
   ([`tests/test_dialog_telemetry.py`](../prototype/tests/test_dialog_telemetry.py)).
   That suite is the checker's mutation testing.
 - **Regression value:** `TestLiveMatchNarration` plays three seeded matches and
-  fails if any line contradicts state, so narration edits to `game.py` are
-  checked by `python3 -m unittest discover -s tests -q` with no extra step.
+  fails if any line contradicts state; `TestLiveMatchCoverage` fails if a match
+  prints a line the site catalog does not know. Both run inside
+  `python3 -m unittest discover -s tests -q` with no extra step.
+- **Self-awareness:** the coverage tool reported its own corpus as stale, which is
+  the property you want from an evaluation harness.
 - **Manual spot checks:** the two loudest findings were verified by hand against
   the raw transcripts before the thresholds were set.

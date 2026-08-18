@@ -35,11 +35,16 @@ same transcript. If you change narration copy in `game.py`, run:
 ```bash
 cd prototype
 python3 playtest/compute_dialog_telemetry.py
+python3 playtest/narration_coverage.py
 ```
 
 Any `error`-severity finding means a line now contradicts match state. Variety
 gates are ratchets over today's baseline — tighten them when the baseline
-improves, never loosen them to land a change. Design notes:
+improves, never loosen them to land a change.
+
+`narration_coverage.py` reads every narration line out of `game.py` and reports
+which ones a transcript corpus exercised. When you add narration, expect the new
+site to show up as uncovered until something exercises it. Design notes:
 `docs/dialog-eval-design.md`.
 
 ## How To Run

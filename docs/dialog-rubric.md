@@ -222,11 +222,29 @@ Agent skill: [`.cursor/skills/awf-dialog-judge/SKILL.md`](../.cursor/skills/awf-
 
 Rare lines are where narration bugs live, and random seeds barely reach them.
 Across the 40 committed transcripts, `busted open` appears 8 times and
-`KNOCKOUT` once. Judge sampling over random seeds will never audit those lines.
+`KNOCKOUT` once. Judge sampling over seeds will never audit those lines.
 
-Dialog coverage is therefore measured over **narration sites**, not seeds:
-enumerate every line the engine can emit, and require each to be exercised by a
-scenario fixture that pins state and RNG — the same idea as
-[`tests/test_position_coverage.py`](../prototype/tests/test_position_coverage.py).
-Until that harness exists, treat rare-event narration as unaudited and note it
-in the report's `top_issues`.
+Dialog coverage is therefore measured over **narration sites**, not seeds.
+[`prototype/playtest/narration_coverage.py`](../prototype/playtest/narration_coverage.py)
+reads every narration line `game.py` can emit straight from the source, then
+reports which ones a corpus exercised:
+
+```bash
+cd prototype
+python3 playtest/narration_coverage.py --output playtest/narration-coverage.json
+```
+
+| Field | Meaning |
+|-------|---------|
+| `coverage_ratio` | Share of narration sites the corpus exercised |
+| `uncovered` | Copy no evaluation has ever read, with `game.py` line numbers |
+| `rarest_covered` | Sites resting on one or two observations |
+| `unmatched_examples` | Lines with no site — a stale corpus or non-engine text |
+
+Baseline over the committed corpus: **35/39 sites (90%)**, four never exercised.
+Treat anything in `uncovered` or the thin end of `rarest_covered` as unaudited
+and say so in the report's `top_issues`.
+
+`unmatched_examples` is a staleness alarm. The committed corpus still contains
+`The counter is getting predictable — Hitman slips free with momentum.`, which no
+longer exists in `game.py`, so those transcripts predate the current copy.

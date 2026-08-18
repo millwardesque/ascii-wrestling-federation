@@ -26,7 +26,8 @@
 
 ### Dialog quality (see `docs/dialog-eval-design.md`)
 
-- Narration coverage harness: force every narration site from pinned state + RNG
+- Refresh `playtest/transcripts/` — 110 lines predate the current narration copy
+- Scenario fixtures for the 4 narration sites no evaluation has ever exercised
 - Replace `Nickname: Move name.` fallback lines with real narration (baseline median 31% of lines)
 - Stop claiming damage that clamping never applied
 - Split the reverse-and-whiff line that reports contact and a miss at once

@@ -32,7 +32,14 @@ python3 playtest/compute_dialog_telemetry.py \
   --output-dir playtest/dialog \
   --summary playtest/dialog-summary.json \
   --fail-on-gate
+
+# which narration lines has any evaluation ever read?
+python3 playtest/narration_coverage.py --output playtest/narration-coverage.json
 ```
+
+Coverage is measured over narration sites read out of `game.py`, not over seeds:
+rare copy (`KNOCKOUT` fires once in 40 matches) is where narration bugs survive.
+Lines reported in `unmatched_examples` mean the corpus predates the current copy.
 
 ## CLI flags
 
@@ -80,4 +87,5 @@ All timing keys in that file are `0.0`.
 | `playtest/reports/<seed>.json` | `/awf-playtest-judge` |
 | `playtest/dialog/<seed>.json` | `compute_dialog_telemetry.py` |
 | `playtest/dialog-summary.json` | `compute_dialog_telemetry.py --summary` |
+| `playtest/narration-coverage.json` | `narration_coverage.py --output` |
 | `playtest/dialog-reports/<seed>.json` | `/awf-dialog-judge` |
