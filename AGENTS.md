@@ -18,7 +18,29 @@ Important files:
 - `prototype/wrestlers.py`: roster data; `list_roster()` controls playable roster.
 - `prototype/config.py` and `prototype/config.json`: hot-reloadable tuning config, currently timing values.
 - `prototype/tests/`: unit tests.
+- `prototype/playtest/`: headless JSONL playtest mode and evaluation telemetry.
 - `todo.md`: backlog.
+
+## Evaluation Frameworks
+
+Two tracks share the playtest transcripts:
+
+- **Gameplay:** `playtest/telemetry.py` + `docs/playtest-rubric.md` + `/awf-playtest-judge`.
+- **Narration:** `playtest/dialog_telemetry.py` + `docs/dialog-rubric.md` + `/awf-dialog-judge`.
+
+Narration accuracy is deterministic, not judged: `dialog_telemetry.py` compares
+numeric and state claims in the `log` text against the `state` snapshots in the
+same transcript. If you change narration copy in `game.py`, run:
+
+```bash
+cd prototype
+python3 playtest/compute_dialog_telemetry.py
+```
+
+Any `error`-severity finding means a line now contradicts match state. Variety
+gates are ratchets over today's baseline — tighten them when the baseline
+improves, never loosen them to land a change. Design notes:
+`docs/dialog-eval-design.md`.
 
 ## How To Run
 
