@@ -158,15 +158,12 @@ def _match_names(rows: list[dict[str, Any]]) -> tuple[str, str]:
 
 
 def _initial_health(rows: list[dict[str, Any]]) -> list[int] | None:
+    """Both wrestlers' starting condition, which is also their ceiling."""
     start = next((row for row in rows if row.get("event") == "match_start"), {})
     ids = list(start.get("wrestlers") or [])
     if len(ids) != 2 or any(str(i) not in ROSTER for i in ids):
         return None
     return [ROSTER[str(i)].max_health for i in ids]
-
-
-def _max_health(rows: list[dict[str, Any]]) -> list[int] | None:
-    return _initial_health(rows)
 
 
 def _claimed_health_delta(log: str, name: str) -> int | None:
@@ -512,7 +509,7 @@ def compute_dialog_telemetry(
     limits = {**DEFAULT_THRESHOLDS, **(thresholds or {})}
     terms = DEFAULT_BANNED_TERMS if banned_terms is None else banned_terms
     names = _match_names(rows)
-    max_health = _max_health(rows)
+    max_health = _initial_health(rows)
 
     turns = [row for row in rows if row.get("event") == "turn"]
     findings: list[dict[str, Any]] = []

@@ -174,8 +174,9 @@ is worth sequencing after the cheap layers are paying off, not before.
 5. **Fix the surfaced debts** — replace `Nickname: Move name.` fallbacks with real
    lines, stop claiming clamped damage, split the reverse-and-whiff line. Each is
    a copy change with a metric that moves.
-6. **Batch automation** — a `.cursor/automations/dialog-batch.md` mirroring the
-   playtest batch template: record, check, judge in parallel, aggregate.
+6. **Batch automation** — done. [`.cursor/automations/dialog-batch.md`](../.cursor/automations/dialog-batch.md)
+   mirrors the playtest batch template: record, check, cover, judge in parallel,
+   aggregate.
 7. **Structured events in `apply_move`** — the seam above, once 1–6 are earning
    their keep.
 8. **Commentary team on top of events** — the backlog feature, now with a
