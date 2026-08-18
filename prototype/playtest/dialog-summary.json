@@ -1,0 +1,77 @@
+{
+  "gates_passed": true,
+  "gate_failures": [],
+  "match_count": 40,
+  "accuracy_errors_total": 0,
+  "matches_with_accuracy_errors": 0,
+  "medians": {
+    "flat_line_ratio": 0.3052,
+    "phrasing_diversity": 0.2747,
+    "top_phrasing_share": 0.3114,
+    "max_consecutive_repeat": 3.0,
+    "unique_line_ratio": 0.5115
+  },
+  "worst": {
+    "flat_line_ratio": {
+      "match_seed": 109,
+      "value": 0.5
+    },
+    "phrasing_diversity": {
+      "match_seed": 103,
+      "value": 0.0649
+    },
+    "max_consecutive_repeat": {
+      "match_seed": 109,
+      "value": 7
+    },
+    "max_line_chars": {
+      "match_seed": 224,
+      "value": 101
+    }
+  },
+  "finding_counts": {
+    "silent_state_change": 249,
+    "clamped_number_claim": 214,
+    "contradictory_claim": 135,
+    "unverifiable_claim": 96
+  },
+  "finding_examples": {
+    "unverifiable_claim": {
+      "match_seed": 101,
+      "severity": "info",
+      "code": "unverifiable_claim",
+      "turn": 6,
+      "line": "Hitman is rattled \u2014 when they're forced up, big payoffs may open.",
+      "detail": "claim needs state.pending_groggy in the transcript to check"
+    },
+    "silent_state_change": {
+      "match_seed": 101,
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 15,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    "contradictory_claim": {
+      "match_seed": 102,
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 7,
+      "line": "Hall reverses the rebound clothesline \u2014 only 2 damage; Hitman whiffs \u2014 Hall shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    },
+    "clamped_number_claim": {
+      "match_seed": 102,
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 48,
+      "line": "Hall snaps off grapple counter \u2014 Hitman takes 5 damage.",
+      "detail": "text claims 5 against Hitman but only 3 was applied after clamping"
+    }
+  },
+  "schema_gaps": [
+    "state.bloodied",
+    "state.pending_groggy",
+    "state.pin_bonus_next_cover"
+  ]
+}

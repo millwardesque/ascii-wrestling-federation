@@ -1,0 +1,126 @@
+{
+  "gates_passed": true,
+  "gate_failures": [],
+  "match_seed": 229,
+  "wrestlers": [
+    "bret_hart",
+    "scott_hall"
+  ],
+  "player_policy": "chaotic",
+  "turn_count": 65,
+  "accuracy": {
+    "checked_claims": 43,
+    "claims_by_kind": {
+      "condition_delta": 34,
+      "groggy": 5,
+      "position": 4
+    },
+    "errors": 0,
+    "warnings": 10,
+    "unverifiable_claims": 2,
+    "claim_verifiability_ratio": 0.9556,
+    "schema_gaps": [
+      "state.pending_groggy"
+    ]
+  },
+  "variety": {
+    "line_count": 77,
+    "unique_line_ratio": 0.5195,
+    "phrasing_template_count": 20,
+    "phrasing_diversity": 0.2597,
+    "top_phrasing_share": 0.2338,
+    "max_consecutive_repeat": 3,
+    "flat_line_ratio": 0.2338
+  },
+  "readability": {
+    "max_line_chars": 99,
+    "avg_line_chars": 47.4,
+    "over_width_lines": 0
+  },
+  "findings": [
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 1,
+      "line": "Hitman recovers 5 stamina.",
+      "detail": "text claims -5 against Hitman but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 4,
+      "line": "Hitman reverses the pull off the top rope \u2014 only 1 damage; Hall whiffs \u2014 Hitman shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    },
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 8,
+      "line": "Hitman reverses the running dropkick \u2014 only 1 damage; Hall whiffs \u2014 Hitman shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 13,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 15,
+      "line": "Hitman recovers 5 stamina.",
+      "detail": "Hall changed (groggy True->False) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 20,
+      "line": "Hitman reverses the diving crossbody \u2014 only 2 damage; Hall whiffs \u2014 Hitman shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    },
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 26,
+      "line": "Hitman reverses the diving crossbody \u2014 only 2 damage; Hall whiffs \u2014 Hitman shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    },
+    {
+      "severity": "info",
+      "code": "unverifiable_claim",
+      "turn": 29,
+      "line": "Hall is rattled \u2014 when they're forced up, big payoffs may open.",
+      "detail": "claim needs state.pending_groggy in the transcript to check"
+    },
+    {
+      "severity": "info",
+      "code": "unverifiable_claim",
+      "turn": 43,
+      "line": "Hall is rattled \u2014 when they're forced up, big payoffs may open.",
+      "detail": "claim needs state.pending_groggy in the transcript to check"
+    },
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 46,
+      "line": "Hitman reverses the straight right \u2014 only 1 damage; Hall whiffs \u2014 Hitman shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 49,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 57,
+      "line": "Hall reverses the missile dropkick \u2014 only 1 damage; Hitman whiffs \u2014 Hall shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    }
+  ]
+}

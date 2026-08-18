@@ -1,0 +1,155 @@
+{
+  "gates_passed": true,
+  "gate_failures": [],
+  "match_seed": 205,
+  "wrestlers": [
+    "bret_hart",
+    "scott_hall"
+  ],
+  "player_policy": "aggressive",
+  "turn_count": 90,
+  "accuracy": {
+    "checked_claims": 42,
+    "claims_by_kind": {
+      "condition_delta": 34,
+      "groggy": 6,
+      "position": 2
+    },
+    "errors": 0,
+    "warnings": 12,
+    "unverifiable_claims": 4,
+    "claim_verifiability_ratio": 0.913,
+    "schema_gaps": [
+      "state.pending_groggy",
+      "state.pin_bonus_next_cover"
+    ]
+  },
+  "variety": {
+    "line_count": 102,
+    "unique_line_ratio": 0.3922,
+    "phrasing_template_count": 21,
+    "phrasing_diversity": 0.2059,
+    "top_phrasing_share": 0.2451,
+    "max_consecutive_repeat": 2,
+    "flat_line_ratio": 0.1373
+  },
+  "readability": {
+    "max_line_chars": 92,
+    "avg_line_chars": 48.6,
+    "over_width_lines": 0
+  },
+  "findings": [
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 17,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 23,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "info",
+      "code": "unverifiable_claim",
+      "turn": 48,
+      "line": "Hitman is rattled \u2014 when they're forced up, big payoffs may open.",
+      "detail": "claim needs state.pending_groggy in the transcript to check"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 51,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 61,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 69,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 75,
+      "line": "Hall reverses the pull off the top rope \u2014 only 1 damage; Hitman whiffs \u2014 Hall shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 76,
+      "line": "Hall snaps off missile dropkick \u2014 Hitman takes 18 damage.",
+      "detail": "text claims 18 against Hitman but only 3 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 78,
+      "line": "Hall snaps off straight right \u2014 Hitman takes 7 damage.",
+      "detail": "text claims 7 against Hitman but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 79,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 80,
+      "line": "Hall snaps off grapple counter \u2014 Hitman takes 5 damage.",
+      "detail": "text claims 5 against Hitman but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 86,
+      "line": "Hall snaps off roundhouse kick \u2014 Hitman takes 9 damage.",
+      "detail": "text claims 9 against Hitman but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 88,
+      "line": "Hall snaps off razor's edge \u2014 Hitman takes 20 damage.",
+      "detail": "text claims 20 against Hitman but only 0 was applied after clamping"
+    },
+    {
+      "severity": "info",
+      "code": "unverifiable_claim",
+      "turn": 88,
+      "line": "Hitman is rattled \u2014 when they're forced up, big payoffs may open.",
+      "detail": "claim needs state.pending_groggy in the transcript to check"
+    },
+    {
+      "severity": "info",
+      "code": "unverifiable_claim",
+      "turn": 88,
+      "line": "\u2014 FINISHER \u2014 the next cover packs extra heat.",
+      "detail": "claim needs state.pin_bonus_next_cover in the transcript to check"
+    },
+    {
+      "severity": "info",
+      "code": "unverifiable_claim",
+      "turn": 90,
+      "line": "The finisher still echoes \u2014 +12 on the cover!",
+      "detail": "claim needs state.pin_bonus_next_cover in the transcript to check"
+    }
+  ]
+}

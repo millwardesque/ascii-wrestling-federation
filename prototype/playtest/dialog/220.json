@@ -1,0 +1,74 @@
+{
+  "gates_passed": true,
+  "gate_failures": [],
+  "match_seed": 220,
+  "wrestlers": [
+    "bret_hart",
+    "scott_hall"
+  ],
+  "player_policy": "aggressive",
+  "turn_count": 58,
+  "accuracy": {
+    "checked_claims": 17,
+    "claims_by_kind": {
+      "condition_delta": 16,
+      "position": 1
+    },
+    "errors": 0,
+    "warnings": 5,
+    "unverifiable_claims": 0,
+    "claim_verifiability_ratio": 1.0,
+    "schema_gaps": []
+  },
+  "variety": {
+    "line_count": 63,
+    "unique_line_ratio": 0.3651,
+    "phrasing_template_count": 13,
+    "phrasing_diversity": 0.2063,
+    "top_phrasing_share": 0.2222,
+    "max_consecutive_repeat": 2,
+    "flat_line_ratio": 0.1429
+  },
+  "readability": {
+    "max_line_chars": 90,
+    "avg_line_chars": 47.9,
+    "over_width_lines": 0
+  },
+  "findings": [
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 9,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 15,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 23,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 47,
+      "line": "Hall reverses the arm drag \u2014 only 1 damage; Hitman whiffs \u2014 Hall shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    },
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 55,
+      "line": "Hall reverses the rebound clothesline \u2014 only 2 damage; Hitman whiffs \u2014 Hall shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    }
+  ]
+}

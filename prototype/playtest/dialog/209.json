@@ -1,0 +1,86 @@
+{
+  "gates_passed": true,
+  "gate_failures": [],
+  "match_seed": 209,
+  "wrestlers": [
+    "bret_hart",
+    "scott_hall"
+  ],
+  "player_policy": "novice",
+  "turn_count": 45,
+  "accuracy": {
+    "checked_claims": 19,
+    "claims_by_kind": {
+      "condition_delta": 15,
+      "groggy": 3,
+      "position": 1
+    },
+    "errors": 0,
+    "warnings": 1,
+    "unverifiable_claims": 5,
+    "claim_verifiability_ratio": 0.7917,
+    "schema_gaps": [
+      "state.bloodied",
+      "state.pending_groggy",
+      "state.pin_bonus_next_cover"
+    ]
+  },
+  "variety": {
+    "line_count": 54,
+    "unique_line_ratio": 0.537,
+    "phrasing_template_count": 16,
+    "phrasing_diversity": 0.2963,
+    "top_phrasing_share": 0.4444,
+    "max_consecutive_repeat": 5,
+    "flat_line_ratio": 0.4444
+  },
+  "readability": {
+    "max_line_chars": 78,
+    "avg_line_chars": 39.9,
+    "over_width_lines": 0
+  },
+  "findings": [
+    {
+      "severity": "info",
+      "code": "unverifiable_claim",
+      "turn": 5,
+      "line": "Hall is rattled \u2014 when they're forced up, big payoffs may open.",
+      "detail": "claim needs state.pending_groggy in the transcript to check"
+    },
+    {
+      "severity": "info",
+      "code": "unverifiable_claim",
+      "turn": 22,
+      "line": "The crowd gasps \u2014 Hitman is busted open; blood streams down their face.",
+      "detail": "claim needs state.bloodied in the transcript to check"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 30,
+      "line": "Hall: Collar-and-elbow tie-up.",
+      "detail": "Hitman changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "info",
+      "code": "unverifiable_claim",
+      "turn": 34,
+      "line": "Hitman is rattled \u2014 when they're forced up, big payoffs may open.",
+      "detail": "claim needs state.pending_groggy in the transcript to check"
+    },
+    {
+      "severity": "info",
+      "code": "unverifiable_claim",
+      "turn": 36,
+      "line": "\u2014 FINISHER \u2014 the next cover packs extra heat.",
+      "detail": "claim needs state.pin_bonus_next_cover in the transcript to check"
+    },
+    {
+      "severity": "info",
+      "code": "unverifiable_claim",
+      "turn": 43,
+      "line": "Hall is rattled \u2014 when they're forced up, big payoffs may open.",
+      "detail": "claim needs state.pending_groggy in the transcript to check"
+    }
+  ]
+}

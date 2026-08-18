@@ -1,0 +1,154 @@
+{
+  "gates_passed": true,
+  "gate_failures": [],
+  "match_seed": 218,
+  "wrestlers": [
+    "bret_hart",
+    "scott_hall"
+  ],
+  "player_policy": "chaotic",
+  "turn_count": 111,
+  "accuracy": {
+    "checked_claims": 80,
+    "claims_by_kind": {
+      "condition_delta": 56,
+      "groggy": 21,
+      "position": 3
+    },
+    "errors": 0,
+    "warnings": 12,
+    "unverifiable_claims": 4,
+    "claim_verifiability_ratio": 0.9524,
+    "schema_gaps": [
+      "state.pending_groggy"
+    ]
+  },
+  "variety": {
+    "line_count": 129,
+    "unique_line_ratio": 0.3178,
+    "phrasing_template_count": 18,
+    "phrasing_diversity": 0.1395,
+    "top_phrasing_share": 0.2868,
+    "max_consecutive_repeat": 4,
+    "flat_line_ratio": 0.2868
+  },
+  "readability": {
+    "max_line_chars": 94,
+    "avg_line_chars": 42.6,
+    "over_width_lines": 0
+  },
+  "findings": [
+    {
+      "severity": "info",
+      "code": "unverifiable_claim",
+      "turn": 8,
+      "line": "Hitman is rattled \u2014 when they're forced up, big payoffs may open.",
+      "detail": "claim needs state.pending_groggy in the transcript to check"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 24,
+      "line": "Hall: Collar-and-elbow tie-up.",
+      "detail": "Hitman changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 42,
+      "line": "Hitman reverses the springboard crossbody \u2014 only 2 damage; Hall whiffs \u2014 Hitman shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 66,
+      "line": "Hall snaps off running dropkick \u2014 Hitman takes 18 damage.",
+      "detail": "text claims 18 against Hitman but only 10 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 68,
+      "line": "Hall snaps off roundhouse kick \u2014 Hitman takes 9 damage.",
+      "detail": "text claims 9 against Hitman but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 70,
+      "line": "Hall snaps off roundhouse kick \u2014 Hitman takes 9 damage.",
+      "detail": "text claims 9 against Hitman but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 72,
+      "line": "Hall snaps off pull off the top rope \u2014 Hitman takes 6 damage.",
+      "detail": "text claims 6 against Hitman but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 75,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 76,
+      "line": "Hall snaps off grapple counter \u2014 Hitman takes 5 damage.",
+      "detail": "text claims 5 against Hitman but only 0 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 96,
+      "line": "Hall snaps off missile dropkick \u2014 Hitman takes 18 damage.",
+      "detail": "text claims 18 against Hitman but only 13 was applied after clamping"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 98,
+      "line": "Hitman reverses the roundhouse kick \u2014 only 1 damage, and turns the tables!",
+      "detail": "text claims 1 against Hitman but only 0 was applied after clamping"
+    },
+    {
+      "severity": "info",
+      "code": "unverifiable_claim",
+      "turn": 105,
+      "line": "Hall is rattled \u2014 when they're forced up, big payoffs may open.",
+      "detail": "claim needs state.pending_groggy in the transcript to check"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 107,
+      "line": "Hitman snaps off vertical suplex \u2014 Hall takes 16 damage.",
+      "detail": "text claims 16 against Hall but only 1 was applied after clamping"
+    },
+    {
+      "severity": "info",
+      "code": "unverifiable_claim",
+      "turn": 107,
+      "line": "Hall is rattled \u2014 when they're forced up, big payoffs may open.",
+      "detail": "claim needs state.pending_groggy in the transcript to check"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 109,
+      "line": "Hitman snaps off vertical suplex \u2014 Hall takes 16 damage.",
+      "detail": "text claims 16 against Hall but only 0 was applied after clamping"
+    },
+    {
+      "severity": "info",
+      "code": "unverifiable_claim",
+      "turn": 109,
+      "line": "Hall is rattled \u2014 when they're forced up, big payoffs may open.",
+      "detail": "claim needs state.pending_groggy in the transcript to check"
+    }
+  ]
+}

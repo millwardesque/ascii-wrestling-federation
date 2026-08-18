@@ -1,0 +1,63 @@
+{
+  "gates_passed": true,
+  "gate_failures": [],
+  "match_seed": 104,
+  "wrestlers": [
+    "bret_hart",
+    "scott_hall"
+  ],
+  "player_policy": "chaotic",
+  "turn_count": 35,
+  "accuracy": {
+    "checked_claims": 19,
+    "claims_by_kind": {
+      "condition_delta": 13,
+      "groggy": 5,
+      "position": 1
+    },
+    "errors": 0,
+    "warnings": 2,
+    "unverifiable_claims": 1,
+    "claim_verifiability_ratio": 0.95,
+    "schema_gaps": [
+      "state.pending_groggy"
+    ]
+  },
+  "variety": {
+    "line_count": 43,
+    "unique_line_ratio": 0.6047,
+    "phrasing_template_count": 14,
+    "phrasing_diversity": 0.3256,
+    "top_phrasing_share": 0.3721,
+    "max_consecutive_repeat": 3,
+    "flat_line_ratio": 0.3721
+  },
+  "readability": {
+    "max_line_chars": 87,
+    "avg_line_chars": 41.0,
+    "over_width_lines": 0
+  },
+  "findings": [
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 5,
+      "line": "Hall reverses the missile dropkick \u2014 only 1 damage; Hitman whiffs \u2014 Hall shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 17,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "info",
+      "code": "unverifiable_claim",
+      "turn": 33,
+      "line": "Hall is rattled \u2014 when they're forced up, big payoffs may open.",
+      "detail": "claim needs state.pending_groggy in the transcript to check"
+    }
+  ]
+}

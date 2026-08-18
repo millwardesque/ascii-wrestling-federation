@@ -1,0 +1,63 @@
+{
+  "gates_passed": true,
+  "gate_failures": [],
+  "match_seed": 216,
+  "wrestlers": [
+    "bret_hart",
+    "scott_hall"
+  ],
+  "player_policy": "aggressive",
+  "turn_count": 32,
+  "accuracy": {
+    "checked_claims": 22,
+    "claims_by_kind": {
+      "condition_delta": 13,
+      "groggy": 4,
+      "position": 5
+    },
+    "errors": 0,
+    "warnings": 2,
+    "unverifiable_claims": 1,
+    "claim_verifiability_ratio": 0.9565,
+    "schema_gaps": [
+      "state.pin_bonus_next_cover"
+    ]
+  },
+  "variety": {
+    "line_count": 40,
+    "unique_line_ratio": 0.625,
+    "phrasing_template_count": 14,
+    "phrasing_diversity": 0.35,
+    "top_phrasing_share": 0.3,
+    "max_consecutive_repeat": 2,
+    "flat_line_ratio": 0.3
+  },
+  "readability": {
+    "max_line_chars": 89,
+    "avg_line_chars": 45.4,
+    "over_width_lines": 0
+  },
+  "findings": [
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 9,
+      "line": "Hitman: Collar-and-elbow tie-up.",
+      "detail": "Hall changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 16,
+      "line": "Hitman reverses the diving crossbody \u2014 only 2 damage; Hall whiffs \u2014 Hitman shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    },
+    {
+      "severity": "info",
+      "code": "unverifiable_claim",
+      "turn": 32,
+      "line": "The finisher still echoes \u2014 +3 on the cover!",
+      "detail": "claim needs state.pin_bonus_next_cover in the transcript to check"
+    }
+  ]
+}

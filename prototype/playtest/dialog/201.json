@@ -1,0 +1,56 @@
+{
+  "gates_passed": true,
+  "gate_failures": [],
+  "match_seed": 201,
+  "wrestlers": [
+    "bret_hart",
+    "scott_hall"
+  ],
+  "player_policy": "novice",
+  "turn_count": 5,
+  "accuracy": {
+    "checked_claims": 2,
+    "claims_by_kind": {
+      "condition_delta": 1,
+      "position": 1
+    },
+    "errors": 0,
+    "warnings": 0,
+    "unverifiable_claims": 2,
+    "claim_verifiability_ratio": 0.5,
+    "schema_gaps": [
+      "state.bloodied",
+      "state.pending_groggy"
+    ]
+  },
+  "variety": {
+    "line_count": 11,
+    "unique_line_ratio": 1.0,
+    "phrasing_template_count": 10,
+    "phrasing_diversity": 0.9091,
+    "top_phrasing_share": 0.1818,
+    "max_consecutive_repeat": 2,
+    "flat_line_ratio": 0.1818
+  },
+  "readability": {
+    "max_line_chars": 76,
+    "avg_line_chars": 40.5,
+    "over_width_lines": 0
+  },
+  "findings": [
+    {
+      "severity": "info",
+      "code": "unverifiable_claim",
+      "turn": 3,
+      "line": "The crowd gasps \u2014 Hall is busted open; blood streams down their face.",
+      "detail": "claim needs state.bloodied in the transcript to check"
+    },
+    {
+      "severity": "info",
+      "code": "unverifiable_claim",
+      "turn": 3,
+      "line": "Hall is rattled \u2014 when they're forced up, big payoffs may open.",
+      "detail": "claim needs state.pending_groggy in the transcript to check"
+    }
+  ]
+}

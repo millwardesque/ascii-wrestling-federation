@@ -1,0 +1,96 @@
+{
+  "gates_passed": true,
+  "gate_failures": [],
+  "match_seed": 223,
+  "wrestlers": [
+    "bret_hart",
+    "scott_hall"
+  ],
+  "player_policy": "chaotic",
+  "turn_count": 52,
+  "accuracy": {
+    "checked_claims": 32,
+    "claims_by_kind": {
+      "condition_delta": 24,
+      "groggy": 6,
+      "position": 2
+    },
+    "errors": 0,
+    "warnings": 8,
+    "unverifiable_claims": 0,
+    "claim_verifiability_ratio": 1.0,
+    "schema_gaps": []
+  },
+  "variety": {
+    "line_count": 58,
+    "unique_line_ratio": 0.4655,
+    "phrasing_template_count": 14,
+    "phrasing_diversity": 0.2414,
+    "top_phrasing_share": 0.3103,
+    "max_consecutive_repeat": 2,
+    "flat_line_ratio": 0.3103
+  },
+  "readability": {
+    "max_line_chars": 88,
+    "avg_line_chars": 44.1,
+    "over_width_lines": 0
+  },
+  "findings": [
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 3,
+      "line": "Hall reverses the roundhouse kick \u2014 only 1 damage; Hitman whiffs \u2014 Hall shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    },
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 4,
+      "line": "Hitman reverses the roundhouse kick \u2014 only 1 damage; Hall whiffs \u2014 Hitman shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    },
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 15,
+      "line": "Hall reverses the drop toe hold \u2014 only 1 damage; Hitman whiffs \u2014 Hall shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 24,
+      "line": "Hall: Collar-and-elbow tie-up.",
+      "detail": "Hitman changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 30,
+      "line": "Hall: Collar-and-elbow tie-up.",
+      "detail": "Hitman changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 44,
+      "line": "Hall: Collar-and-elbow tie-up.",
+      "detail": "Hitman changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 49,
+      "line": "Another empty climb \u2014 Hall takes the momentum.",
+      "detail": "Hitman changed (position TOP_ROPE->STANDING) but is never named"
+    },
+    {
+      "severity": "warning",
+      "code": "clamped_number_claim",
+      "turn": 50,
+      "line": "Hall snaps off diving crossbody \u2014 Hitman takes 20 damage.",
+      "detail": "text claims 20 against Hitman but only 1 was applied after clamping"
+    }
+  ]
+}

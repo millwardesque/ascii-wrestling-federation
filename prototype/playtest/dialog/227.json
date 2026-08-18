@@ -1,0 +1,70 @@
+{
+  "gates_passed": true,
+  "gate_failures": [],
+  "match_seed": 227,
+  "wrestlers": [
+    "bret_hart",
+    "scott_hall"
+  ],
+  "player_policy": "novice",
+  "turn_count": 33,
+  "accuracy": {
+    "checked_claims": 9,
+    "claims_by_kind": {
+      "condition_delta": 8,
+      "position": 1
+    },
+    "errors": 0,
+    "warnings": 2,
+    "unverifiable_claims": 2,
+    "claim_verifiability_ratio": 0.8182,
+    "schema_gaps": [
+      "state.bloodied",
+      "state.pending_groggy"
+    ]
+  },
+  "variety": {
+    "line_count": 39,
+    "unique_line_ratio": 0.6154,
+    "phrasing_template_count": 14,
+    "phrasing_diversity": 0.359,
+    "top_phrasing_share": 0.4872,
+    "max_consecutive_repeat": 5,
+    "flat_line_ratio": 0.4872
+  },
+  "readability": {
+    "max_line_chars": 94,
+    "avg_line_chars": 37.8,
+    "over_width_lines": 0
+  },
+  "findings": [
+    {
+      "severity": "warning",
+      "code": "contradictory_claim",
+      "turn": 2,
+      "line": "Hitman reverses the pull off the top rope \u2014 only 1 damage; Hall whiffs \u2014 Hitman shrugs it off.",
+      "detail": "one line reports both contact damage and a whiff"
+    },
+    {
+      "severity": "warning",
+      "code": "silent_state_change",
+      "turn": 8,
+      "line": "Hall: Collar-and-elbow tie-up.",
+      "detail": "Hitman changed (position STANDING->GRAPPLED) but is never named"
+    },
+    {
+      "severity": "info",
+      "code": "unverifiable_claim",
+      "turn": 17,
+      "line": "The crowd gasps \u2014 Hall is busted open; blood streams down their face.",
+      "detail": "claim needs state.bloodied in the transcript to check"
+    },
+    {
+      "severity": "info",
+      "code": "unverifiable_claim",
+      "turn": 31,
+      "line": "Hall is rattled \u2014 when they're forced up, big payoffs may open.",
+      "detail": "claim needs state.pending_groggy in the transcript to check"
+    }
+  ]
+}
