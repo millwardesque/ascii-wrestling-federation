@@ -128,6 +128,8 @@ class MatchState:
     groggy: list[bool] = field(default_factory=list)
     # When groggy[v]: opponent (1-v) has this many actions before auto-clear (starts at 2).
     groggy_opponent_actions_left: list[int] = field(default_factory=list)
+    # Victim skips their next turn when groggy is applied (no immediate shake-off).
+    groggy_skip_turn: list[bool] = field(default_factory=list)
     # After certain slams/finishers while grounded; applies groggy when victim next stands (get_up or pickup).
     pending_groggy: list[bool] = field(default_factory=list)
     # Failed get-up attempts increase the next get-up chance and can grant escape momentum.
@@ -163,6 +165,8 @@ class MatchState:
             self.groggy = [False, False]
         if not self.groggy_opponent_actions_left:
             self.groggy_opponent_actions_left = [0, 0]
+        if not self.groggy_skip_turn:
+            self.groggy_skip_turn = [False, False]
         if not self.pending_groggy:
             self.pending_groggy = [False, False]
         if not self.get_up_fail_streak:
@@ -179,6 +183,8 @@ class MatchState:
             self.cover_heat_lock = [False, False]
 
     def valid_rules(self, actor_idx: int) -> list[tuple[int, MoveRule]]:
+        if self.groggy_skip_turn[actor_idx]:
+            return []
         actor = self.wrestlers[actor_idx]
         target = self.wrestlers[1 - actor_idx]
         out: list[tuple[int, MoveRule]] = []
@@ -307,6 +313,22 @@ def _damage_with_stats(base: int, actor: Wrestler, target: Wrestler, agility_bon
     return max(1, raw - mitigation)
 
 
+def _apply_standing_groggy(state: MatchState, victim_idx: int) -> None:
+    """Standing groggy: victim loses their next turn before they can shake it off."""
+    state.groggy[victim_idx] = True
+    state.groggy_opponent_actions_left[victim_idx] = 2
+    state.groggy_skip_turn[victim_idx] = True
+
+
+def consume_groggy_skip_turn(state: MatchState, actor_idx: int) -> str | None:
+    """If the actor must lose this turn to groggy, return narration and clear the flag."""
+    if not state.groggy_skip_turn[actor_idx]:
+        return None
+    state.groggy_skip_turn[actor_idx] = False
+    actor = state.wrestlers[actor_idx]
+    return f"  {actor.nickname} is groggy — they lose the turn!"
+
+
 def _tick_groggy_timer(
     state: MatchState,
     actor_idx: int,
@@ -358,8 +380,7 @@ def _try_apply_groggy_after_damage(
             return False
         if _rand_float(rng) >= _GROGGY_STANDING_CHANCE:
             return False
-        state.groggy[tgt] = True
-        state.groggy_opponent_actions_left[tgt] = 2
+        _apply_standing_groggy(state, tgt)
         return True
     return False
 
@@ -722,8 +743,7 @@ def apply_move(
         state.cover_heat_lock[actor_idx] = False
         if state.pending_groggy[actor_idx]:
             state.pending_groggy[actor_idx] = False
-            state.groggy[actor_idx] = True
-            state.groggy_opponent_actions_left[actor_idx] = 2
+            _apply_standing_groggy(state, actor_idx)
             immediate_groggy_from_stand_victim = actor_idx
             lines.append(f"  {actor.nickname} rises — still groggy from the impact!")
             emit(
@@ -737,8 +757,7 @@ def apply_move(
     if m.id == "pickup" and state.position[tgt] == BodyPosition.STANDING:
         if state.pending_groggy[tgt]:
             state.pending_groggy[tgt] = False
-            state.groggy[tgt] = True
-            state.groggy_opponent_actions_left[tgt] = 2
+            _apply_standing_groggy(state, tgt)
             immediate_groggy_from_stand_victim = tgt
             lines.append(f"  {target.nickname} is yanked up — their legs aren't under them yet!")
             emit(
@@ -1346,6 +1365,8 @@ def outcome_label(log: str) -> str:
     """Short label derived from apply_move / pin log text for exchange recap."""
     if not log.strip():
         return "—"
+    if "lose the turn" in log:
+        return "groggy_skip"
     if "KNOCKOUT" in log:
         return "knockout"
     if "SUBMISSION" in log or "taps out" in log:

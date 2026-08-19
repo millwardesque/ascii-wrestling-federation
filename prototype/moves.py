@@ -246,10 +246,10 @@ def all_move_rules() -> list[MoveRule]:
             Move(
                 id="pull_off_top",
                 name="Pull off the top rope",
-                description="Yank them down from the buckle — both feet on the mat.",
+                description="Yank them down from the buckle — dumped to the canvas.",
                 target_top=True,
                 base_damage=5,
-                target_after=BodyPosition.STANDING,
+                target_after=BodyPosition.GROUNDED,
                 momentum_gain=2,
                 difficulty=2,
             )

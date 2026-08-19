@@ -305,3 +305,29 @@ class PlaytestRenderer:
             choices=None,
             selected_index=0,
         )
+
+    def record_groggy_skip_turn(
+        self,
+        state: MatchState,
+        *,
+        actor: str,
+        log: str,
+    ) -> None:
+        actor_idx = 0 if actor == "player" else 1
+        self._turn_count += 1
+        payload: dict[str, object] = {
+            "event": "turn",
+            "turn": self._turn_count,
+            "actor": actor,
+            "match_seed": self._match_seed,
+            "move": "Groggy skip",
+            "move_id": "groggy_skip",
+            "choices": [],
+            "selected_index": 0,
+            "log": log,
+            "outcome": outcome_label(log),
+            "state": _state_snapshot(state),
+        }
+        self._emit(payload)
+        if self._max_turns is not None and self._turn_count >= self._max_turns:
+            self._aborted = True

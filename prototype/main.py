@@ -8,7 +8,7 @@ import random
 import secrets
 
 from commentary import CommentaryEngine
-from game import MatchState, apply_move, cpu_choose_rule
+from game import MatchState, apply_move, consume_groggy_skip_turn, cpu_choose_rule
 from commentators import choose_commentary_team
 from render import MatchRenderer, ReturnToTitle
 from render_fixed import FixedLayoutRenderer
@@ -86,98 +86,130 @@ def run_match(
     ui.match_start_banner(match_seed=match_seed, commentary_team=booth)
     ui.show_status(state, names)
 
+    def _show_groggy_skip(actor_idx: int, *, is_player: bool) -> bool:
+        skip_log = consume_groggy_skip_turn(state, actor_idx)
+        if skip_log is None:
+            return False
+        ui.show_status(state, names)
+        if playtest:
+            ui.record_groggy_skip_turn(
+                state,
+                actor="player" if is_player else "cpu",
+                log=skip_log,
+            )
+            if ui.aborted:
+                ui.emit_max_turns_end()
+                return True
+        else:
+            ui.show_move_log(
+                skip_log,
+                player_nickname=pw.nickname,
+                cpu_nickname=cw.nickname,
+                actor_is_player=is_player,
+                move_name="Groggy",
+            )
+        ui.wait_between_moves()
+        return True
+
     while True:
         ui.round_header(is_player_turn=True)
         ui.show_status(state, names)
 
-        opts = state.valid_rules(0)
-        idx = ui.prompt_move_choice(state, 0, opts)
-        player_rule = state.rules[idx]
-        ui.show_status(state, names)
-
-        result = apply_move(state, 0, player_rule)
-        log, winner, pin_seq = result
-        ui.show_status(state, names)
-        if playtest:
-            ui.record_player_turn(state, player_rule, log, pin_seq)
-            if ui.aborted:
-                ui.emit_max_turns_end()
+        if _show_groggy_skip(0, is_player=True):
+            if max_turns is not None and playtest and ui.aborted:
                 return None
-        elif pin_seq is not None:
-            ui.show_pin_sequence(
-                engine.commentate_sequence(pin_seq, state.wrestlers),
-                player_nickname=pw.nickname,
-                cpu_nickname=cw.nickname,
-                actor_is_player=True,
-                move_name=player_rule.move.name,
-            )
         else:
-            ui.show_move_log(
-                engine.format_turn(
-                    result.events,
-                    state.wrestlers,
-                    actor_idx=0,
+            opts = state.valid_rules(0)
+            idx = ui.prompt_move_choice(state, 0, opts)
+            player_rule = state.rules[idx]
+            ui.show_status(state, names)
+
+            result = apply_move(state, 0, player_rule)
+            log, winner, pin_seq = result
+            ui.show_status(state, names)
+            if playtest:
+                ui.record_player_turn(state, player_rule, log, pin_seq)
+                if ui.aborted:
+                    ui.emit_max_turns_end()
+                    return None
+            elif pin_seq is not None:
+                ui.show_pin_sequence(
+                    engine.commentate_sequence(pin_seq, state.wrestlers),
+                    player_nickname=pw.nickname,
+                    cpu_nickname=cw.nickname,
+                    actor_is_player=True,
                     move_name=player_rule.move.name,
-                ),
-                player_nickname=pw.nickname,
-                cpu_nickname=cw.nickname,
-                actor_is_player=True,
-                move_name=player_rule.move.name,
-            )
-
-        if winner is not None:
-            if winner == 0:
-                ui.show_match_result_player_wins()
+                )
             else:
-                ui.show_match_result_cpu_wins()
-            return winner
+                ui.show_move_log(
+                    engine.format_turn(
+                        result.events,
+                        state.wrestlers,
+                        actor_idx=0,
+                        move_name=player_rule.move.name,
+                    ),
+                    player_nickname=pw.nickname,
+                    cpu_nickname=cw.nickname,
+                    actor_is_player=True,
+                    move_name=player_rule.move.name,
+                )
 
-        ui.wait_between_moves()
+            if winner is not None:
+                if winner == 0:
+                    ui.show_match_result_player_wins()
+                else:
+                    ui.show_match_result_cpu_wins()
+                return winner
 
-        cpu_rule = cpu_choose_rule(state, 1)
+            ui.wait_between_moves()
 
         ui.round_header(is_player_turn=False)
-
-        result = apply_move(state, 1, cpu_rule)
-        log, winner, pin_seq = result
-        ui.show_status(state, names)
-        if playtest:
-            ui.record_cpu_turn(state, cpu_rule, log, pin_seq)
-            if ui.aborted:
-                ui.emit_max_turns_end()
+        if _show_groggy_skip(1, is_player=False):
+            if max_turns is not None and playtest and ui.aborted:
                 return None
-        elif pin_seq is not None:
-            ui.show_pin_sequence(
-                engine.commentate_sequence(pin_seq, state.wrestlers),
-                player_nickname=pw.nickname,
-                cpu_nickname=cw.nickname,
-                actor_is_player=False,
-                move_name=cpu_rule.move.name,
-            )
         else:
-            ui.show_move_log(
-                engine.format_turn(
-                    result.events,
-                    state.wrestlers,
-                    actor_idx=1,
+            cpu_rule = cpu_choose_rule(state, 1)
+
+            result = apply_move(state, 1, cpu_rule)
+            log, winner, pin_seq = result
+            ui.show_status(state, names)
+            if playtest:
+                ui.record_cpu_turn(state, cpu_rule, log, pin_seq)
+                if ui.aborted:
+                    ui.emit_max_turns_end()
+                    return None
+            elif pin_seq is not None:
+                ui.show_pin_sequence(
+                    engine.commentate_sequence(pin_seq, state.wrestlers),
+                    player_nickname=pw.nickname,
+                    cpu_nickname=cw.nickname,
+                    actor_is_player=False,
                     move_name=cpu_rule.move.name,
-                ),
-                player_nickname=pw.nickname,
-                cpu_nickname=cw.nickname,
-                actor_is_player=False,
-                move_name=cpu_rule.move.name,
-            )
+                )
+            else:
+                ui.show_move_log(
+                    engine.format_turn(
+                        result.events,
+                        state.wrestlers,
+                        actor_idx=1,
+                        move_name=cpu_rule.move.name,
+                    ),
+                    player_nickname=pw.nickname,
+                    cpu_nickname=cw.nickname,
+                    actor_is_player=False,
+                    move_name=cpu_rule.move.name,
+                )
+
+            if winner is not None:
+                if winner == 0:
+                    ui.show_match_result_player_wins()
+                else:
+                    ui.show_match_result_cpu_wins()
+                return winner
+
+            ui.wait_between_moves()
 
         ui.record_momentum(state)
-
-        if winner is not None:
-            if winner == 0:
-                ui.show_match_result_player_wins()
-            else:
-                ui.show_match_result_cpu_wins()
-            return winner
-
-        ui.wait_between_moves()
 
         ui.show_status(state, names)
 

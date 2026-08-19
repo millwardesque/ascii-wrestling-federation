@@ -10,6 +10,7 @@ from game import (
     _cpu_rule_score,
     _softmax_sample_index,
     apply_move,
+    consume_groggy_skip_turn,
     cpu_choose_rule,
     format_exchange_summary,
     hit_probability,
@@ -836,6 +837,7 @@ class TestGroggy(unittest.TestCase):
         log, _, _ = apply_move(st, 0, punch, rng)
         self.assertTrue(st.groggy[1])
         self.assertEqual(st.groggy_opponent_actions_left[1], 2)
+        self.assertTrue(st.groggy_skip_turn[1])
         self.assertIn("GROGGY", log)
 
     def test_punch_hit_may_not_proc_groggy(self) -> None:
@@ -871,6 +873,7 @@ class TestGroggy(unittest.TestCase):
         st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
         st.groggy[0] = True
         st.groggy_opponent_actions_left[0] = 2
+        st.groggy_skip_turn[0] = False
         shake = _rule_by_id("shake_groggy")
         p = hit_probability(st, 0, shake)
         rng = _SeqRng([max(0.0, p - 0.2)])
@@ -881,6 +884,7 @@ class TestGroggy(unittest.TestCase):
         st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
         st.groggy[0] = True
         st.groggy_opponent_actions_left[0] = 2
+        st.groggy_skip_turn[0] = False
         des = _rule_by_id("desperation_strike")
         p = hit_probability(st, 0, des)
         rng = _SeqRng([max(0.0, p - 0.2)])
@@ -908,6 +912,18 @@ class TestGroggy(unittest.TestCase):
     def test_groggy_actor_valid_moves_are_shake_and_desperation(self) -> None:
         st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
         st.groggy[0] = True
+        st.groggy_skip_turn[0] = False
+        ids = {r.move.id for _, r in st.valid_rules(0)}
+        self.assertEqual(ids, {"shake_groggy", "desperation_strike"})
+
+    def test_groggy_skip_turn_blocks_immediate_shake(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        st.groggy[0] = True
+        st.groggy_skip_turn[0] = True
+        self.assertEqual(st.valid_rules(0), [])
+        log = consume_groggy_skip_turn(st, 0)
+        self.assertIsNotNone(log)
+        self.assertFalse(st.groggy_skip_turn[0])
         ids = {r.move.id for _, r in st.valid_rules(0)}
         self.assertEqual(ids, {"shake_groggy", "desperation_strike"})
 
@@ -916,6 +932,7 @@ class TestGroggy(unittest.TestCase):
         st.position[1] = BodyPosition.GRAPPLED
         st.groggy[1] = True
         st.groggy_opponent_actions_left[1] = 2
+        st.groggy_skip_turn[1] = False
         ids = {r.move.id for _, r in st.valid_rules(1)}
         self.assertEqual(ids, {"break_grapple", "grapple_counter"})
 
@@ -939,6 +956,19 @@ class TestGroggy(unittest.TestCase):
         st.groggy_opponent_actions_left[1] = 2
         ids_g = {r.move.id for _, r in st.valid_rules(0)}
         self.assertIn("stunner", ids_g)
+
+
+class TestPullOffTop(unittest.TestCase):
+    def test_pull_off_top_dumps_target_to_the_mat(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        st.position[0] = BodyPosition.STANDING
+        st.position[1] = BodyPosition.TOP_ROPE
+        pull = _rule_by_id("pull_off_top")
+        p = hit_probability(st, 0, pull)
+        apply_move(st, 0, pull, _SeqRng([max(0.0, p - 0.2)]))
+
+        self.assertEqual(st.position[0], BodyPosition.STANDING)
+        self.assertEqual(st.position[1], BodyPosition.GROUNDED)
 
 
 class TestBloodiedEasterEgg(unittest.TestCase):
