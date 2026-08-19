@@ -1,5 +1,7 @@
 """Playable roster: stats influence damage, pin strength, and kickouts."""
 
+from __future__ import annotations
+
 from dataclasses import dataclass
 
 
