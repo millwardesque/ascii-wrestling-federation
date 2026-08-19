@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING, Sequence
 
 from commentators import Commentator, CommentatorPair, ROSTER as COMMENTATORS
 from commentary_events import CommentaryLine, EventKind, MatchEvent, format_commentary_line
+from commentary_templates import move_commentary_pool, outcome_for_event_kind
 from wrestlers import Wrestler
 
 if TYPE_CHECKING:
@@ -558,6 +559,13 @@ class CommentaryEngine:
         kind: EventKind,
         facts: dict[str, str],
     ) -> str:
+        outcome = outcome_for_event_kind(kind)
+        if outcome is not None:
+            move_pool = move_commentary_pool(
+                facts.get("move_id"), commentator.id, outcome
+            )
+            if move_pool:
+                return self._rng.choice(move_pool).format(**facts)
         pool = _ID_TEMPLATES.get((commentator.id, kind)) or _ROLE_TEMPLATES.get(
             (commentator.role, kind)
         )
@@ -576,6 +584,7 @@ class CommentaryEngine:
         actor_i = actor_idx
         target_i: int | None = None
         move = move_name or ""
+        move_id = ""
         pin_count: int | None = None
         for event in events:
             if event.actor is not None:
@@ -584,16 +593,23 @@ class CommentaryEngine:
                 target_i = event.target
             if event.move_name:
                 move = event.move_name
+            if event.move_id:
+                move_id = event.move_id
             if event.pin_count is not None:
                 pin_count = event.pin_count
         if target_i is None and actor_i is not None:
             target_i = 1 - actor_i
-        actor = wrestlers[actor_i].nickname if actor_i is not None else "they"
-        target = wrestlers[target_i].nickname if target_i is not None else "them"
+        actor_w = wrestlers[actor_i] if actor_i is not None else None
+        target_w = wrestlers[target_i] if target_i is not None else None
+        actor = actor_w.nickname if actor_w is not None else "they"
+        target = target_w.nickname if target_w is not None else "them"
         count_word = _COUNT_WORDS.get(pin_count or 0, "one")
         return {
             "actor": actor,
             "target": target,
+            "actor_name": actor_w.name if actor_w is not None else actor,
+            "target_name": target_w.name if target_w is not None else target,
             "move": move.lower() if move else "that one",
+            "move_id": move_id,
             "count_word": count_word,
         }

@@ -10,10 +10,9 @@ Implementation status:
 |-------|--------|
 | Commentator roster + curated pairs | [`prototype/commentators.py`](../prototype/commentators.py) |
 | `MatchEvent` contract | [`prototype/commentary_events.py`](../prototype/commentary_events.py) |
-| `CommentaryEngine` stub | [`prototype/commentary.py`](../prototype/commentary.py) |
-| Booth shown at bell / in transcripts | wired in `main.py`, renderers |
-| Events from `apply_move` | not yet — move text still from `game.py` f-strings |
-| Dual-voice move log | not yet |
+| `CommentaryEngine` + dual-voice move log | [`prototype/commentary.py`](../prototype/commentary.py), wired in `main.py` |
+| Per-move per-commentator templates | [`prototype/commentary_templates.py`](../prototype/commentary_templates.py) |
+| Events from `apply_move` | wired — legacy `log` kept for playtest migration |
 
 Dialog evaluation: [`docs/dialog-eval-design.md`](dialog-eval-design.md).
 
@@ -126,6 +125,41 @@ Discipline rules:
 
 Templates are keyed by `(commentator_id, event.kind, stakes_tier)` with variant
 pools for freshness — measured by `phrasing_diversity` in dialog telemetry.
+
+### Per-move overrides
+
+[`prototype/commentary_templates.py`](../prototype/commentary_templates.py) holds
+optional lines per `(move_id, commentator_id)`:
+
+```python
+@dataclass(frozen=True)
+class CommentatorMoveTemplates:
+    success: tuple[str, ...] = ()   # damage, setup, submission_applied, recover
+    failed: tuple[str, ...] = ()    # reversal, miss
+```
+
+When a turn's primary event is a success or failure kind and the registry has a
+non-empty pool for that move and speaker, `CommentaryEngine._pick_line` chooses
+from it before the generic `(commentator_id, event.kind)` pools.
+
+Interpolation keys: `{actor}`, `{target}`, `{actor_name}`, `{target_name}`,
+`{move}`, `{move_id}`, `{count_word}`.
+
+Example:
+
+```python
+"punch": {
+    "gorilla": CommentatorMoveTemplates(
+        success=("{actor} snaps a straight right — {target} eats it!",),
+    ),
+    "heenan": CommentatorMoveTemplates(
+        failed=("Give me a break! {actor} whiffed that punch!",),
+    ),
+},
+```
+
+`validate_move_commentary()` checks that every `move_id` key exists in
+`moves.all_move_rules()`.
 
 ---
 

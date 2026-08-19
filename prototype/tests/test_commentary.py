@@ -7,6 +7,8 @@ import unittest
 from commentators import CommentatorPair
 from commentary import CommentaryEngine
 from commentary_events import MatchEvent
+from commentary_templates import validate_move_commentary
+from moves import all_move_rules
 from wrestlers import ROSTER
 
 
@@ -45,7 +47,10 @@ class TestCommentaryEngine(unittest.TestCase):
         ]
         lines = engine.render_turn(events, wrestlers=_hart_hall())
         joined = " ".join(line.text.lower() for line in lines)
-        self.assertIn("punch", joined)
+        self.assertTrue(
+            "punch" in joined or "straight right" in joined or "right hand" in joined,
+            msg=joined,
+        )
         self.assertTrue(
             any(
                 "feet" in line.text.lower()
@@ -149,6 +154,70 @@ class TestCommentaryEngine(unittest.TestCase):
             a.format_turn(events, wrestlers=_hart_hall()),
             b.format_turn(events, wrestlers=_hart_hall()),
         )
+
+    def test_move_specific_success_overrides_generic(self) -> None:
+        engine = CommentaryEngine(CommentatorPair("gorilla", "heenan"), seed=0)
+        events = [
+            MatchEvent(
+                kind="damage",
+                actor=0,
+                target=1,
+                move_id="punch",
+                move_name="Punch",
+                amount=6,
+            )
+        ]
+        lines = engine.render_turn(events, wrestlers=_hart_hall())
+        pbp = next(line for line in lines if line.role == "pbp")
+        lowered = pbp.text.lower()
+        self.assertTrue(
+            "straight right" in lowered or "right hand" in lowered,
+            msg=pbp.text,
+        )
+
+    def test_move_specific_failed_overrides_reversal(self) -> None:
+        engine = CommentaryEngine(CommentatorPair("gorilla", "heenan"), seed=0)
+        events = [
+            MatchEvent(
+                kind="reversal",
+                actor=0,
+                target=1,
+                move_id="punch",
+                move_name="Punch",
+                amount=1,
+            )
+        ]
+        lines = engine.render_turn(events, wrestlers=_hart_hall())
+        color = next((line for line in lines if line.role == "color"), None)
+        self.assertIsNotNone(color)
+        assert color is not None
+        lowered = color.text.lower()
+        self.assertTrue(
+            "barn" in lowered or "whiffed" in lowered or "give me a break" in lowered,
+            msg=color.text,
+        )
+
+    def test_move_without_templates_falls_back_to_role_pool(self) -> None:
+        engine = CommentaryEngine(CommentatorPair("gorilla", "heenan"), seed=1)
+        events = [
+            MatchEvent(
+                kind="damage",
+                actor=0,
+                target=1,
+                move_id="kick",
+                move_name="Kick",
+                amount=4,
+            )
+        ]
+        lines = engine.render_turn(events, wrestlers=_hart_hall())
+        joined = " ".join(line.text for line in lines)
+        self.assertIn("Hitman", joined)
+
+
+class TestMoveCommentaryRegistry(unittest.TestCase):
+    def test_registry_move_ids_exist(self) -> None:
+        valid = frozenset(rule.move.id for rule in all_move_rules())
+        validate_move_commentary(valid)
 
 
 if __name__ == "__main__":
