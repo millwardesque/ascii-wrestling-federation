@@ -17,6 +17,8 @@ from typing import NamedTuple, Sequence
 
 from awf_logo import AWF_LOGO_LINES, INTRO_LINES, PROMPT_LINE
 from commentators import CommentatorPair
+from commentary import CommentaryEngine
+from commentary_events import format_commentary_line
 from config import get_config
 from game import (
     MatchState,
@@ -366,6 +368,8 @@ class FixedLayoutRenderer:
         self._player_turn_starts = 0
         self._banner = "BELL RINGS — singles match, pinfall only"
         self._header_extra = ""
+        self._commentary_team: CommentatorPair | None = None
+        self._booth_intro_lines: list[str] = []
         self._player_nick = ""
         self._cpu_nick = ""
         self._match_seed: int | None = None
@@ -517,7 +521,7 @@ class FixedLayoutRenderer:
                     self._cpu_nick,
                     use_ansi=use_ansi,
                 )
-                lines.append(f"    {colored}")
+                lines.append(f"    {self._style_commentary_line(colored, c)}")
         return lines
 
     def _action_log_lines(
@@ -530,6 +534,11 @@ class FixedLayoutRenderer:
     ) -> list[str]:
         chain = self._action_chain if action_chain is None else action_chain
         if not chain:
+            if self._booth_intro_lines:
+                return [
+                    self._style_commentary_line(line, c)
+                    for line in self._booth_intro_lines
+                ]
             return [f"  {c.dim}(no actions yet){c.reset}"]
         lines: list[str] = []
         for block in chain:
@@ -544,11 +553,25 @@ class FixedLayoutRenderer:
         use_ansi = bool(self._c.player)
         return self._action_log_lines(wrap_w, c, use_ansi)
 
+    def _style_commentary_line(self, line: str, c: "_Palette") -> str:
+        """Bold play-by-play prefixes; dim color commentary."""
+        if self._commentary_team is None or not c.bold:
+            return line
+        pbp = self._commentary_team.pbp().short
+        color = self._commentary_team.color().short
+        stripped = line.lstrip()
+        indent = line[: len(line) - len(stripped)]
+        if stripped.startswith(f"{pbp}:"):
+            return f"{indent}{c.bold}{stripped}{c.reset}"
+        if stripped.startswith(f"{color}:"):
+            return f"{indent}{c.dim}{stripped}{c.reset}"
+        return line
+
     def _print_momentum_chart(
         self,
         history: Sequence[tuple[int, int]],
         w: int,
-        c: _Palette,
+        c: "_Palette",
     ) -> None:
         for line in _momentum_chart_lines(history, w, c):
             print(line)
@@ -744,10 +767,6 @@ class FixedLayoutRenderer:
     ) -> None:
         self._last_pre_match_body = None
         self._banner = "BELL RINGS — singles match, pinfall only"
-        if commentary_team is not None:
-            self._header_extra = commentary_team.intro_line()
-        else:
-            self._header_extra = self._banner
         self._match_seed = match_seed
         self._player_turn_starts = 0
         self._action_chain = []
@@ -756,6 +775,18 @@ class FixedLayoutRenderer:
         self._action_log_override_lines = None
         self._player_nick = ""
         self._cpu_nick = ""
+        if commentary_team is not None:
+            self._commentary_team = commentary_team
+            self._header_extra = commentary_team.intro_line()
+            engine = CommentaryEngine(commentary_team)
+            self._booth_intro_lines = [
+                f"  {format_commentary_line(line, roster_short=engine.speaker_short(line))}"
+                for line in engine.booth_intro_lines()
+            ]
+        else:
+            self._commentary_team = None
+            self._header_extra = self._banner
+            self._booth_intro_lines = []
 
     def show_status(self, state: MatchState, display_names: tuple[str, str]) -> None:
         self._state = state
@@ -770,8 +801,6 @@ class FixedLayoutRenderer:
         self._player_turn = is_player_turn
         if is_player_turn:
             self._player_turn_starts += 1
-            if self._player_turn_starts >= 2:
-                self._header_extra = ""
             self._instruction_heading = "Choose your move!"
         else:
             self._instruction_heading = "> CPU TURN..."

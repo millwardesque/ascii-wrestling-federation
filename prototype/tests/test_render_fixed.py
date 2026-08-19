@@ -99,5 +99,43 @@ class TestMomentumChart(unittest.TestCase):
         self.assertEqual(renderer._momentum_history, [])
 
 
+class TestCommentaryHeader(unittest.TestCase):
+    def _renderer(self) -> FixedLayoutRenderer:
+        return FixedLayoutRenderer(
+            input_fn=lambda _: "",
+            use_color=False,
+            animate_move_log=False,
+        )
+
+    def test_booth_credit_survives_later_player_turns(self) -> None:
+        from commentators import CommentatorPair
+
+        renderer = self._renderer()
+        renderer._redraw_match = lambda bottom_extra=None: None  # type: ignore[method-assign]
+        renderer.match_start_banner(
+            match_seed=1, commentary_team=CommentatorPair("gorilla", "ventura")
+        )
+        self.assertIn("On the call:", renderer._header_extra)
+        renderer.round_header(is_player_turn=True)
+        renderer.round_header(is_player_turn=False)
+        renderer.round_header(is_player_turn=True)
+        self.assertIn("On the call:", renderer._header_extra)
+        self.assertIn("Gorilla Monsoon", renderer._header_extra)
+
+    def test_empty_log_shows_booth_intro(self) -> None:
+        from commentators import CommentatorPair
+        from render_fixed import _Palette
+
+        renderer = self._renderer()
+        renderer.match_start_banner(
+            match_seed=1, commentary_team=CommentatorPair("ross", "lawler")
+        )
+        lines = renderer._action_log_lines(40, _Palette(enabled=False), False)
+        joined = "\n".join(lines)
+        self.assertIn("JR:", joined)
+        self.assertIn("KING:", joined)
+        self.assertNotIn("no actions yet", joined)
+
+
 if __name__ == "__main__":
     unittest.main()

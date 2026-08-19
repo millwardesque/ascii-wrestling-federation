@@ -174,6 +174,90 @@ class TestApplyMoveStochastic(unittest.TestCase):
         apply_move(self.state, 0, sup, rng)
         self.assertEqual(self.state.position[1], BodyPosition.STANDING)
 
+    def test_missed_flying_splash_dumps_attacker_to_the_mat(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        st.position[0] = BodyPosition.TOP_ROPE
+        st.position[1] = BodyPosition.GROUNDED
+        splash = _rule_by_id("top_splash")
+        p = hit_probability(st, 0, splash)
+        result = apply_move(st, 0, splash, _SeqRng([min(1.0, p + 0.2), 0.99]))
+
+        self.assertEqual(st.position[0], BodyPosition.GROUNDED)
+        self.assertEqual(st.position[1], BodyPosition.GROUNDED)
+        self.assertIn("crashes off the top rope", result.log)
+        self.assertTrue(
+            any(
+                event.kind == "position_change" and event.position == "GROUNDED"
+                for event in result.events
+            )
+        )
+
+    def test_missed_diving_crossbody_dumps_attacker_defender_stays_up(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        st.position[0] = BodyPosition.TOP_ROPE
+        st.position[1] = BodyPosition.STANDING
+        crossbody = _rule_by_id("top_crossbody")
+        p = hit_probability(st, 0, crossbody)
+        apply_move(st, 0, crossbody, _SeqRng([min(1.0, p + 0.2), 0.99]))
+
+        self.assertEqual(st.position[0], BodyPosition.GROUNDED)
+        self.assertEqual(st.position[1], BodyPosition.STANDING)
+
+    def test_missed_superplex_dumps_attacker_defender_keeps_the_buckle(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        st.position[0] = BodyPosition.TOP_ROPE
+        st.position[1] = BodyPosition.TOP_ROPE
+        superplex = _rule_by_id("top_rope_superplex")
+        p = hit_probability(st, 0, superplex)
+        apply_move(st, 0, superplex, _SeqRng([min(1.0, p + 0.2), 0.99]))
+
+        self.assertEqual(st.position[0], BodyPosition.GROUNDED)
+        self.assertEqual(st.position[1], BodyPosition.TOP_ROPE)
+
+    def test_missed_top_rope_brawl_shot_stays_on_the_buckle(self) -> None:
+        """A punch traded on the top rope is not a dive — miss doesn't dump anyone."""
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        st.position[0] = BodyPosition.TOP_ROPE
+        st.position[1] = BodyPosition.TOP_ROPE
+        shot = _rule_by_id("top_rope_punch")
+        p = hit_probability(st, 0, shot)
+        apply_move(st, 0, shot, _SeqRng([min(1.0, p + 0.2), 0.99]))
+
+        self.assertEqual(st.position[0], BodyPosition.TOP_ROPE)
+        self.assertEqual(st.position[1], BodyPosition.TOP_ROPE)
+
+    def test_every_whiffed_top_rope_dive_dumps_the_attacker(self) -> None:
+        for rule in all_move_rules():
+            m = rule.move
+            if not m.actor_top or m.skip_hit_roll:
+                continue
+            if m.actor_after is None or m.actor_after == BodyPosition.TOP_ROPE:
+                continue
+            actor = (
+                ROSTER["macho_man"]
+                if m.id == "flying_elbow_finisher"
+                else ROSTER["bret_hart"]
+            )
+            st = MatchState(wrestlers=(actor, ROSTER["cm_punk"]))
+            st.position[0] = BodyPosition.TOP_ROPE
+            if m.target_grounded:
+                st.position[1] = BodyPosition.GROUNDED
+            elif m.target_standing:
+                st.position[1] = BodyPosition.STANDING
+            elif m.target_running_ropes:
+                st.position[1] = BodyPosition.RUNNING_ROPES
+            elif m.target_top:
+                st.position[1] = BodyPosition.TOP_ROPE
+            if m.min_momentum:
+                st.momentum[0] = m.min_momentum
+            p = hit_probability(st, 0, rule)
+            apply_move(st, 0, rule, _SeqRng([min(1.0, p + 0.2), 0.99]))
+            self.assertEqual(
+                st.position[0],
+                BodyPosition.GROUNDED,
+                f"{m.id} miss left attacker on {st.position[0]!r}",
+            )
+
     def test_low_momentum_misses_more_often_than_high(self) -> None:
         sup = _rule_by_id("suplex")
         low_misses = 0
@@ -885,6 +969,54 @@ class TestBloodiedEasterEgg(unittest.TestCase):
         s = health_bar(40, 100, bloodied=True, use_color=True)
         self.assertTrue(s.startswith("\033[91m"))
         self.assertIn("]", s)
+
+
+class TestMatchEvents(unittest.TestCase):
+    def test_result_unpacks_as_legacy_triple(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        punch = _rule_by_id("punch")
+        p = hit_probability(st, 0, punch)
+        result = apply_move(st, 0, punch, _SeqRng([max(0.0, p - 0.2), 0.99, 0.99]))
+        log, winner, seq = result
+        self.assertIsInstance(log, str)
+        self.assertIsNone(winner)
+        self.assertIsNone(seq)
+        self.assertEqual(result[0], log)
+
+    def test_clean_hit_emits_damage_matching_health(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        before = st.health[1]
+        punch = _rule_by_id("punch")
+        p = hit_probability(st, 0, punch)
+        result = apply_move(st, 0, punch, _SeqRng([max(0.0, p - 0.2), 0.99, 0.99]))
+        dealt = before - st.health[1]
+        damage = next(event for event in result.events if event.kind == "damage")
+        self.assertEqual(damage.amount, dealt)
+        self.assertEqual(damage.move_id, "punch")
+        self.assertEqual(damage.actor, 0)
+        self.assertEqual(damage.target, 1)
+
+    def test_whiff_emits_reversal_or_miss(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        punch = _rule_by_id("punch")
+        p = hit_probability(st, 0, punch)
+        result = apply_move(st, 0, punch, _SeqRng([min(1.0, p + 0.2), 0.99]))
+        kinds = {event.kind for event in result.events}
+        self.assertTrue(kinds & {"reversal", "miss"})
+        self.assertNotIn("damage", kinds)
+
+    def test_pin_sequence_carries_step_events(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        st.position[1] = BodyPosition.GROUNDED
+        st.health[1] = 1
+        result = apply_move(st, 0, _rule_by_id("pin"), _SeqRng([], [10, 1, 10, 1, 10, 1]))
+        self.assertIsNotNone(result.pin_sequence)
+        assert result.pin_sequence is not None
+        self.assertEqual(len(result.pin_sequence.steps), len(result.pin_sequence.step_events))
+        kinds = [event.kind for event in result.events]
+        self.assertTrue(
+            "pinfall" in kinds or "pin_kickout" in kinds or "pin_count" in kinds
+        )
 
 
 if __name__ == "__main__":

@@ -7,8 +7,9 @@ import argparse
 import random
 import secrets
 
+from commentary import CommentaryEngine
 from game import MatchState, apply_move, cpu_choose_rule
-from commentators import CommentatorPair, choose_commentary_team
+from commentators import choose_commentary_team
 from render import MatchRenderer, ReturnToTitle
 from render_fixed import FixedLayoutRenderer
 from render_playtest import PlaytestRenderer
@@ -80,6 +81,7 @@ def run_match(
     names = ("YOU (" + pw.nickname + ")", "CPU (" + cw.nickname + ")")
     playtest = isinstance(ui, PlaytestRenderer)
     booth = choose_commentary_team(match_seed)
+    engine = CommentaryEngine(booth, seed=match_seed)
 
     ui.match_start_banner(match_seed=match_seed, commentary_team=booth)
     ui.show_status(state, names)
@@ -93,7 +95,8 @@ def run_match(
         player_rule = state.rules[idx]
         ui.show_status(state, names)
 
-        log, winner, pin_seq = apply_move(state, 0, player_rule)
+        result = apply_move(state, 0, player_rule)
+        log, winner, pin_seq = result
         ui.show_status(state, names)
         if playtest:
             ui.record_player_turn(state, player_rule, log, pin_seq)
@@ -102,7 +105,7 @@ def run_match(
                 return None
         elif pin_seq is not None:
             ui.show_pin_sequence(
-                pin_seq,
+                engine.commentate_sequence(pin_seq, state.wrestlers),
                 player_nickname=pw.nickname,
                 cpu_nickname=cw.nickname,
                 actor_is_player=True,
@@ -110,7 +113,12 @@ def run_match(
             )
         else:
             ui.show_move_log(
-                log,
+                engine.format_turn(
+                    result.events,
+                    state.wrestlers,
+                    actor_idx=0,
+                    move_name=player_rule.move.name,
+                ),
                 player_nickname=pw.nickname,
                 cpu_nickname=cw.nickname,
                 actor_is_player=True,
@@ -130,7 +138,8 @@ def run_match(
 
         ui.round_header(is_player_turn=False)
 
-        log, winner, pin_seq = apply_move(state, 1, cpu_rule)
+        result = apply_move(state, 1, cpu_rule)
+        log, winner, pin_seq = result
         ui.show_status(state, names)
         if playtest:
             ui.record_cpu_turn(state, cpu_rule, log, pin_seq)
@@ -139,7 +148,7 @@ def run_match(
                 return None
         elif pin_seq is not None:
             ui.show_pin_sequence(
-                pin_seq,
+                engine.commentate_sequence(pin_seq, state.wrestlers),
                 player_nickname=pw.nickname,
                 cpu_nickname=cw.nickname,
                 actor_is_player=False,
@@ -147,7 +156,12 @@ def run_match(
             )
         else:
             ui.show_move_log(
-                log,
+                engine.format_turn(
+                    result.events,
+                    state.wrestlers,
+                    actor_idx=1,
+                    move_name=cpu_rule.move.name,
+                ),
                 player_nickname=pw.nickname,
                 cpu_nickname=cw.nickname,
                 actor_is_player=False,

@@ -6,6 +6,7 @@ import math
 import random
 from dataclasses import dataclass, field
 
+from commentary_events import MatchEvent
 from config import get_config
 from moves import BodyPosition, Move, MoveRule, all_move_rules, move_valid
 from wrestlers import Wrestler
@@ -76,6 +77,29 @@ class PinSequence:
     preamble_lines: list[str]
     steps: list[tuple[list[str], float]]
     heading: str = "Pinfall attempt…"
+    preamble_events: list[MatchEvent] = field(default_factory=list)
+    step_events: list[list[MatchEvent]] = field(default_factory=list)
+
+
+@dataclass
+class MoveResult:
+    """``apply_move`` return: legacy log plus structured events for commentary.
+
+    Unpacks as ``(log, winner, pin_sequence)`` so existing callers keep working.
+    """
+
+    log: str
+    winner: int | None
+    pin_sequence: PinSequence | None
+    events: list[MatchEvent] = field(default_factory=list)
+
+    def __iter__(self):
+        yield self.log
+        yield self.winner
+        yield self.pin_sequence
+
+    def __getitem__(self, index: int):
+        return (self.log, self.winner, self.pin_sequence)[index]
 
 
 def pin_sequence_as_text(seq: PinSequence) -> str:
@@ -345,6 +369,7 @@ def _apply_loop_pressure(
     actor_idx: int,
     m: Move,
     lines: list[str],
+    events: list[MatchEvent] | None = None,
 ) -> int:
     """Tax an actor for repeating their own neutral/setup loop. Returns effective momentum gain.
 
@@ -368,6 +393,16 @@ def _apply_loop_pressure(
             lines.append(
                 f"  The repeated tie-up stalls out — {target.nickname} gains escape momentum."
             )
+            if events is not None:
+                events.append(
+                    MatchEvent(
+                        kind="loop_pressure",
+                        actor=actor_idx,
+                        target=tgt,
+                        move_id=m.id,
+                        move_name=m.name,
+                    )
+                )
     elif m.id in _GRAPPLE_REAL_EXIT_IDS:
         state.grapple_loop_pressure[actor_idx] = 0
     elif m.id in _GRAPPLE_LIGHT_PAYOFF_IDS or m.target_grappled:
@@ -382,6 +417,16 @@ def _apply_loop_pressure(
             lines.append(
                 f"  The counter is getting predictable — {actor.nickname} loses the edge."
             )
+            if events is not None:
+                events.append(
+                    MatchEvent(
+                        kind="loop_pressure",
+                        actor=actor_idx,
+                        target=tgt,
+                        move_id=m.id,
+                        move_name=m.name,
+                    )
+                )
     elif m.id == "break_grapple":
         # Clean break is the non-loop escape; soft-decay counter debt only.
         state.counter_loop_pressure[actor_idx] = max(0, counter_before - 1)
@@ -402,6 +447,16 @@ def _apply_loop_pressure(
             lines.append(
                 f"  The climb looks telegraphed — {target.nickname} is ready for it."
             )
+            if events is not None:
+                events.append(
+                    MatchEvent(
+                        kind="loop_pressure",
+                        actor=actor_idx,
+                        target=tgt,
+                        move_id=m.id,
+                        move_name=m.name,
+                    )
+                )
     elif m.id == "dismount_top":
         state.setup_loop_pressure[actor_idx] = min(4, setup_before + 1)
         if setup_before >= _LOOP_STALE_THRESHOLD:
@@ -409,6 +464,16 @@ def _apply_loop_pressure(
             lines.append(
                 f"  Another empty climb — {target.nickname} takes the momentum."
             )
+            if events is not None:
+                events.append(
+                    MatchEvent(
+                        kind="loop_pressure",
+                        actor=actor_idx,
+                        target=tgt,
+                        move_id=m.id,
+                        move_name=m.name,
+                    )
+                )
     elif m.actor_top and m.base_damage > 0:
         state.setup_loop_pressure[actor_idx] = max(0, setup_before - 1)
     elif m.id in _FORCED_RESET_MOVE_IDS:
@@ -420,22 +485,47 @@ def _apply_loop_pressure(
     return mom_gain
 
 
+def _top_rope_whiff_crashes(m: Move) -> bool:
+    """True when a missed/reversed top-rope attack should dump the actor to the mat.
+
+    Dives leave the buckle on a hit (``actor_after`` is standing or grounded).
+    A punch traded on the buckle has no ``actor_after`` and stays put.
+    """
+    if not m.actor_top or m.skip_hit_roll:
+        return False
+    if m.actor_after is None or m.actor_after == BodyPosition.TOP_ROPE:
+        return False
+    return True
+
+
+def _flatten_sequence_events(seq: PinSequence) -> list[MatchEvent]:
+    out = list(seq.preamble_events)
+    for step in seq.step_events:
+        out.extend(step)
+    return out
+
+
 def apply_move(
     state: MatchState,
     actor_idx: int,
     rule: MoveRule,
     rng: random.Random | None = None,
-) -> tuple[str, int | None, PinSequence | None]:
-    """Mutates state. Returns (narrative, winner_index, pin_sequence_or_none).
+) -> MoveResult:
+    """Mutates state. Returns log, winner, optional pin sequence, and events.
 
-    When the third element is not ``None``, the UI should play ``PinSequence`` with
-    timed steps; ``narrative`` is still the full concatenated text for logging/tests.
+    Unpacks as ``(log, winner, pin_sequence)``. When the pin sequence is not
+    ``None``, the UI should play it with timed steps; ``log`` is still the full
+    concatenated legacy text for logging/tests. ``events`` feed commentary.
     """
     m = rule.move
     tgt = 1 - actor_idx
     actor = state.wrestlers[actor_idx]
     target = state.wrestlers[tgt]
     lines: list[str] = []
+    events: list[MatchEvent] = []
+
+    def emit(kind: str, **kwargs: object) -> None:
+        events.append(MatchEvent(kind=kind, **kwargs))  # type: ignore[arg-type]
 
     if m.is_pin:
         seq, won = _plan_pin(state, actor_idx, rng)
@@ -443,42 +533,54 @@ def apply_move(
             state.cpu_last_move_id = m.id
         _tick_groggy_timer(state, actor_idx)
         text = pin_sequence_as_text(seq)
-        return text, (actor_idx if won else None), seq
+        return MoveResult(text, (actor_idx if won else None), seq, _flatten_sequence_events(seq))
 
     if move_needs_hit_roll(m):
         p = hit_probability(state, actor_idx, rule)
         if _rand_float(rng) >= p:
-            lines.extend(_resolve_miss(state, actor_idx, rule, rng))
+            miss_lines, miss_events = _resolve_miss(state, actor_idx, rule, rng)
+            lines.extend(miss_lines)
+            events.extend(miss_events)
             # Whiffed re-ties still feed the collar cycle; ignore returned mom gain
             # because _resolve_miss already handled momentum on the miss path.
             if m.id == "collar_elbow":
-                _apply_loop_pressure(state, actor_idx, m, lines)
+                _apply_loop_pressure(state, actor_idx, m, lines, events)
             if actor_idx == 1:
                 state.cpu_last_move_id = m.id
             _tick_groggy_timer(state, actor_idx)
-            return "\n".join(lines), None, None
+            return MoveResult("\n".join(lines), None, None, events)
 
     if m.is_submission:
+        emit("move_attempt", actor=actor_idx, target=tgt, move_id=m.id, move_name=m.name)
         seq, won = _plan_submission(state, actor_idx, rule, rng)
         if actor_idx == 1:
             state.cpu_last_move_id = m.id
         _tick_groggy_timer(state, actor_idx)
         text = pin_sequence_as_text(seq)
-        return text, (actor_idx if won else None), seq
+        return MoveResult(
+            text,
+            (actor_idx if won else None),
+            seq,
+            events + _flatten_sequence_events(seq),
+        )
+
+    emit("move_attempt", actor=actor_idx, target=tgt, move_id=m.id, move_name=m.name)
 
     if m.id == "shake_groggy":
         state.groggy[actor_idx] = False
         state.groggy_opponent_actions_left[actor_idx] = 0
         lines.append(f"  {actor.nickname} steadies themselves — they're back!")
+        emit("groggy_cleared", actor=actor_idx, move_id=m.id, move_name=m.name)
         gain = min(5, state.momentum[actor_idx] + m.momentum_gain)
         state.momentum[actor_idx] = gain
         if actor_idx == 1:
             state.cpu_last_move_id = m.id
         _tick_groggy_timer(state, actor_idx)
         text = "\n".join(lines) if lines else f"  {actor.nickname}: {m.name}."
-        return text, None, None
+        return MoveResult(text, None, None, events)
 
     was_groggy_before_hit = state.groggy[tgt]
+    pos_before = (state.position[actor_idx], state.position[tgt])
 
     if m.base_damage > 0:
         top = m.actor_top or m.id.startswith("top_")
@@ -492,6 +594,15 @@ def apply_move(
             f"  {actor.nickname} snaps off {m.name.lower()} — "
             f"{target.nickname} takes {dmg} damage."
         )
+        emit(
+            "damage",
+            actor=actor_idx,
+            target=tgt,
+            move_id=m.id,
+            move_name=m.name,
+            amount=dmg,
+            meta={"finisher": m.is_finisher},
+        )
         _clear_groggy_from_opponent_damage(state, tgt, m)
         if m.is_finisher:
             state.finisher_shock[tgt] = min(5, state.finisher_shock[tgt] + 2)
@@ -500,11 +611,29 @@ def apply_move(
             lines.append(
                 f"  The crowd gasps — {target.nickname} is busted open; blood streams down their face."
             )
+            emit("bloodied", actor=actor_idx, target=tgt, move_id=m.id, move_name=m.name)
 
     if m.actor_after is not None:
         state.position[actor_idx] = m.actor_after
     if m.target_after is not None:
         state.position[tgt] = m.target_after
+    if state.position[actor_idx] != pos_before[0]:
+        emit(
+            "position_change",
+            actor=actor_idx,
+            move_id=m.id,
+            move_name=m.name,
+            position=state.position[actor_idx].name,
+        )
+    if state.position[tgt] != pos_before[1]:
+        emit(
+            "position_change",
+            actor=actor_idx,
+            target=tgt,
+            move_id=m.id,
+            move_name=m.name,
+            position=state.position[tgt].name,
+        )
 
     if m.base_damage > 0 and state.health[tgt] <= 0:
         state.position[tgt] = BodyPosition.GROUNDED
@@ -515,10 +644,18 @@ def apply_move(
         lines.append(
             f"  *** KNOCKOUT — the match is waved off; {actor.nickname} wins ***"
         )
+        emit(
+            "knockout",
+            actor=actor_idx,
+            target=tgt,
+            move_id=m.id,
+            move_name=m.name,
+            won=True,
+        )
         if actor_idx == 1:
             state.cpu_last_move_id = m.id
         _tick_groggy_timer(state, actor_idx)
-        return "\n".join(lines), actor_idx, None
+        return MoveResult("\n".join(lines), actor_idx, None, events)
 
     if m.base_damage > 0 and state.position[tgt] != BodyPosition.GROUNDED:
         worn_down = state.health[tgt] <= target.max_health * _KNOCKDOWN_HP_FRAC
@@ -533,6 +670,14 @@ def apply_move(
             lines.append(
                 f"  {target.nickname} collapses to the canvas — the cover is there for the taking!"
             )
+            emit(
+                "knockdown",
+                actor=actor_idx,
+                target=tgt,
+                move_id=m.id,
+                move_name=m.name,
+                position=BodyPosition.GROUNDED.name,
+            )
 
     if m.base_damage > 0 and (not was_groggy_before_hit or m.causes_groggy_on_stand):
         applied_groggy = _try_apply_groggy_after_damage(
@@ -543,15 +688,31 @@ def apply_move(
                 lines.append(
                     f"  {target.nickname} is rattled — when they're forced up, big payoffs may open."
                 )
+                emit(
+                    "groggy_applied",
+                    actor=actor_idx,
+                    target=tgt,
+                    move_id=m.id,
+                    move_name=m.name,
+                    meta={"pending": True},
+                )
             else:
                 lines.append(
                     f"  {target.nickname} is GROGGY — power moves and finishers are live!"
+                )
+                emit(
+                    "groggy_applied",
+                    actor=actor_idx,
+                    target=tgt,
+                    move_id=m.id,
+                    move_name=m.name,
                 )
 
     if m.id == "desperation_strike":
         state.groggy[actor_idx] = False
         state.groggy_opponent_actions_left[actor_idx] = 0
         lines.append(f"  {actor.nickname} fights through — the groggy haze lifts!")
+        emit("groggy_cleared", actor=actor_idx, move_id=m.id, move_name=m.name)
 
     immediate_groggy_from_stand_victim: int | None = None
     if m.id == "get_up" and state.position[actor_idx] == BodyPosition.STANDING:
@@ -565,6 +726,13 @@ def apply_move(
             state.groggy_opponent_actions_left[actor_idx] = 2
             immediate_groggy_from_stand_victim = actor_idx
             lines.append(f"  {actor.nickname} rises — still groggy from the impact!")
+            emit(
+                "groggy_applied",
+                actor=actor_idx,
+                target=actor_idx,
+                move_id=m.id,
+                move_name=m.name,
+            )
 
     if m.id == "pickup" and state.position[tgt] == BodyPosition.STANDING:
         if state.pending_groggy[tgt]:
@@ -573,14 +741,28 @@ def apply_move(
             state.groggy_opponent_actions_left[tgt] = 2
             immediate_groggy_from_stand_victim = tgt
             lines.append(f"  {target.nickname} is yanked up — their legs aren't under them yet!")
+            emit(
+                "groggy_applied",
+                actor=actor_idx,
+                target=tgt,
+                move_id=m.id,
+                move_name=m.name,
+            )
 
     if m.id == "recover":
         heal = max(3, actor.max_health // 25)
         cap = actor.max_health
         state.health[actor_idx] = min(cap, state.health[actor_idx] + heal)
         lines.append(f"  {actor.nickname} recovers {heal} stamina.")
+        emit(
+            "recover",
+            actor=actor_idx,
+            move_id=m.id,
+            move_name=m.name,
+            amount=heal,
+        )
 
-    mom_gain = _apply_loop_pressure(state, actor_idx, m, lines)
+    mom_gain = _apply_loop_pressure(state, actor_idx, m, lines, events)
 
     gain = min(5, state.momentum[actor_idx] + mom_gain)
     state.momentum[actor_idx] = gain
@@ -592,6 +774,10 @@ def apply_move(
             lines.append("  — FINISHER — the next cover packs extra heat.")
     if actor_idx == 1:
         state.cpu_last_move_id = m.id
+
+    if m.base_damage <= 0 and m.id not in {"recover", "shake_groggy", "desperation_strike"}:
+        if not any(e.kind in {"setup", "groggy_applied", "loop_pressure"} for e in events):
+            emit("setup", actor=actor_idx, target=tgt, move_id=m.id, move_name=m.name)
 
     skip_victim_tick = immediate_groggy_from_stand_victim
     if skip_victim_tick is None:
@@ -606,13 +792,21 @@ def apply_move(
 
     if m.triggers_pin_after_hit and m.base_damage > 0:
         pin_body, won = _plan_pin(state, actor_idx, rng)
-        seq = PinSequence(won=pin_body.won, preamble_lines=list(lines), steps=pin_body.steps)
+        seq = PinSequence(
+            won=pin_body.won,
+            preamble_lines=list(lines),
+            steps=pin_body.steps,
+            preamble_events=list(events),
+            step_events=list(pin_body.step_events),
+        )
         full = pin_sequence_as_text(seq)
         _tick_groggy_timer(state, actor_idx, skip_victim_tick=skip_victim_tick)
-        return full, (actor_idx if won else None), seq
+        return MoveResult(
+            full, (actor_idx if won else None), seq, _flatten_sequence_events(seq)
+        )
     text = "\n".join(lines) if lines else f"  {actor.nickname}: {m.name}."
     _tick_groggy_timer(state, actor_idx, skip_victim_tick=skip_victim_tick)
-    return text, None, None
+    return MoveResult(text, None, None, events)
 
 
 def _resolve_miss(
@@ -620,18 +814,26 @@ def _resolve_miss(
     actor_idx: int,
     rule: MoveRule,
     rng: random.Random | None,
-) -> list[str]:
-    """Failed hit: no position change, optional chip damage, momentum shift."""
+) -> tuple[list[str], list[MatchEvent]]:
+    """Failed hit: no target position change, optional chip damage, momentum shift.
+
+    Top-rope dives are the exception: the attacker already left the buckle, so a
+    miss or reversal dumps them to the canvas.
+    """
     m = rule.move
     tgt = 1 - actor_idx
     actor = state.wrestlers[actor_idx]
     target = state.wrestlers[tgt]
     lines: list[str] = []
+    events: list[MatchEvent] = []
 
     if m.id == "get_up":
         state.cover_heat_lock[actor_idx] = False
         state.get_up_fail_streak[actor_idx] = min(
             3, state.get_up_fail_streak[actor_idx] + 1
+        )
+        events.append(
+            MatchEvent(kind="miss", actor=actor_idx, move_id=m.id, move_name=m.name)
         )
         if state.get_up_fail_streak[actor_idx] >= 2:
             state.momentum[actor_idx] = min(5, state.momentum[actor_idx] + 1)
@@ -640,26 +842,32 @@ def _resolve_miss(
                 "but the crowd is pulling them up."
             )
             lines.append(f"  Escape momentum builds for {actor.nickname}.")
-            return lines
+            return lines, events
         lines.append(
             f"  {actor.nickname} tries to rise but can't find it — still down and vulnerable to a cover!"
         )
         state.momentum[actor_idx] = max(0, state.momentum[actor_idx] - 1)
-        return lines
+        return lines, events
 
     if m.id == "shake_groggy":
         lines.append(
             f"  {actor.nickname} tries to clear their head but they're still wobbly!"
         )
         state.momentum[actor_idx] = max(0, state.momentum[actor_idx] - 1)
-        return lines
+        events.append(
+            MatchEvent(kind="miss", actor=actor_idx, move_id=m.id, move_name=m.name)
+        )
+        return lines, events
 
     if m.id == "desperation_strike":
         lines.append(
             f"  {actor.nickname} lunges wildly but can't connect — still groggy!"
         )
         state.momentum[actor_idx] = max(0, state.momentum[actor_idx] - 1)
-        return lines
+        events.append(
+            MatchEvent(kind="miss", actor=actor_idx, move_id=m.id, move_name=m.name)
+        )
+        return lines, events
 
     if m.base_damage > 0:
         chip = max(1, m.base_damage // 8)
@@ -672,6 +880,16 @@ def _resolve_miss(
         )
         state.health[tgt] = max(1, state.health[tgt] - dmg)
         _clear_groggy_from_opponent_damage(state, tgt, m)
+        events.append(
+            MatchEvent(
+                kind="reversal",
+                actor=actor_idx,
+                target=tgt,
+                move_id=m.id,
+                move_name=m.name,
+                amount=dmg,
+            )
+        )
         if _rand_float(rng) < 0.5:
             lines.append(
                 f"  {target.nickname} reverses the {m.name.lower()} — only {dmg} damage, "
@@ -683,14 +901,38 @@ def _resolve_miss(
                 f"{actor.nickname} whiffs — {target.nickname} shrugs it off."
             )
     else:
+        events.append(
+            MatchEvent(
+                kind="miss",
+                actor=actor_idx,
+                target=tgt,
+                move_id=m.id,
+                move_name=m.name,
+            )
+        )
         if _rand_float(rng) < 0.5:
             lines.append(f"  {target.nickname} turns the tables!")
         else:
             lines.append(f"  {actor.nickname} whiffs — {target.nickname} shrugs it off.")
 
+    if _top_rope_whiff_crashes(m):
+        state.position[actor_idx] = BodyPosition.GROUNDED
+        lines.append(
+            f"  {actor.nickname} crashes off the top rope to the canvas!"
+        )
+        events.append(
+            MatchEvent(
+                kind="position_change",
+                actor=actor_idx,
+                move_id=m.id,
+                move_name=m.name,
+                position=BodyPosition.GROUNDED.name,
+            )
+        )
+
     state.momentum[actor_idx] = max(0, state.momentum[actor_idx] - 2)
     state.momentum[tgt] = min(5, state.momentum[tgt] + 1)
-    return lines
+    return lines, events
 
 
 def _plan_pin(state: MatchState, actor_idx: int, rng: random.Random | None) -> tuple[PinSequence, bool]:
@@ -699,6 +941,7 @@ def _plan_pin(state: MatchState, actor_idx: int, rng: random.Random | None) -> t
     attacker = state.wrestlers[actor_idx]
     defender = state.wrestlers[tgt]
     steps: list[tuple[list[str], float]] = []
+    step_events: list[list[MatchEvent]] = []
     hp_frac = state.health[tgt] / max(1, defender.max_health)
     mom = state.momentum[actor_idx]
     fin_bonus = state.pin_bonus_next_cover[actor_idx]
@@ -709,9 +952,28 @@ def _plan_pin(state: MatchState, actor_idx: int, rng: random.Random | None) -> t
     )
     state.pins_attempted += 1
     state.cover_heat[tgt] = False
+
+    def add_step(
+        step_lines: list[str], delay: float, events: list[MatchEvent]
+    ) -> None:
+        steps.append((step_lines, delay))
+        step_events.append(events)
+
     if fin_bonus > 0:
-        steps.append(
-            ([f"  The finisher still echoes — +{fin_bonus} on the cover!"], 0.0)
+        add_step(
+            [f"  The finisher still echoes — +{fin_bonus} on the cover!"],
+            0.0,
+            [
+                MatchEvent(
+                    kind="setup",
+                    actor=actor_idx,
+                    target=tgt,
+                    move_id="pin",
+                    move_name="Pin",
+                    amount=fin_bonus,
+                    meta={"finisher_echo": True},
+                )
+            ],
         )
 
     for count in (1, 2, 3):
@@ -730,10 +992,41 @@ def _plan_pin(state: MatchState, actor_idx: int, rng: random.Random | None) -> t
         if count == 3:
             if kicks_out:
                 # Near-fall: no "3" line — kickout appears after the post-2 delay only.
-                steps.append(([f"  {defender.nickname} kicks out!"], 0.0))
+                add_step(
+                    [f"  {defender.nickname} kicks out!"],
+                    0.0,
+                    [
+                        MatchEvent(
+                            kind="pin_kickout",
+                            actor=actor_idx,
+                            target=tgt,
+                            pin_count=count,
+                            won=False,
+                        )
+                    ],
+                )
                 state.momentum[actor_idx] = max(0, mom - 2)
-                return PinSequence(won=False, preamble_lines=[], steps=steps), False
-            steps.append(([f"  Referee: 3!"], 0.0))
+                return (
+                    PinSequence(
+                        won=False,
+                        preamble_lines=[],
+                        steps=steps,
+                        step_events=step_events,
+                    ),
+                    False,
+                )
+            add_step(
+                [f"  Referee: 3!"],
+                0.0,
+                [
+                    MatchEvent(
+                        kind="pin_count",
+                        actor=actor_idx,
+                        target=tgt,
+                        pin_count=3,
+                    )
+                ],
+            )
             break
 
         line = f"  Referee: {count}…"
@@ -743,14 +1036,56 @@ def _plan_pin(state: MatchState, actor_idx: int, rng: random.Random | None) -> t
             if count == 1
             else timing.pin_delay_after_count_2_sec
         )
-        steps.append(([line], delay_after))
+        add_step(
+            [line],
+            delay_after,
+            [
+                MatchEvent(
+                    kind="pin_count",
+                    actor=actor_idx,
+                    target=tgt,
+                    pin_count=count,
+                )
+            ],
+        )
         if kicks_out:
-            steps.append(([f"  {defender.nickname} kicks out!"], 0.0))
+            add_step(
+                [f"  {defender.nickname} kicks out!"],
+                0.0,
+                [
+                    MatchEvent(
+                        kind="pin_kickout",
+                        actor=actor_idx,
+                        target=tgt,
+                        pin_count=count,
+                        won=False,
+                    )
+                ],
+            )
             state.momentum[actor_idx] = max(0, mom - 2)
-            return PinSequence(won=False, preamble_lines=[], steps=steps), False
+            return (
+                PinSequence(
+                    won=False, preamble_lines=[], steps=steps, step_events=step_events
+                ),
+                False,
+            )
 
-    steps.append(([f"  *** PINFALL — {attacker.nickname} wins ***"], 0.0))
-    return PinSequence(won=True, preamble_lines=[], steps=steps), True
+    add_step(
+        [f"  *** PINFALL — {attacker.nickname} wins ***"],
+        0.0,
+        [
+            MatchEvent(
+                kind="pinfall",
+                actor=actor_idx,
+                target=tgt,
+                won=True,
+            )
+        ],
+    )
+    return (
+        PinSequence(won=True, preamble_lines=[], steps=steps, step_events=step_events),
+        True,
+    )
 
 
 def _plan_submission(
@@ -780,6 +1115,27 @@ def _plan_submission(
             timing.pin_delay_after_count_2_sec,
         ),
     ]
+    step_events: list[list[MatchEvent]] = [
+        [
+            MatchEvent(
+                kind="submission_applied",
+                actor=actor_idx,
+                target=tgt,
+                move_id=m.id,
+                move_name=m.name,
+            )
+        ],
+        [
+            MatchEvent(
+                kind="submission_applied",
+                actor=actor_idx,
+                target=tgt,
+                move_id=m.id,
+                move_name=m.name,
+                meta={"deeper": True},
+            )
+        ],
+    ]
 
     pressure = (
         attacker.strength
@@ -791,6 +1147,18 @@ def _plan_submission(
     escape = defender.endurance + _rand_int(rng, 1, 10) + int(hp_frac * 22)
     if pressure <= escape:
         steps.append(([f"  {defender.nickname} claws free and breaks the hold!"], 0.0))
+        step_events.append(
+            [
+                MatchEvent(
+                    kind="submission_escape",
+                    actor=actor_idx,
+                    target=tgt,
+                    move_id=m.id,
+                    move_name=m.name,
+                    won=False,
+                )
+            ]
+        )
         state.momentum[actor_idx] = max(0, mom - 2)
         return (
             PinSequence(
@@ -798,6 +1166,7 @@ def _plan_submission(
                 preamble_lines=[],
                 steps=steps,
                 heading="Submission attempt…",
+                step_events=step_events,
             ),
             False,
         )
@@ -811,12 +1180,25 @@ def _plan_submission(
             0.0,
         )
     )
+    step_events.append(
+        [
+            MatchEvent(
+                kind="submission_tap",
+                actor=actor_idx,
+                target=tgt,
+                move_id=m.id,
+                move_name=m.name,
+                won=True,
+            )
+        ]
+    )
     return (
         PinSequence(
             won=True,
             preamble_lines=[],
             steps=steps,
             heading="Submission attempt…",
+            step_events=step_events,
         ),
         True,
     )
