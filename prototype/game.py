@@ -54,7 +54,11 @@ _UNDERDOG_HIT_BONUS_MAX = 0.14
 # Cover heat after a knockdown: harder to rise, CPU strongly prefers the pin.
 _COVER_HEAT_GET_UP_PENALTY = 0.40
 _COVER_HEAT_PIN_BONUS = 3
-_COVER_HEAT_CPU_PIN_BIAS = 0.85# Loop taxes. Pressure is tracked per actor and only moves on that actor's own turns:
+_COVER_HEAT_CPU_PIN_BIAS = 0.85
+# After a non-bridge finisher: hook the leg even when a kickout is likely.
+_FINISHER_COVER_CPU_PIN_BIAS = 0.78
+_FINISHER_COVER_PIN_SCORE_BONUS = 95.0
+# Loop taxes. Pressure is tracked per actor and only moves on that actor's own turns:
 # a single shared counter is cancelled out by the opponent's turn, so an every-other-turn
 # loop never accumulates.
 _LOOP_STALE_THRESHOLD = 2
@@ -1248,11 +1252,16 @@ def _cpu_rule_score(state: MatchState, cpu_idx: int, r: MoveRule) -> float:
 
     if m.is_pin:
         s = 0.0
+        fin_echo = state.pin_bonus_next_cover[cpu_idx]
         if opp_hp < 0.35:
             s += 80
-        if opp_hp >= 0.35:
+        elif fin_echo > 0:
+            s += 25
+        else:
             s -= 40
-        s += float(state.pin_bonus_next_cover[cpu_idx]) * 3.0
+        s += float(fin_echo) * 3.0
+        if fin_echo > 0:
+            s += _FINISHER_COVER_PIN_SCORE_BONUS
         if state.cover_heat[opp]:
             s += 120
         if state.position[opp] == BodyPosition.GROUNDED and opp_hp < 0.30:
@@ -1268,7 +1277,7 @@ def _cpu_rule_score(state: MatchState, cpu_idx: int, r: MoveRule) -> float:
 
     # Prefer the cover tease over murdering a grounded, worn opponent.
     if state.position[opp] == BodyPosition.GROUNDED and (
-        state.cover_heat[opp] or opp_hp < 0.25
+        state.cover_heat[opp] or opp_hp < 0.25 or state.pin_bonus_next_cover[cpu_idx] > 0
     ):
         if m.base_damage > 0:
             s -= 55.0
@@ -1355,6 +1364,11 @@ def cpu_choose_rule(state: MatchState, cpu_idx: int) -> MoveRule:
     if state.cover_heat[opp]:
         pin_rules = [r for r in rules_list if r.move.is_pin]
         if pin_rules and random.random() < _COVER_HEAT_CPU_PIN_BIAS:
+            return pin_rules[0]
+    # After a finisher lands, go for the cover even when a kickout is likely.
+    if state.pin_bonus_next_cover[cpu_idx] > 0:
+        pin_rules = [r for r in rules_list if r.move.is_pin]
+        if pin_rules and random.random() < _FINISHER_COVER_CPU_PIN_BIAS:
             return pin_rules[0]
     scores = [_cpu_rule_score(state, cpu_idx, r) for r in rules_list]
     idx = _softmax_sample_index(scores, _CPU_SOFTMAX_TEMPERATURE)

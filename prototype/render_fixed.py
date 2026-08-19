@@ -116,15 +116,21 @@ def _move_choice_details(
     score = float(m.base_damage * 2 + m.momentum_gain * 7 - m.difficulty * 2)
 
     if m.is_pin:
+        fin_bonus = state.pin_bonus_next_cover[actor_idx]
         note = "try to end it now; stronger when they're worn down"
+        score = 120.0 + (1.0 - target_hp_frac) * 40.0
         if state.cover_heat[target_idx]:
             note = "COVER HEAT — cash the knockdown before they rise"
+            score += 25.0
+        elif fin_bonus > 0:
+            note = "FINISHER — hook the leg; the crowd expects the cover"
+            score += 70.0 + float(fin_bonus) * 3.0
         return _MoveChoice(
             rule_index,
             rule,
             "Finish",
             note,
-            120.0 + (1.0 - target_hp_frac) * 40.0 + (25.0 if state.cover_heat[target_idx] else 0.0),
+            score,
         )
     if m.is_finisher:
         note = "cash in momentum for a match-ending swing"

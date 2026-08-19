@@ -10,6 +10,7 @@ from render_fixed import (
     _Palette,
     _curate_move_choices,
     _momentum_chart_lines,
+    _move_choice_details,
 )
 from wrestlers import ROSTER
 
@@ -71,6 +72,45 @@ class TestStaleMoveCuration(unittest.TestCase):
 
         self.assertEqual(menu[0], "break_grapple")
         self.assertIn("grapple_counter", menu)
+
+
+class TestFinisherCoverCuration(unittest.TestCase):
+    def test_finisher_echo_boosts_pin_over_follow_up_offense(self) -> None:
+        from moves import BodyPosition
+
+        state = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["scott_hall"]))
+        state.position[1] = BodyPosition.GROUNDED
+        state.health[1] = int(state.wrestlers[1].max_health * 0.6)
+        state.pin_bonus_next_cover[0] = 12
+
+        pin = next(
+            ch
+            for _, rule in state.valid_rules(0)
+            if rule.move.id == "pin"
+            for ch in [_move_choice_details(state, 0, 0, rule)]
+        )
+        stomp = next(
+            ch
+            for idx, rule in state.valid_rules(0)
+            if rule.move.id == "leg_drop"
+            for ch in [_move_choice_details(state, 0, idx, rule)]
+        )
+
+        self.assertIn("FINISHER", pin.note)
+        self.assertGreater(pin.score, stomp.score)
+
+    def test_finisher_echo_pin_is_top_finish_choice(self) -> None:
+        from moves import BodyPosition
+
+        state = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["scott_hall"]))
+        state.position[1] = BodyPosition.GROUNDED
+        state.health[1] = int(state.wrestlers[1].max_health * 0.6)
+        state.pin_bonus_next_cover[0] = 12
+
+        choices = _curate_move_choices(state, 0, state.valid_rules(0))
+        finish_ids = [ch.rule.move.id for ch in choices if ch.intent == "Finish"]
+
+        self.assertEqual(finish_ids[0], "pin")
 
 
 class TestMomentumChart(unittest.TestCase):

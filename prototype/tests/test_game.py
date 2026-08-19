@@ -711,6 +711,16 @@ class TestPinUnchanged(unittest.TestCase):
         heavy = _rule_by_id("leg_drop")
         self.assertGreater(pin_score, _cpu_rule_score(st, 1, heavy))
 
+    def test_cpu_prefers_pin_after_finisher_echo_on_healthy_target(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["scott_hall"]))
+        st.position[0] = BodyPosition.GROUNDED
+        st.health[0] = int(st.wrestlers[0].max_health * 0.55)
+        st.pin_bonus_next_cover[1] = 12
+
+        pin_score = _cpu_rule_score(st, 1, _rule_by_id("pin"))
+        stomp = _rule_by_id("leg_drop")
+        self.assertGreater(pin_score, _cpu_rule_score(st, 1, stomp))
+
     def test_underdog_gets_hit_bonus_when_far_behind(self) -> None:
         even = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
         behind = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
