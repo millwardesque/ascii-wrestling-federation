@@ -5,6 +5,8 @@ from __future__ import annotations
 import sys
 from typing import Literal
 
+ToggleToken = Literal["M"]
+
 __all__ = [
     "tty_interactive",
     "read_any_key",
@@ -121,18 +123,63 @@ def _read_key_or_esc_posix() -> str | Literal["ESC"]:
         termios.tcsetattr(fd, termios.TCSADRAIN, old)
 
 
-def read_move_choice_line() -> str | Literal["ESC"]:
+def read_move_choice_line() -> str | Literal["ESC"] | ToggleToken:
     """
     Line mode in raw terminal: digits and backspace until Enter; ESC aborts to pause.
-    Returns the line (e.g. ``'3'``) or ``'ESC'``.
+    Returns the line (e.g. ``'3'``), ``'ESC'``, or ``'M'`` to toggle the momentum chart.
     """
     if not tty_interactive():
-        return sys.stdin.readline().strip()
+        line = sys.stdin.readline().strip()
+        if line.upper() == "M":
+            return "M"
+        return line
+
+    if _HAS_MSVCRT and not _HAS_POSIX:
+        return _read_move_choice_line_msvcrt()
 
     if not _HAS_POSIX:
         line = sys.stdin.readline().strip()
+        if line.upper() == "M":
+            return "M"
         return line
 
+    return _read_move_choice_line_posix()
+
+
+def _read_move_choice_line_msvcrt() -> str | Literal["ESC"] | ToggleToken:
+    buf: list[str] = []
+    while True:
+        ch = msvcrt.getch()
+        if ch in (b"\x1b",):
+            sys.stdout.write("\n")
+            sys.stdout.flush()
+            return "ESC"
+        if ch in (b"\r", b"\n"):
+            sys.stdout.write("\n")
+            sys.stdout.flush()
+            return "".join(buf)
+        if ch in (b"\x08",):
+            if buf:
+                buf.pop()
+                sys.stdout.write("\b \b")
+                sys.stdout.flush()
+            continue
+        try:
+            b = ch.decode("ascii")
+        except UnicodeDecodeError:
+            continue
+        if b.isdigit():
+            buf.append(b)
+            sys.stdout.write(b)
+            sys.stdout.flush()
+            continue
+        if b.lower() == "m":
+            sys.stdout.write("\n")
+            sys.stdout.flush()
+            return "M"
+
+
+def _read_move_choice_line_posix() -> str | Literal["ESC"] | ToggleToken:
     fd = sys.stdin.fileno()
     old = termios.tcgetattr(fd)
     buf: list[str] = []
@@ -160,6 +207,11 @@ def read_move_choice_line() -> str | Literal["ESC"]:
                 buf.append(b)
                 sys.stdout.write(b)
                 sys.stdout.flush()
+                continue
+            if b.lower() == "m":
+                sys.stdout.write("\n")
+                sys.stdout.flush()
+                return "M"
     finally:
         termios.tcsetattr(fd, termios.TCSADRAIN, old)
 

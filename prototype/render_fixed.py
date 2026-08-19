@@ -366,6 +366,7 @@ class FixedLayoutRenderer:
         self._animate_move_log = animate_move_log
         self._action_chain: list[_ActionBlock] = []
         self._momentum_history: list[tuple[int, int]] = []
+        self._show_momentum_chart = False
         self._instruction_heading = "Choose your move!"
         self._action_log_override_lines: list[str] | None = None
         self._state: MatchState | None = None
@@ -636,8 +637,9 @@ class FixedLayoutRenderer:
         if self._state is not None and self._names is not None:
             self._print_wrestler_header_panel(self._state, self._names, w, c)
 
-        print(c.dim + self._rule("─") + c.reset)
-        self._print_momentum_chart(self._momentum_history, w, c)
+        if self._show_momentum_chart:
+            print(c.dim + self._rule("─") + c.reset)
+            self._print_momentum_chart(self._momentum_history, w, c)
         print(c.dim + self._rule("─") + c.reset)
         inner = w - 4
         wrap_w = max(20, inner - 4)
@@ -801,6 +803,9 @@ class FixedLayoutRenderer:
 
     def record_momentum(self, state: MatchState) -> None:
         self._momentum_history.append((state.momentum[0], state.momentum[1]))
+
+    def _toggle_momentum_chart(self) -> None:
+        self._show_momentum_chart = not self._show_momentum_chart
         self._redraw_match()
 
     def round_header(self, is_player_turn: bool) -> None:
@@ -975,6 +980,11 @@ class FixedLayoutRenderer:
                     f"{c.dim}[{lbl}] — {choice.note}{c.reset}"
                 )
             lines.append("")
+            lines.append(
+                f"{c.dim}Press M to "
+                f"{'hide' if self._show_momentum_chart else 'show'} momentum trend  ·  "
+                f"ESC: pause{c.reset}"
+            )
             if err:
                 lines.append(f"{c.warn}{err}{c.reset}")
             self._redraw_match(bottom_extra=lines)
@@ -983,6 +993,9 @@ class FixedLayoutRenderer:
             raw = read_move_choice_line()
             if raw == "ESC":
                 self._pause_menu()
+                continue
+            if raw == "M":
+                self._toggle_momentum_chart()
                 continue
             raw = raw.strip()
             if raw.isdigit():

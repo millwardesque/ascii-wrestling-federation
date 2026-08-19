@@ -114,6 +114,25 @@ class TestFinisherCoverCuration(unittest.TestCase):
 
 
 class TestMomentumChart(unittest.TestCase):
+    def test_chart_hidden_by_default(self) -> None:
+        renderer = FixedLayoutRenderer(
+            input_fn=lambda _: "",
+            use_color=False,
+            animate_move_log=False,
+        )
+        self.assertFalse(renderer._show_momentum_chart)
+
+    def test_toggle_momentum_chart(self) -> None:
+        renderer = FixedLayoutRenderer(
+            input_fn=lambda _: "",
+            use_color=False,
+            animate_move_log=False,
+        )
+        renderer._toggle_momentum_chart()
+        self.assertTrue(renderer._show_momentum_chart)
+        renderer._toggle_momentum_chart()
+        self.assertFalse(renderer._show_momentum_chart)
+
     def test_chart_draws_player_above_and_cpu_below_axis(self) -> None:
         palette = _Palette(enabled=False)
         lines = _momentum_chart_lines([(1, 2), (3, 0)], 40, palette)
