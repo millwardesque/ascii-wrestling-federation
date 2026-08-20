@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Pick a random move × primary (PBP) commentator for override authoring.
+"""Pick the most common open move × a random primary (PBP) commentator.
+
+Commonality is playtest transcript ``move_id`` counts. Among still-open cells,
+the highest-frequency move is chosen first; commentator is random among PBP
+that still need that move.
 
 Run from anywhere:
 
@@ -19,6 +23,7 @@ from pathlib import Path
 
 _REPO_ROOT = Path(__file__).resolve().parents[4]
 _PROTOTYPE = _REPO_ROOT / "prototype"
+_TRANSCRIPTS = _PROTOTYPE / "playtest" / "transcripts"
 if str(_PROTOTYPE) not in sys.path:
     sys.path.insert(0, str(_PROTOTYPE))
 
@@ -54,6 +59,43 @@ def _existing(move_id: str, commentator_id: str) -> CommentatorMoveTemplates | N
     if not by_commentator:
         return None
     return by_commentator.get(commentator_id)
+
+
+def _move_frequency() -> dict[str, int]:
+    """Count ``move_id`` on turn events across playtest transcripts."""
+    counts: dict[str, int] = {}
+    if not _TRANSCRIPTS.is_dir():
+        return counts
+    for path in _TRANSCRIPTS.glob("*.jsonl"):
+        try:
+            text = path.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        for line in text.splitlines():
+            if not line.strip():
+                continue
+            try:
+                row = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if row.get("event") != "turn":
+                continue
+            move_id = row.get("move_id")
+            if not move_id:
+                continue
+            key = str(move_id)
+            counts[key] = counts.get(key, 0) + 1
+    return counts
+
+
+def _pick_most_common(
+    cells: list[tuple[Move, Commentator, bool, bool]],
+    rng: random.Random,
+    freq: dict[str, int],
+) -> tuple[Move, Commentator, bool, bool]:
+    best = max(freq.get(move.id, 0) for move, *_rest in cells)
+    top = [cell for cell in cells if freq.get(cell[0].id, 0) == best]
+    return rng.choice(top)
 
 
 def _cells(*, rewrite: bool) -> list[tuple[Move, Commentator, bool, bool]]:
@@ -96,6 +138,8 @@ def _card(move: Move, commentator: Commentator, missing_success: bool, missing_f
         "existing_failed": list(templates.failed) if templates else [],
         "default_success": list(_pool(commentator, success_kind)),
         "default_reversal": list(_pool(commentator, "reversal")),
+        "playtest_count": 0,
+        "playtest_rank": None,
     }
 
 
@@ -124,6 +168,14 @@ def _render(card: dict, remaining: int, total: int) -> str:
         need.append("failed/reversal")
     need_txt = " and ".join(need) if need else "rewrite"
 
+    if card.get("playtest_rank"):
+        freq_line = (
+            f"  Playtest frequency: {card['playtest_count']} turns "
+            f"(#{card['playtest_rank']} most common)"
+        )
+    else:
+        freq_line = "  Playtest frequency: not seen in transcripts"
+
     return "\n".join(
         [
             f"Coverage: {total - remaining}/{total} PBP×move cells have both pools. "
@@ -132,6 +184,7 @@ def _render(card: dict, remaining: int, total: int) -> str:
             f"Move: {card['move_name']} (`{card['move_id']}`){flag_txt}",
             f"  {card['description']}",
             f"  Success kind this card uses: {card['success_kind']}",
+            freq_line,
             "",
             f"Primary commentator: {card['commentator_name']} "
             f"(`{card['commentator_id']}` / {card['short']})",
@@ -190,9 +243,14 @@ def main() -> int:
     args = parser.parse_args()
 
     rng = random.Random(args.seed)
+    freq = _move_frequency()
     cells = _cells(rewrite=args.rewrite)
     total_cells = len(_pbp()) * len(all_move_rules())
     filled = total_cells - len(_cells(rewrite=False))
+    ranked_ids = sorted(
+        {rule.move.id for rule in all_move_rules()},
+        key=lambda mid: (-freq.get(mid, 0), mid),
+    )
 
     if args.move_id or args.commentator_id:
         wanted = []
@@ -205,7 +263,12 @@ def main() -> int:
         if not wanted:
             print("No matching move/commentator cell.", file=sys.stderr)
             return 1
-        move, commentator, missing_success, missing_failed = rng.choice(wanted)
+        if args.move_id:
+            move, commentator, missing_success, missing_failed = rng.choice(wanted)
+        else:
+            move, commentator, missing_success, missing_failed = _pick_most_common(
+                wanted, rng, freq
+            )
     else:
         if not cells:
             print(
@@ -214,9 +277,15 @@ def main() -> int:
                 file=sys.stderr,
             )
             return 2
-        move, commentator, missing_success, missing_failed = rng.choice(cells)
+        move, commentator, missing_success, missing_failed = _pick_most_common(
+            cells, rng, freq
+        )
 
     card = _card(move, commentator, missing_success, missing_failed)
+    card["playtest_count"] = freq.get(move.id, 0)
+    card["playtest_rank"] = (
+        ranked_ids.index(move.id) + 1 if move.id in ranked_ids else None
+    )
     remaining = len(_cells(rewrite=False))
     if args.json:
         payload = dict(card)

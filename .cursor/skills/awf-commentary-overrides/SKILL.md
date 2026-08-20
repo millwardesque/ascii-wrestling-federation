@@ -1,11 +1,12 @@
 ---
 name: awf-commentary-overrides
 description: >-
-  Repeatedly prompt for bespoke per-move commentary overrides. Shows a move's
-  default success and reversal strings for a random primary (play-by-play)
-  commentator, then waits for the user to supply copy. Use when authoring or
-  filling MOVE_COMMENTARY, writing booth lines, or when the user asks to
-  override generic commentary templates.
+  Repeatedly prompt for bespoke per-move commentary overrides. Picks the most
+  common still-open move from playtest transcripts, shows its default success
+  and reversal strings for a random primary (play-by-play) commentator, then
+  waits for the user to supply copy. Use when authoring or filling
+  MOVE_COMMENTARY, writing booth lines, or when the user asks to override
+  generic commentary templates.
 paths:
   - "prototype/commentary_templates.py"
   - "prototype/commentary.py"
@@ -34,9 +35,10 @@ From the repo root:
 python3 .cursor/skills/awf-commentary-overrides/scripts/next_prompt.py
 ```
 
-That script picks a random **PBP** commentator (`gorilla`, `ross`) and a
-random move that still needs `success` and/or `failed`. Print the card to the
-user verbatim (or lightly formatted — do not rewrite the default lines).
+That script ranks open cells by playtest transcript `move_id` counts, picks
+the **most common still-open move**, then a random **PBP** (`gorilla`, `ross`)
+that still needs `success` and/or `failed` for it. Print the card to the user
+verbatim (or lightly formatted — do not rewrite the default lines).
 
 Optional flags: `--seed N`, `--move MOVE_ID`, `--commentator ID`, `--rewrite`,
 `--json`.
