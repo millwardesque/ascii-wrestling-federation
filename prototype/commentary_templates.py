@@ -47,8 +47,19 @@ MOVE_COMMENTARY: dict[str, dict[str, CommentatorMoveTemplates]] = {
     "punch": {
         "gorilla": CommentatorMoveTemplates(
             success=(
-                "{actor} snaps a straight right — {target} eats it!",
-                "Right hand from {actor}! {target} is rocked!",
+                "{actor} cracks him right in the jaw!",
+                "{actor} with a stiff shot to the breadbasket",
+            ),
+            failed=(
+                "{actor} goes for a {move} and finds nothing but air",
+            ),
+        ),
+        "ross": CommentatorMoveTemplates(
+            success=(
+                "{actor} lands a stiff punch to the jaw",
+            ),
+            failed=(
+                "{target} dodges {actor}'s {move}",
             ),
         ),
         "heenan": CommentatorMoveTemplates(
@@ -252,6 +263,42 @@ MOVE_COMMENTARY: dict[str, dict[str, CommentatorMoveTemplates]] = {
             ),
             failed=(
                 "{actor} goes for a big {move}, but {target} gets out of the way",
+            ),
+        ),
+    },
+    "feet_plant": {
+        "ross": CommentatorMoveTemplates(
+            success=(
+                "{actor} grabs a rope and gets back to the center of the ring",
+            ),
+            failed=(
+                "{actor} can't slow down, he's got too much momentum",
+            ),
+        ),
+        "gorilla": CommentatorMoveTemplates(
+            success=(
+                "{actor} grabs a rope and gets back to the center of the ring",
+            ),
+            failed=(
+                "{actor} can't slow down, he's got too much momentum",
+            ),
+        ),
+    },
+    "shake_groggy": {
+        "gorilla": CommentatorMoveTemplates(
+            success=(
+                "{actor} shakes the cobwebs loose!",
+            ),
+            failed=(
+                "{actor} looks out on his feet",
+            ),
+        ),
+        "ross": CommentatorMoveTemplates(
+            success=(
+                "{actor} clears his head and looks ready to go again!",
+            ),
+            failed=(
+                "{actor} still looks like he's been knocked loopy",
             ),
         ),
     },

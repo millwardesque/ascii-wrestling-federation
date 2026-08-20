@@ -48,7 +48,17 @@ class TestCommentaryEngine(unittest.TestCase):
         lines = engine.render_turn(events, wrestlers=_hart_hall())
         joined = " ".join(line.text.lower() for line in lines)
         self.assertTrue(
-            "punch" in joined or "straight right" in joined or "right hand" in joined,
+            any(
+                phrase in joined
+                for phrase in (
+                    "punch",
+                    "straight right",
+                    "right hand",
+                    "jaw",
+                    "breadbasket",
+                    "stiff shot",
+                )
+            ),
             msg=joined,
         )
         self.assertTrue(
@@ -171,7 +181,16 @@ class TestCommentaryEngine(unittest.TestCase):
         pbp = next(line for line in lines if line.role == "pbp")
         lowered = pbp.text.lower()
         self.assertTrue(
-            "straight right" in lowered or "right hand" in lowered,
+            any(
+                phrase in lowered
+                for phrase in (
+                    "straight right",
+                    "right hand",
+                    "jaw",
+                    "breadbasket",
+                    "stiff shot",
+                )
+            ),
             msg=pbp.text,
         )
 
