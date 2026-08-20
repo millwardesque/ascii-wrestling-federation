@@ -52,7 +52,7 @@ Optional flags: `--seed N`, `--move MOVE_ID`, `--commentator ID`, `--rewrite`,
 
    | Reply | Action |
    |-------|--------|
-   | `success:` / `failed:` lines | Merge into `MOVE_COMMENTARY` (keep any pool they did not mention) |
+   | `success:` / `failed:` lines | Merge into `MOVE_COMMENTARY` (keep any pool they did not mention). Multiple lines under one label become a variant pool. |
    | `keep` on one side | Leave that pool unchanged |
    | `skip` | Do not write; draw the next card |
    | `stop` / `done` / `quit` | End the session; summarize what you wrote |
@@ -63,6 +63,55 @@ Optional flags: `--seed N`, `--move MOVE_ID`, `--commentator ID`, `--rewrite`,
    immediately run `next_prompt.py` again and show the next card.
 
 One card per turn. Do not batch several moves in one message.
+
+## Examples
+
+**Single line per pool** — fine for a first pass:
+
+```
+success: {actor} locks up with {target}
+failed: {target} manages to sidestep the lock-up
+```
+
+**Multiple options in one pool** — put each variant on its own line under the
+same label. The engine picks one at random when the move resolves. One or two
+lines per pool is enough; three is fine when you want more variety.
+
+```
+success:
+{actor} snaps a straight right — {target} eats it!
+Right hand from {actor}! {target} is rocked!
+failed:
+{target} slipped it — {actor} couldn't find the mark!
+Give me a break! {actor} whiffed that punch!
+```
+
+You can mix `keep` on one side and multiple lines on the other:
+
+```
+success: keep
+failed:
+{target} ducks under the {move}!
+{actor} swings and misses with that {move}!
+```
+
+When merging, store each line as its own tuple entry — verbatim, in the order
+given:
+
+```python
+"punch": {
+    "gorilla": CommentatorMoveTemplates(
+        success=(
+            "{actor} snaps a straight right — {target} eats it!",
+            "Right hand from {actor}! {target} is rocked!",
+        ),
+        failed=(
+            "{target} slipped it — {actor} couldn't find the mark!",
+            "Give me a break! {actor} whiffed that punch!",
+        ),
+    ),
+},
+```
 
 ## Writing rules
 
