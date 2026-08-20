@@ -1,7 +1,7 @@
 """Commentary booth roster: play-by-play + color pairs chosen per match.
 
 Archetypes inspired by classic wrestling broadcast teams (Monsoon, Ventura,
-Heenan, Ross, Lawler, Solie, Schiavone). Personalities are data here; the
+Heenan, Ross, Lawler, Cornette). Personalities are data here; the
 ``CommentaryEngine`` in ``commentary.py`` will render ``MatchEvent`` facts into
 lines once ``apply_move`` emits events instead of f-strings.
 
@@ -76,18 +76,6 @@ ROSTER: dict[str, Commentator] = {
         vocab=frozenset({"maneuver", "cover", "bridge", "canvas", "ropes"}),
         avoid=frozenset({"hp", "stunned", "damage meter"}),
     ),
-    "solie": Commentator(
-        id="solie",
-        name="Gordon Solie",
-        short="SOLIE",
-        role="pbp",
-        register="folksy",
-        bias="neutral",
-        intensity=3,
-        catchphrases=("Oh my!", "What a suplex!"),
-        vocab=frozenset({"suplex", "hold", "mat", "ring", "schoolboy"}),
-        avoid=frozenset({"hp", "stunned"}),
-    ),
     "ross": Commentator(
         id="ross",
         name="Jim Ross",
@@ -99,18 +87,6 @@ ROSTER: dict[str, Commentator] = {
         catchphrases=("Business is about to pick up!", "As God as my witness!"),
         vocab=frozenset({"slobberknocker", "bowl of human garbage", "magnitude"}),
         avoid=frozenset({"hp", "star power"}),
-    ),
-    "schiavone": Commentator(
-        id="schiavone",
-        name="Tony Schiavone",
-        short="TONY",
-        role="pbp",
-        register="excitable",
-        bias="neutral",
-        intensity=4,
-        catchphrases=("It's gonna be a great night!",),
-        vocab=frozenset({"wcw", "nitro", "believe it"}),
-        avoid=frozenset({"hp"}),
     ),
     "ventura": Commentator(
         id="ventura",
@@ -166,10 +142,9 @@ ROSTER: dict[str, Commentator] = {
 CURATED_PAIRS: tuple[CommentatorPair, ...] = (
     CommentatorPair("gorilla", "ventura"),
     CommentatorPair("gorilla", "heenan"),
+    CommentatorPair("gorilla", "cornette"),
     CommentatorPair("ross", "lawler"),
-    CommentatorPair("solie", "cornette"),
-    CommentatorPair("schiavone", "heenan"),
-    CommentatorPair("schiavone", "ventura"),
+    CommentatorPair("ross", "cornette"),
 )
 
 

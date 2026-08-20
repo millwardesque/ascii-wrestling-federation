@@ -109,6 +109,46 @@ MOVE_COMMENTARY: dict[str, dict[str, CommentatorMoveTemplates]] = {
             ),
         ),
     },
+    "desperation_strike": {
+        "gorilla": CommentatorMoveTemplates(
+            success=(
+                "{actor} makes a last-ditch effort there and hits the jackpot!",
+            ),
+            failed=(
+                "{actor} swings wildly but can't quite make contact.",
+            ),
+        ),
+    },
+    "hurricanrana": {
+        "gorilla": CommentatorMoveTemplates(
+            success=(
+                "{actor} with a {move}, and a beauty!",
+            ),
+            failed=(
+                "{target} dodges the {move} and {actor} looks hurt.",
+            ),
+        ),
+    },
+    "atomic_leg_drop": {
+        "ross": CommentatorMoveTemplates(
+            success=(
+                "{actor} drops the big leg on him, this one could be over!",
+            ),
+            failed=(
+                "{target} rolls out of the way at the last second.",
+            ),
+        ),
+    },
+    "stomp": {
+        "ross": CommentatorMoveTemplates(
+            success=(
+                "{actor} stomps a big ol' boot right into {target}'s chest",
+            ),
+            failed=(
+                "{target} barely manages to get out of the way of that vicious {move}",
+            ),
+        ),
+    },
 }
 
 

@@ -148,8 +148,8 @@ class TestCommentaryEngine(unittest.TestCase):
                 amount=4,
             )
         ]
-        a = CommentaryEngine(CommentatorPair("solie", "cornette"), seed=99)
-        b = CommentaryEngine(CommentatorPair("solie", "cornette"), seed=99)
+        a = CommentaryEngine(CommentatorPair("ross", "cornette"), seed=99)
+        b = CommentaryEngine(CommentatorPair("ross", "cornette"), seed=99)
         self.assertEqual(
             a.format_turn(events, wrestlers=_hart_hall()),
             b.format_turn(events, wrestlers=_hart_hall()),

@@ -31,7 +31,7 @@ JESSE:    Beautiful. Textbook.
 
 | Role | Job | Archetypes in roster |
 |------|-----|----------------------|
-| **Play-by-play** (`pbp`) | Who, what, result — in order | Gorilla, Solie, Ross, Schiavone |
+| **Play-by-play** (`pbp`) | Who, what, result — in order | Gorilla, Ross |
 | **Color** (`color`) | Reaction, bias, jokes, dread | Ventura, Heenan, Lawler, Cornette |
 
 Pairs are **curated**, not combinatorial. Gorilla + Jesse works because one stays
@@ -83,10 +83,9 @@ are rare garnish in template pools, not every line.
 |-----|-------|------|
 | Gorilla Monsoon | Jesse Ventura | WWF straight + heel conspiracist |
 | Gorilla Monsoon | Bobby Heenan | Classic WWF booth |
+| Gorilla Monsoon | Jim Cornette | Straight PBP + outrage |
 | Jim Ross | Jerry Lawler | Urgent PBP + Memphis asides |
-| Gordon Solie | Jim Cornette | NWA folksy + outrage |
-| Tony Schiavone | Bobby Heenan | WCW energy + heel manager |
-| Tony Schiavone | Jesse Ventura | WCW + conspiracist |
+| Jim Ross | Jim Cornette | Urgent PBP + outrage |
 
 ### Pair selection
 

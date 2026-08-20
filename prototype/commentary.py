@@ -268,14 +268,6 @@ _ID_TEMPLATES: dict[tuple[str, EventKind], tuple[str, ...]] = {
         "Three! {actor} is the winner!",
         "That's it — a pinfall for {actor}!",
     ),
-    ("solie", "damage"): (
-        "{actor} with a {move}. {target} is on the receiving end.",
-        "There's a {move} from {actor} — oh my!",
-    ),
-    ("solie", "pin_count"): (
-        "{count_word}…",
-        "The referee counts {count_word}.",
-    ),
     ("ross", "damage"): (
         "{actor} with a {move}! {target} is in a world of hurt!",
         "BAWOOO — {move} by {actor}!",
@@ -292,14 +284,6 @@ _ID_TEMPLATES: dict[tuple[str, EventKind], tuple[str, ...]] = {
     ("ross", "pinfall"): (
         "THREE! {actor} wins it, business is concluded!",
         "That's it — {actor} just won a whale of a match!",
-    ),
-    ("schiavone", "damage"): (
-        "{actor} with a {move} — believe it!",
-        "There's the {move}! {target} is in trouble!",
-    ),
-    ("schiavone", "pinfall"): (
-        "It's over! {actor} wins!",
-        "That's gonna be a great night for {actor}!",
     ),
     ("ventura", "damage"): (
         "That's the smart money, {actor}.",
