@@ -199,10 +199,34 @@ class TestApplyMoveStochastic(unittest.TestCase):
         st.position[1] = BodyPosition.STANDING
         crossbody = _rule_by_id("top_crossbody")
         p = hit_probability(st, 0, crossbody)
-        apply_move(st, 0, crossbody, _SeqRng([min(1.0, p + 0.2), 0.99]))
+        result = apply_move(st, 0, crossbody, _SeqRng([min(1.0, p + 0.2), 0.99]))
 
         self.assertEqual(st.position[0], BodyPosition.GROUNDED)
         self.assertEqual(st.position[1], BodyPosition.STANDING)
+        self.assertIsNone(result.pin_sequence)
+
+    def test_successful_diving_crossbody_goes_for_the_cover(self) -> None:
+        for move_id, target_pos in (
+            ("top_crossbody", BodyPosition.STANDING),
+            ("top_crossbody_running", BodyPosition.RUNNING_ROPES),
+        ):
+            with self.subTest(move_id=move_id):
+                st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+                st.position[0] = BodyPosition.TOP_ROPE
+                st.position[1] = target_pos
+                crossbody = _rule_by_id(move_id)
+                p = hit_probability(st, 0, crossbody)
+                result = apply_move(
+                    st,
+                    0,
+                    crossbody,
+                    _SeqRng([max(0.0, p - 0.2)], [10, 1, 10, 1, 10, 1]),
+                )
+
+                self.assertIsNotNone(result.pin_sequence)
+                self.assertIn("Referee:", result.log)
+                self.assertEqual(st.position[1], BodyPosition.GROUNDED)
+                self.assertEqual(st.pins_attempted, 1)
 
     def test_missed_superplex_dumps_attacker_defender_keeps_the_buckle(self) -> None:
         st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
@@ -383,6 +407,30 @@ class TestApplyMoveStochastic(unittest.TestCase):
 
         self.assertEqual(st.grapple_loop_pressure[0], 0)
         self.assertEqual(st.counter_loop_pressure[0], 1)
+
+    def test_successful_grapple_counter_takes_the_tie_up(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        st.position[0] = BodyPosition.GRAPPLED
+        st.position[1] = BodyPosition.STANDING
+        counter = _rule_by_id("grapple_counter")
+        p = hit_probability(st, 0, counter)
+
+        apply_move(st, 0, counter, _SeqRng([max(0.0, p - 0.2), 0.99]))
+
+        self.assertEqual(st.position[0], BodyPosition.STANDING)
+        self.assertEqual(st.position[1], BodyPosition.GRAPPLED)
+
+    def test_missed_grapple_counter_leaves_the_lock_in_place(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        st.position[0] = BodyPosition.GRAPPLED
+        st.position[1] = BodyPosition.STANDING
+        counter = _rule_by_id("grapple_counter")
+        p = hit_probability(st, 0, counter)
+
+        apply_move(st, 0, counter, _SeqRng([min(1.0, p + 0.2), 0.99]))
+
+        self.assertEqual(st.position[0], BodyPosition.GRAPPLED)
+        self.assertEqual(st.position[1], BodyPosition.STANDING)
 
     def test_repeated_grapple_counter_gets_predictable(self) -> None:
         st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))

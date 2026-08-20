@@ -191,13 +191,13 @@ def _move_choice_details(
     if m.id == "grapple_counter":
         pressure = loop_pressure_for(state, actor_idx, m)
         stale = move_is_stale(state, actor_idx, m)
-        note = "reverse the tie-up with a short shot and reset"
+        note = "reverse the tie-up — you take the lock and can throw next"
         if stale:
-            note = "same counter is getting predictable — break clean or strike after"
+            note = "same counter is getting predictable — break clean instead of taking the lock"
         return _MoveChoice(
             rule_index,
             rule,
-            "Safe offense",
+            "Grapple control",
             note,
             70.0 + score - float(pressure) * 14.0,
             stale,

@@ -480,6 +480,7 @@ def all_move_rules() -> list[MoveRule]:
                 target_after=BodyPosition.GROUNDED,
                 momentum_gain=3,
                 difficulty=4,
+                triggers_pin_after_hit=True,
             )
         ),
         MoveRule(
@@ -495,6 +496,7 @@ def all_move_rules() -> list[MoveRule]:
                 target_after=BodyPosition.GROUNDED,
                 momentum_gain=3,
                 difficulty=5,
+                triggers_pin_after_hit=True,
             )
         ),
         MoveRule(
@@ -867,12 +869,13 @@ def all_move_rules() -> list[MoveRule]:
             Move(
                 id="grapple_counter",
                 name="Grapple counter",
-                description="Reverse the tie-up with a short shot and reset.",
+                description="Reverse the tie-up with a short shot — now they're locked up.",
                 actor_grappled_only=True,
                 actor_standing=False,
                 target_standing=True,
                 base_damage=4,
                 actor_after=BodyPosition.STANDING,
+                target_after=BodyPosition.GRAPPLED,
                 momentum_gain=1,
                 difficulty=3,
             )

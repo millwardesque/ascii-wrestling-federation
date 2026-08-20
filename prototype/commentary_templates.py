@@ -61,8 +61,18 @@ MOVE_COMMENTARY: dict[str, dict[str, CommentatorMoveTemplates]] = {
     "collar_elbow": {
         "gorilla": CommentatorMoveTemplates(
             success=(
-                "Collar-and-elbow from {actor} — they're tied up!",
-                "{actor} and {target} lock up!",
+                "{move} from {actor}, they're both grappling for control",
+            ),
+            failed=(
+                "{actor} tries to lock up, but {target} slips out",
+            ),
+        ),
+        "ross": CommentatorMoveTemplates(
+            success=(
+                "{actor} locks up with {target}",
+            ),
+            failed=(
+                "{target} manages to sidestep the lock-up",
             ),
         ),
         "ventura": CommentatorMoveTemplates(
@@ -146,6 +156,114 @@ MOVE_COMMENTARY: dict[str, dict[str, CommentatorMoveTemplates]] = {
             ),
             failed=(
                 "{target} barely manages to get out of the way of that vicious {move}",
+            ),
+        ),
+    },
+    "get_up": {
+        "gorilla": CommentatorMoveTemplates(
+            success=(
+                "{actor} shakes the cobwebs out and gets back up to his feet",
+            ),
+            failed=(
+                "{actor} can't quite shake the cobwebs",
+            ),
+        ),
+        "ross": CommentatorMoveTemplates(
+            success=(
+                "{actor} digs deep and pushes himself back to his feet",
+            ),
+            failed=(
+                "{actor} can't summon the strength to get up",
+            ),
+        ),
+    },
+    "grapple_counter": {
+        "gorilla": CommentatorMoveTemplates(
+            success=(
+                "{actor} breaks free from the tie-up",
+            ),
+            failed=(
+                "{actor}'s trying to break free, but {target} has a vice-like grip locked in",
+            ),
+        ),
+        "ross": CommentatorMoveTemplates(
+            success=(
+                "{actor} manages to escape that tie-up",
+            ),
+            failed=(
+                "{actor} tries to get away, but {target} won't let him",
+            ),
+        ),
+    },
+    "climb": {
+        "gorilla": CommentatorMoveTemplates(
+            success=(
+                "{actor} climbs the turnbuckle, maybe looking for a high-risk maneuver",
+            ),
+        ),
+        "ross": CommentatorMoveTemplates(
+            success=(
+                "{actor} climbs to the top rope, he's looking to inflict more damage here",
+            ),
+        ),
+    },
+    "break_grapple": {
+        "ross": CommentatorMoveTemplates(
+            success=(
+                "{actor} manages to slip free from the lockup",
+            ),
+            failed=(
+                "{actor} can't manage to break the hold",
+            ),
+        ),
+        "gorilla": CommentatorMoveTemplates(
+            success=(
+                "{actor} peels those fingers about and escapes",
+            ),
+            failed=(
+                "{target} has too strong of a grip, {actor} can't get free",
+            ),
+        ),
+    },
+    "hit_the_ropes": {
+        "ross": CommentatorMoveTemplates(
+            success=(
+                "{actor} hits the ropes",
+            ),
+        ),
+        "gorilla": CommentatorMoveTemplates(
+            success=(
+                "{actor} bounces off the ropes with a head of steam",
+            ),
+        ),
+    },
+    "kick": {
+        "gorilla": CommentatorMoveTemplates(
+            success=(
+                "{actor} with a {move} to the head",
+            ),
+            failed=(
+                "{target} ducks out of the way of that {move}",
+            ),
+        ),
+        "ross": CommentatorMoveTemplates(
+            success=(
+                "{target} eats a big {move}",
+            ),
+            failed=(
+                "{actor} goes for a big {move}, but {target} gets out of the way",
+            ),
+        ),
+    },
+    "recover": {
+        "ross": CommentatorMoveTemplates(
+            success=(
+                "{actor} takes a quick breather",
+            ),
+        ),
+        "gorilla": CommentatorMoveTemplates(
+            success=(
+                "{actor} takes a break to collect himself",
             ),
         ),
     },

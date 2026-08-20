@@ -77,7 +77,8 @@ When merging into `commentary_templates.py`:
   `avoid`. Catchphrases are rare garnish, not every line.
 - Do not invent championships, injuries, referee warnings, or arena facts.
 - If `skip_hit_roll` is true, `failed` will almost never play — still accept a
-  line if they give one, but do not pester for it.
+  line if they give one, but do not pester for it. `keep` on failed completes
+  that cell.
 - Do not paraphrase, "improve," or expand the user's copy. Store it verbatim.
 
 ## Do not

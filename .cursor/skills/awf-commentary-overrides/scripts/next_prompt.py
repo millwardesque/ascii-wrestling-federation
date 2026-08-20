@@ -105,7 +105,8 @@ def _cells(*, rewrite: bool) -> list[tuple[Move, Commentator, bool, bool]]:
             templates = _existing(rule.move.id, commentator.id)
             missing_success = templates is None or not templates.success
             missing_failed = templates is None or not templates.failed
-            if rewrite or missing_success or missing_failed:
+            needs_failed = missing_failed and not rule.move.skip_hit_roll
+            if rewrite or missing_success or needs_failed:
                 out.append((rule.move, commentator, missing_success, missing_failed))
     return out
 
