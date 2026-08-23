@@ -95,8 +95,18 @@ MOVE_COMMENTARY: dict[str, dict[str, CommentatorMoveTemplates]] = {
     "pull_off_top": {
         "gorilla": CommentatorMoveTemplates(
             success=(
-                "{actor} yanks {target} off the top rope — down to the canvas!",
-                "Off the buckle! {target} hits the mat!",
+                "{actor} yanks {target} hard off the turnbuckle",
+            ),
+            failed=(
+                "{actor} tries to pull {target} back to the mat, but {target} pushes him away!",
+            ),
+        ),
+        "ross": CommentatorMoveTemplates(
+            success=(
+                "{target} took too long at the top and {actor} yanks him down",
+            ),
+            failed=(
+                "{actor} couldn't get a good enough grip to pull {target} back to the mat",
             ),
         ),
         "heenan": CommentatorMoveTemplates(
@@ -299,6 +309,72 @@ MOVE_COMMENTARY: dict[str, dict[str, CommentatorMoveTemplates]] = {
             ),
             failed=(
                 "{actor} still looks like he's been knocked loopy",
+            ),
+        ),
+    },
+    "top_missile_dropkick": {
+        "ross": CommentatorMoveTemplates(
+            success=(
+                "{actor} hits a devastating {move}, {target} might be out!",
+            ),
+            failed=(
+                "{actor} tried for a high-risk maneuver and just fell short.",
+            ),
+        ),
+        "gorilla": CommentatorMoveTemplates(
+            success=(
+                "{move} and a beauty!",
+            ),
+            failed=(
+                "{target} gets out of the way just in the nick of time, {actor} looks hurt!",
+            ),
+        ),
+    },
+    "dismount_top": {
+        "ross": CommentatorMoveTemplates(
+            success=(
+                "{actor} has second thoughts and climbs back down",
+            ),
+        ),
+        "gorilla": CommentatorMoveTemplates(
+            success=(
+                "{actor} rethinks that one and gets back to the mat",
+            ),
+        ),
+    },
+    "arm_drag": {
+        "ross": CommentatorMoveTemplates(
+            success=(
+                "{actor} throws {target} to the mat with a sharp {move}",
+            ),
+            failed=(
+                "{target} slips out of the {move} before {actor} can pull it off",
+            ),
+        ),
+        "gorilla": CommentatorMoveTemplates(
+            success=(
+                "{actor} tosses {target} with a deep {move}",
+            ),
+            failed=(
+                "{actor} tries to toss {target}, but he's not budging!",
+            ),
+        ),
+    },
+    "top_missile_dropkick_running": {
+        "ross": CommentatorMoveTemplates(
+            success=(
+                "{actor} hits a devastating {move}, {target} might be out!",
+            ),
+            failed=(
+                "{actor} tried for a high-risk maneuver and just fell short.",
+            ),
+        ),
+        "gorilla": CommentatorMoveTemplates(
+            success=(
+                "{move} and a beauty!",
+            ),
+            failed=(
+                "{target} gets out of the way just in the nick of time, {actor} looks hurt!",
             ),
         ),
     },
