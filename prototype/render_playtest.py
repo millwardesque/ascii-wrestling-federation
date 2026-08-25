@@ -18,6 +18,7 @@ def _state_snapshot(state: MatchState) -> dict[str, object]:
     return {
         "health": list(state.health),
         "momentum": list(state.momentum),
+        "surge": list(state.surge),
         "position": [state.position[i].name for i in range(2)],
         "groggy": list(state.groggy),
     }

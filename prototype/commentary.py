@@ -42,6 +42,7 @@ _KIND_PRIORITY: tuple[EventKind, ...] = (
     "position_change",
     "move_attempt",
     "momentum_shift",
+    "surge_shift",
 )
 
 _ALWAYS_COLOR: frozenset[str] = frozenset(

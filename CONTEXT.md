@@ -5,8 +5,12 @@ Turn-based pro wrestling match simulation. Two wrestlers trade moves until one w
 ## Language
 
 **Momentum**:
-Ring control — how much command a wrestler currently has over the match, blending physical rhythm, position dominance, and crowd response. Gates finishers and makes offense land more reliably as it rises.
+Ring control — how much command a wrestler currently has over the match, blending physical rhythm, position dominance, and crowd response. Gates finishers and strengthens pin and submission contests as it rises.
 _Avoid_: heat, confidence, crowd meter (as separate concepts)
+
+**Surge**:
+Short-lived sequence control — whether a wrestler is on a roll in this flurry. Makes the next hit more likely to land, then dies when the sequence breaks.
+_Avoid_: short-term momentum, heat, crowd meter, on a roll (as a separate stat name)
 
 **Charisma**:
 A wrestler's ability to convert successful offense into momentum — crowd connection and presence that amplifies ring control when moves land.

@@ -50,6 +50,16 @@ def _strip_ansi(s: str) -> str:
     return re.sub(r"\x1b\[[0-9;]*m", "", s)
 
 
+def _status_display(state: MatchState, idx: int) -> str:
+    """Position / groggy text, with an on-a-roll tag while surge is live."""
+    pos = position_label(state.position[idx]).title()
+    if state.groggy[idx]:
+        pos = f"Groggy — {pos.lower()}"
+    if state.surge[idx] > 0:
+        return f"On a roll — {pos}"
+    return pos
+
+
 class _ActionBlock(NamedTuple):
     is_player: bool
     move_name: str
@@ -472,9 +482,7 @@ class FixedLayoutRenderer:
             if row_idx == 2:
                 ms = momentum_stars(st.momentum[i])
                 return f"{c.dim}MOM:{c.reset} {col}{ms}{c.reset}"
-            pos = position_label(st.position[i]).title()
-            if st.groggy[i]:
-                pos = f"Groggy — {pos.lower()}"
+            pos = _status_display(st, i)
             return f"{c.dim}STATUS:{c.reset} {col}{pos}{c.reset}"
 
         for row_idx in range(4):

@@ -55,6 +55,8 @@ class TestPlaytestRenderer(unittest.TestCase):
         player_turn = next(row for row in turns if row["actor"] == "player")
         self.assertIn("choices", player_turn)
         self.assertIn("state", player_turn)
+        self.assertIn("surge", player_turn["state"])
+        self.assertEqual(len(player_turn["state"]["surge"]), 2)
 
     def test_max_turns_emits_cap_reason(self) -> None:
         buf = io.StringIO()

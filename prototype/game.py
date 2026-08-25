@@ -11,11 +11,12 @@ from config import get_config
 from moves import BodyPosition, Move, MoveRule, all_move_rules, move_valid
 from wrestlers import Wrestler
 
-# Hit probability: p = clamp(BASE + k_mom*momentum - k_diff*difficulty + ... , P_MIN, P_MAX)
-# Tuned so high-difficulty moves fail more at low momentum / healthy defender — but clean hits
-# stay common enough that reversals/whiffs don't dominate the match.
+# Hit probability: p = clamp(BASE + k_surge*surge - k_diff*difficulty + ... , P_MIN, P_MAX)
+# Surge (0–3) is this-flurry reliability. Match momentum gates finishers and pin/sub contests
+# but does not feed the land chance. Tuned so surge 3 ≈ the old momentum-5 swing (~0.32).
 _HIT_BASE = 0.66
-_HIT_K_MOMENTUM = 0.065
+_HIT_K_SURGE = 0.10
+_SURGE_MAX = 3
 _HIT_K_DIFFICULTY = 0.052
 _HIT_K_ATTACKER_HP = 0.055
 _HIT_K_DEFENDER_HP = 0.058
@@ -121,6 +122,8 @@ class MatchState:
     health: list[int] = field(default_factory=list)
     position: list[BodyPosition] = field(default_factory=list)
     momentum: list[int] = field(default_factory=list)
+    # Short-lived sequence control (0–3). Feeds hit chance; dies when the flurry breaks.
+    surge: list[int] = field(default_factory=list)
     bloodied: list[bool] = field(default_factory=list)
     rules: list[MoveRule] = field(default_factory=all_move_rules)
     cpu_last_move_id: str | None = None
@@ -159,6 +162,8 @@ class MatchState:
             self.position = [BodyPosition.STANDING, BodyPosition.STANDING]
         if not self.momentum:
             self.momentum = [0, 0]
+        if not self.surge:
+            self.surge = [0, 0]
         if not self.bloodied:
             self.bloodied = [False, False]
         if not self.pin_bonus_next_cover:
@@ -257,14 +262,14 @@ def hit_probability(state: MatchState, actor_idx: int, rule: MoveRule) -> float:
     tgt = 1 - actor_idx
     actor = state.wrestlers[actor_idx]
     target = state.wrestlers[tgt]
-    mom = state.momentum[actor_idx]
+    surge = state.surge[actor_idx]
     att_hp = state.health[actor_idx] / max(1, actor.max_health)
     def_hp = state.health[tgt] / max(1, target.max_health)
     diff = m.difficulty
     agi_gap = (target.agility - actor.agility) / 10.0
     p = (
         _HIT_BASE
-        + _HIT_K_MOMENTUM * mom
+        + _HIT_K_SURGE * surge
         - _HIT_K_DIFFICULTY * diff
         + _HIT_K_ATTACKER_HP * att_hp
         - _HIT_K_DEFENDER_HP * def_hp
@@ -295,6 +300,106 @@ def hit_probability(state: MatchState, actor_idx: int, rule: MoveRule) -> float:
             return 0.0
         p = min(p, 0.08)
     return p
+
+
+def _set_surge(state: MatchState, idx: int, value: int) -> tuple[int, int]:
+    """Clamp surge to 0–``_SURGE_MAX``. Returns ``(old, new)``."""
+    old = state.surge[idx]
+    new = max(0, min(_SURGE_MAX, int(value)))
+    state.surge[idx] = new
+    return old, new
+
+
+def _emit_surge_shift(
+    events: list[MatchEvent] | None,
+    *,
+    actor: int,
+    amount: int,
+    target: int | None = None,
+) -> None:
+    if events is None or amount == 0:
+        return
+    events.append(
+        MatchEvent(kind="surge_shift", actor=actor, target=target, amount=amount)
+    )
+
+
+def _apply_offensive_hit_surge(
+    state: MatchState,
+    actor_idx: int,
+    m: Move,
+    lines: list[str],
+    events: list[MatchEvent],
+) -> None:
+    """Landed damage: attacker builds surge; defender's roll is broken."""
+    tgt = 1 - actor_idx
+    actor = state.wrestlers[actor_idx]
+    target = state.wrestlers[tgt]
+    victim_old, victim_new = _set_surge(state, tgt, 0)
+    gained = False
+    skip_gain = m.id == "grapple_counter" and move_is_stale(state, actor_idx, m)
+    if not skip_gain:
+        old, new = _set_surge(state, actor_idx, state.surge[actor_idx] + 1)
+        gained = new != old
+        _emit_surge_shift(events, actor=actor_idx, target=tgt, amount=new - old)
+    _emit_surge_shift(events, actor=tgt, amount=victim_new - victim_old)
+    if gained:
+        lines.append(f"  The roll is building for {actor.nickname}.")
+    elif victim_old != victim_new:
+        lines.append(f"  {target.nickname} loses the roll.")
+
+
+def _apply_offensive_miss_surge(
+    state: MatchState,
+    actor_idx: int,
+    lines: list[str],
+    events: list[MatchEvent],
+) -> None:
+    """Whiff or reversal: actor's roll dies; opponent seizes the moment."""
+    tgt = 1 - actor_idx
+    target = state.wrestlers[tgt]
+    actor_old, actor_new = _set_surge(state, actor_idx, 0)
+    opp_old, opp_new = _set_surge(state, tgt, state.surge[tgt] + 1)
+    _emit_surge_shift(events, actor=actor_idx, amount=actor_new - actor_old)
+    _emit_surge_shift(events, actor=tgt, amount=opp_new - opp_old)
+    if actor_old == actor_new and opp_old == opp_new:
+        return
+    if opp_old != opp_new:
+        lines.append(
+            f"  The sequence snaps — {target.nickname} seizes the moment."
+        )
+    else:
+        lines.append("  The sequence snaps.")
+
+
+def _stall_actor_surge(
+    state: MatchState, actor_idx: int, events: list[MatchEvent] | None
+) -> None:
+    """Stale loop: the chain stalled. Stars stay put."""
+    old, new = _set_surge(state, actor_idx, 0)
+    _emit_surge_shift(events, actor=actor_idx, amount=new - old)
+
+
+def _kickout_surge_followthrough(
+    state: MatchState, actor_idx: int, tgt: int
+) -> tuple[list[str], list[MatchEvent]]:
+    """Near-fall adrenaline: defender surge +2. Caller still dumps attacker momentum."""
+    extra_lines: list[str] = []
+    extra_events: list[MatchEvent] = []
+    old, new = _set_surge(state, tgt, state.surge[tgt] + 2)
+    if old != new:
+        extra_lines.append(
+            f"  {state.wrestlers[tgt].nickname} catches a second wind."
+        )
+        extra_events.append(
+            MatchEvent(
+                kind="surge_shift",
+                actor=tgt,
+                target=actor_idx,
+                amount=new - old,
+            )
+        )
+    return extra_lines, extra_events
 
 
 def _rand_float(rng: random.Random | None) -> float:
@@ -403,7 +508,6 @@ def _apply_loop_pressure(
     counter builds its own defender debt so the same answer cannot chip forever for free.
     """
     tgt = 1 - actor_idx
-    target = state.wrestlers[tgt]
     actor = state.wrestlers[actor_idx]
     mom_gain = m.momentum_gain
 
@@ -413,10 +517,9 @@ def _apply_loop_pressure(
         state.grapple_loop_pressure[actor_idx] = min(4, grapple_before + 1)
         if grapple_before >= _LOOP_STALE_THRESHOLD:
             mom_gain = 0
-            state.momentum[actor_idx] = max(0, state.momentum[actor_idx] - 1)
-            state.momentum[tgt] = min(5, state.momentum[tgt] + 1)
+            _stall_actor_surge(state, actor_idx, events)
             lines.append(
-                f"  The repeated tie-up stalls out — {target.nickname} gains escape momentum."
+                f"  The repeated tie-up stalls out — {actor.nickname} loses the roll."
             )
             if events is not None:
                 events.append(
@@ -437,10 +540,9 @@ def _apply_loop_pressure(
         state.counter_loop_pressure[actor_idx] = min(4, counter_before + 1)
         if counter_before >= _LOOP_STALE_THRESHOLD:
             mom_gain = 0
-            state.momentum[actor_idx] = max(0, state.momentum[actor_idx] - 1)
-            state.momentum[tgt] = min(5, state.momentum[tgt] + 1)
+            _stall_actor_surge(state, actor_idx, events)
             lines.append(
-                f"  The counter is getting predictable — {actor.nickname} loses the edge."
+                f"  The counter is getting predictable — {actor.nickname} loses the roll."
             )
             if events is not None:
                 events.append(
@@ -468,9 +570,9 @@ def _apply_loop_pressure(
         state.setup_loop_pressure[actor_idx] = min(4, setup_before + 1)
         if setup_before >= _LOOP_STALE_THRESHOLD:
             mom_gain = 0
-            state.momentum[tgt] = min(5, state.momentum[tgt] + 1)
+            _stall_actor_surge(state, actor_idx, events)
             lines.append(
-                f"  The climb looks telegraphed — {target.nickname} is ready for it."
+                f"  The climb looks telegraphed — the sequence stalls."
             )
             if events is not None:
                 events.append(
@@ -485,10 +587,8 @@ def _apply_loop_pressure(
     elif m.id == "dismount_top":
         state.setup_loop_pressure[actor_idx] = min(4, setup_before + 1)
         if setup_before >= _LOOP_STALE_THRESHOLD:
-            state.momentum[tgt] = min(5, state.momentum[tgt] + 1)
-            lines.append(
-                f"  Another empty climb — {target.nickname} takes the momentum."
-            )
+            _stall_actor_surge(state, actor_idx, events)
+            lines.append("  Another empty climb — the sequence stalls.")
             if events is not None:
                 events.append(
                     MatchEvent(
@@ -628,6 +728,7 @@ def apply_move(
             amount=dmg,
             meta={"finisher": m.is_finisher},
         )
+        _apply_offensive_hit_surge(state, actor_idx, m, lines, events)
         _clear_groggy_from_opponent_damage(state, tgt, m)
         if m.is_finisher:
             state.finisher_shock[tgt] = min(5, state.finisher_shock[tgt] + 2)
@@ -838,7 +939,7 @@ def _resolve_miss(
     rule: MoveRule,
     rng: random.Random | None,
 ) -> tuple[list[str], list[MatchEvent]]:
-    """Failed hit: no target position change, optional chip damage, momentum shift.
+    """Failed hit: no target position change, optional chip damage, surge shift.
 
     Top-rope dives are the exception: the attacker already left the buckle, so a
     miss or reversal dumps them to the canvas.
@@ -923,6 +1024,7 @@ def _resolve_miss(
                 f"  {target.nickname} reverses the {m.name.lower()} — only {dmg} damage; "
                 f"{actor.nickname} whiffs — {target.nickname} shrugs it off."
             )
+        _apply_offensive_miss_surge(state, actor_idx, lines, events)
     else:
         events.append(
             MatchEvent(
@@ -953,8 +1055,9 @@ def _resolve_miss(
             )
         )
 
-    state.momentum[actor_idx] = max(0, state.momentum[actor_idx] - 2)
-    state.momentum[tgt] = min(5, state.momentum[tgt] + 1)
+    if m.base_damage <= 0:
+        state.momentum[actor_idx] = max(0, state.momentum[actor_idx] - 2)
+        state.momentum[tgt] = min(5, state.momentum[tgt] + 1)
     return lines, events
 
 
@@ -1015,19 +1118,22 @@ def _plan_pin(state: MatchState, actor_idx: int, rng: random.Random | None) -> t
         if count == 3:
             if kicks_out:
                 # Near-fall: no "3" line — kickout appears after the post-2 delay only.
-                add_step(
-                    [f"  {defender.nickname} kicks out!"],
-                    0.0,
-                    [
-                        MatchEvent(
-                            kind="pin_kickout",
-                            actor=actor_idx,
-                            target=tgt,
-                            pin_count=count,
-                            won=False,
-                        )
-                    ],
+                kick_lines = [f"  {defender.nickname} kicks out!"]
+                kick_events = [
+                    MatchEvent(
+                        kind="pin_kickout",
+                        actor=actor_idx,
+                        target=tgt,
+                        pin_count=count,
+                        won=False,
+                    )
+                ]
+                extra_lines, extra_events = _kickout_surge_followthrough(
+                    state, actor_idx, tgt
                 )
+                kick_lines.extend(extra_lines)
+                kick_events.extend(extra_events)
+                add_step(kick_lines, 0.0, kick_events)
                 state.momentum[actor_idx] = max(0, mom - 2)
                 return (
                     PinSequence(
@@ -1072,19 +1178,22 @@ def _plan_pin(state: MatchState, actor_idx: int, rng: random.Random | None) -> t
             ],
         )
         if kicks_out:
-            add_step(
-                [f"  {defender.nickname} kicks out!"],
-                0.0,
-                [
-                    MatchEvent(
-                        kind="pin_kickout",
-                        actor=actor_idx,
-                        target=tgt,
-                        pin_count=count,
-                        won=False,
-                    )
-                ],
+            kick_lines = [f"  {defender.nickname} kicks out!"]
+            kick_events = [
+                MatchEvent(
+                    kind="pin_kickout",
+                    actor=actor_idx,
+                    target=tgt,
+                    pin_count=count,
+                    won=False,
+                )
+            ]
+            extra_lines, extra_events = _kickout_surge_followthrough(
+                state, actor_idx, tgt
             )
+            kick_lines.extend(extra_lines)
+            kick_events.extend(extra_events)
+            add_step(kick_lines, 0.0, kick_events)
             state.momentum[actor_idx] = max(0, mom - 2)
             return (
                 PinSequence(

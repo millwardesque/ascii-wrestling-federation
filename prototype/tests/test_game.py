@@ -75,12 +75,19 @@ class TestHitProbability(unittest.TestCase):
         self.assertGreaterEqual(p, 0.12)
         self.assertLessEqual(p, 0.94)
 
-    def test_higher_momentum_increases_hit_probability(self) -> None:
+    def test_higher_surge_increases_hit_probability(self) -> None:
         sup = _rule_by_id("suplex")
         low = hit_probability(self.state, 0, sup)
-        self.state.momentum[0] = 5
+        self.state.surge[0] = 3
         high = hit_probability(self.state, 0, sup)
         self.assertGreater(high, low)
+
+    def test_momentum_does_not_change_hit_probability(self) -> None:
+        sup = _rule_by_id("suplex")
+        self.state.surge[0] = 0
+        baseline = hit_probability(self.state, 0, sup)
+        self.state.momentum[0] = 5
+        self.assertEqual(hit_probability(self.state, 0, sup), baseline)
 
     def test_higher_difficulty_lowers_hit_probability(self) -> None:
         sup = _rule_by_id("suplex")
@@ -283,14 +290,14 @@ class TestApplyMoveStochastic(unittest.TestCase):
                 f"{m.id} miss left attacker on {st.position[0]!r}",
             )
 
-    def test_low_momentum_misses_more_often_than_high(self) -> None:
+    def test_low_surge_misses_more_often_than_high(self) -> None:
         sup = _rule_by_id("suplex")
         low_misses = 0
         high_misses = 0
         trials = 400
         for i in range(trials):
             st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
-            st.momentum[0] = 0
+            st.surge[0] = 0
             st.groggy[1] = True
             st.groggy_opponent_actions_left[1] = 2
             rng = random.Random(i)
@@ -299,7 +306,7 @@ class TestApplyMoveStochastic(unittest.TestCase):
                 low_misses += 1
         for i in range(trials):
             st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
-            st.momentum[0] = 5
+            st.surge[0] = 3
             st.groggy[1] = True
             st.groggy_opponent_actions_left[1] = 2
             rng = random.Random(i + 10_000)
@@ -317,18 +324,21 @@ class TestApplyMoveStochastic(unittest.TestCase):
         apply_move(st, 1, punch, rng)
         self.assertEqual(st.cpu_last_move_id, "punch")
 
-    def test_repeated_grapple_loop_grants_defender_momentum(self) -> None:
+    def test_repeated_grapple_loop_clears_actor_surge_without_stealing_stars(self) -> None:
         st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
         st.grapple_loop_pressure = [2, 0]
+        st.momentum = [3, 1]
+        st.surge = [2, 0]
         collar = _rule_by_id("collar_elbow")
         p = hit_probability(st, 0, collar)
 
         log, _, _ = apply_move(st, 0, collar, _SeqRng([max(0.0, p - 0.2)]))
 
         self.assertEqual(st.position[1], BodyPosition.GRAPPLED)
-        self.assertEqual(st.momentum[0], 0)
-        self.assertEqual(st.momentum[1], 1)
+        self.assertEqual(st.momentum, [3, 1])
+        self.assertEqual(st.surge[0], 0)
         self.assertIn("repeated tie-up stalls out", log)
+        self.assertIn("loses the roll", log)
 
     def test_light_grapple_payoff_keeps_loop_pressure(self) -> None:
         """Chip throws are the treadmill — they must not wipe collar debt."""
@@ -495,6 +505,7 @@ class TestApplyMoveStochastic(unittest.TestCase):
         st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
         st.setup_loop_pressure = [2, 0]
         st.momentum = [1, 1]
+        st.surge = [2, 0]
         climb = _rule_by_id("climb")
 
         log, _, _ = apply_move(st, 0, climb, None)
@@ -502,8 +513,10 @@ class TestApplyMoveStochastic(unittest.TestCase):
         self.assertEqual(st.position[0], BodyPosition.TOP_ROPE)
         self.assertEqual(st.setup_loop_pressure[0], 3)
         self.assertEqual(st.momentum[0], 1)  # climb momentum_gain cancelled
-        self.assertEqual(st.momentum[1], 2)
+        self.assertEqual(st.momentum[1], 1)
+        self.assertEqual(st.surge[0], 0)
         self.assertIn("climb looks telegraphed", log)
+        self.assertIn("sequence stalls", log)
 
     def test_alternating_turns_do_not_erase_climb_pressure(self) -> None:
         """Regression: a shared counter was zeroed by the opponent's turn every time."""
@@ -1105,6 +1118,81 @@ class TestMatchEvents(unittest.TestCase):
         self.assertTrue(
             "pinfall" in kinds or "pin_kickout" in kinds or "pin_count" in kinds
         )
+
+
+class TestSurge(unittest.TestCase):
+    def test_clean_hit_increments_surge(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        punch = _rule_by_id("punch")
+        p = hit_probability(st, 0, punch)
+        log, _, _ = apply_move(st, 0, punch, _SeqRng([max(0.0, p - 0.2), 0.99, 0.99]))
+        self.assertEqual(st.surge[0], 1)
+        self.assertEqual(st.surge[1], 0)
+        self.assertIn("roll is building", log)
+
+    def test_clean_hit_clears_defender_surge(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        st.surge = [0, 2]
+        punch = _rule_by_id("punch")
+        p = hit_probability(st, 0, punch)
+        log, _, _ = apply_move(st, 0, punch, _SeqRng([max(0.0, p - 0.2), 0.99, 0.99]))
+        self.assertEqual(st.surge[1], 0)
+        self.assertEqual(st.surge[0], 1)
+        self.assertIn("roll is building", log)
+
+    def test_capped_surge_does_not_spam_the_log(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        st.surge = [3, 0]
+        punch = _rule_by_id("punch")
+        p = hit_probability(st, 0, punch)
+        log, _, _ = apply_move(st, 0, punch, _SeqRng([max(0.0, p - 0.2), 0.99, 0.99]))
+        self.assertEqual(st.surge[0], 3)
+        self.assertNotIn("roll is building", log)
+
+    def test_offensive_miss_clears_surge_without_stealing_momentum(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        st.momentum = [4, 1]
+        st.surge = [2, 0]
+        punch = _rule_by_id("punch")
+        p = hit_probability(st, 0, punch)
+        log, _, _ = apply_move(st, 0, punch, _SeqRng([min(1.0, p + 0.2), 0.99]))
+        self.assertEqual(st.momentum, [4, 1])
+        self.assertEqual(st.surge[0], 0)
+        self.assertEqual(st.surge[1], 1)
+        self.assertIn("seizes the moment", log)
+
+    def test_stale_grapple_counter_does_not_build_surge(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        st.position[0] = BodyPosition.GRAPPLED
+        st.position[1] = BodyPosition.STANDING
+        st.counter_loop_pressure = [2, 0]
+        st.surge = [1, 0]
+        counter = _rule_by_id("grapple_counter")
+        p = hit_probability(st, 0, counter)
+        log, _, _ = apply_move(st, 0, counter, _SeqRng([max(0.0, p - 0.2), 0.99]))
+        self.assertEqual(st.surge[0], 0)
+        self.assertNotIn("roll is building", log)
+        self.assertIn("loses the roll", log)
+
+    def test_pin_kickout_bumps_defender_surge(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        st.position[1] = BodyPosition.GROUNDED
+        st.health[1] = int(st.wrestlers[1].max_health * 0.40)
+        st.momentum[0] = 5
+        st.surge = [1, 0]
+        log, winner, seq = apply_move(
+            st, 0, _rule_by_id("pin"), _SeqRng([], [9, 1, 9, 1, 9, 1])
+        )
+        self.assertIsNone(winner)
+        self.assertFalse(seq.won)
+        self.assertIn("kicks out", log)
+        self.assertEqual(st.momentum[0], 3)
+        self.assertEqual(st.surge[1], 2)
+        self.assertIn("second wind", log)
+
+    def test_match_state_initializes_surge(self) -> None:
+        st = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        self.assertEqual(st.surge, [0, 0])
 
 
 if __name__ == "__main__":

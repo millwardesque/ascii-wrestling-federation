@@ -11,6 +11,7 @@ from render_fixed import (
     _curate_move_choices,
     _momentum_chart_lines,
     _move_choice_details,
+    _status_display,
 )
 from wrestlers import ROSTER
 
@@ -156,6 +157,18 @@ class TestMomentumChart(unittest.TestCase):
 
         renderer.match_start_banner(match_seed=123)
         self.assertEqual(renderer._momentum_history, [])
+
+
+class TestStatusDisplay(unittest.TestCase):
+    def test_status_shows_on_a_roll_only_when_surge_is_live(self) -> None:
+        state = MatchState(wrestlers=(ROSTER["bret_hart"], ROSTER["cm_punk"]))
+        self.assertEqual(_status_display(state, 0), "Standing")
+        state.surge[0] = 2
+        self.assertEqual(_status_display(state, 0), "On a roll — Standing")
+        state.groggy[0] = True
+        self.assertEqual(_status_display(state, 0), "On a roll — Groggy — standing")
+        state.surge[0] = 0
+        self.assertEqual(_status_display(state, 0), "Groggy — standing")
 
 
 class TestCommentaryHeader(unittest.TestCase):

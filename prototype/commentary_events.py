@@ -25,6 +25,7 @@ EventKind = Literal[
     "knockout",
     "bloodied",
     "momentum_shift",
+    "surge_shift",
     "loop_pressure",
     "pin_count",
     "pin_kickout",
