@@ -1,4 +1,9 @@
-"""Match flow: positions, damage, and pinfall resolution."""
+"""Match flow: positions, damage, and pinfall resolution.
+
+Timing runs on the turn-queue timeline in ``MatchState.clock``, not on action counts.
+Anything with a duration (groggy, the finisher echo, finisher shock, loop debt) holds a
+deadline and is expired by ``advance_to`` before the acting wrestler sees their options.
+"""
 
 from __future__ import annotations
 
@@ -8,7 +13,20 @@ from dataclasses import dataclass, field
 
 from commentary_events import MatchEvent
 from config import get_config
-from moves import BodyPosition, Move, MoveRule, all_move_rules, move_valid
+from moves import (
+    BodyPosition,
+    Move,
+    MoveRule,
+    all_move_rules,
+    move_tempo_cost,
+    move_valid,
+)
+from scheduler import (
+    TurnQueue,
+    actor_speeds,
+    opponent_actions_conceded,
+    projection_costs,
+)
 from wrestlers import Wrestler
 
 # Hit probability: p = clamp(BASE + k_surge*surge - k_diff*difficulty + ... , P_MIN, P_MAX)
@@ -35,6 +53,19 @@ _GET_UP_BEATDOWN_PENALTY = 0.30  # multiplied by (1 - HP fraction); worse when b
 _GET_UP_FINISH_SHOCK_K = 0.072  # per stack; stacks when you eat a finisher's damage
 _GET_UP_FAIL_RELIEF_BONUS = 0.18  # repeated misses build escape momentum instead of dead turns
 
+# Timeline durations, in the same units as TurnQueue delays (one baseline action ~= 1.0).
+# Groggy no longer eats a turn: it slows the victim's speed and cuts their menu down to
+# escapes for this long, so a wobbly wrestler still gets to act, just worse and later.
+_GROGGY_DURATION = 2.2
+# A landed finisher only pays off if you win the race back to the cover.
+_FINISHER_ECHO_DURATION = 2.6
+# Lingering-state decay: one stack falls off per interval of timeline elapsed.
+_FINISHER_SHOCK_DECAY_INTERVAL = 3.0
+_GET_UP_FAIL_DECAY_INTERVAL = 4.0
+# Loop debt decays on elapsed timeline rather than per action, so a fast wrestler does not
+# accrue staleness twice as fast as a slow one for the same behaviour.
+_LOOP_PRESSURE_DECAY_INTERVAL = 3.5
+
 # Rare easter egg: successful head-targeting hit may blood the defender for the rest of the match
 _BLOODIED_CHANCE = 0.018
 
@@ -46,14 +77,18 @@ _GROGGY_ON_STAND_CHANCE = 0.48  # slams & finishers — pending until they stand
 # makes pins/submissions legal again. Without this, a standing opponent stuck near zero
 # HP can never be finished and the match stalls.
 _KNOCKDOWN_HP_FRAC = 0.20
+# Knocking a worn-down wrestler flat buys a head start on the timeline on top of the
+# grounded speed penalty. This is the cover window, and it is now earned rather than
+# manufactured by forcing the first rise attempt to fail.
+_KNOCKDOWN_HEAD_START = 0.9
 # Below this, the first cover of the match may still go clean 1-2-3.
 # Keep under the knockdown floor (~20%) so the first post-collapse cover near-falls.
 _PIN_NEAR_FALL_FLOOR_HP_FRAC = 0.08
 # Trailing wrestlers get a small hit bounce so snowballs can crack.
 _UNDERDOG_HIT_GAP = 0.30
 _UNDERDOG_HIT_BONUS_MAX = 0.14
-# Cover heat after a knockdown: harder to rise, CPU strongly prefers the pin.
-_COVER_HEAT_GET_UP_PENALTY = 0.40
+# Cover heat after a knockdown: the CPU strongly prefers the pin. The window itself comes
+# from the timeline now, so there is no hit-probability clamp on rising.
 _COVER_HEAT_PIN_BONUS = 3
 _COVER_HEAT_CPU_PIN_BIAS = 0.85
 # After a non-bridge finisher: hook the leg even when a kickout is likely.
@@ -64,13 +99,10 @@ _FINISHER_COVER_PIN_SCORE_BONUS = 95.0
 # loop never accumulates.
 _LOOP_STALE_THRESHOLD = 2
 _LOOP_STALE_HIT_PENALTY = 0.09  # per stack past the threshold, so the menu % tells the truth
-# Light tie-up throws keep the mat cycle alive — only soft-decay debt.
+# Light tie-up throws keep the mat cycle alive — they neither build nor clear debt.
 _GRAPPLE_LIGHT_PAYOFF_IDS = frozenset({"arm_drag", "hip_toss", "side_headlock"})
 # Whips leave the standing/mat treadmill for a real setup.
 _GRAPPLE_REAL_EXIT_IDS = frozenset({"irish_whip", "turnbuckle_whip"})
-_FORCED_RESET_MOVE_IDS = frozenset(
-    {"get_up", "shake_groggy", "recover", "escape_corner", "feet_plant", "desperation_strike"}
-)
 
 
 @dataclass
@@ -127,20 +159,25 @@ class MatchState:
     bloodied: list[bool] = field(default_factory=list)
     rules: list[MoveRule] = field(default_factory=all_move_rules)
     cpu_last_move_id: str | None = None
-    # Set when a finisher lands; added to each count on the attacker's next pin attempt, then cleared.
+    # Turn-queue timeline position of the action being resolved. Every deadline below is
+    # measured against this; ``advance_to`` moves it and expires what has run out.
+    clock: float = 0.0
+    # Set when a finisher lands; added to each pin count while the echo window is open.
     pin_bonus_next_cover: list[int] = field(default_factory=list)
+    # Timeline deadline for the finisher echo above. Past it, the bonus is dead.
+    finisher_echo_until: list[float] = field(default_factory=list)
     # Taking finisher damage adds stacks; makes get_up harder until you shake it off (successful stand).
     finisher_shock: list[int] = field(default_factory=list)
-    # Standing wobbly — cleared by opponent damage, timer, shake-off, or desperation strike.
+    finisher_shock_decay_at: list[float] = field(default_factory=list)
+    # Standing wobbly — cleared by opponent damage, the timer, a shake-off, or desperation strike.
     groggy: list[bool] = field(default_factory=list)
-    # When groggy[v]: opponent (1-v) has this many actions before auto-clear (starts at 2).
-    groggy_opponent_actions_left: list[int] = field(default_factory=list)
-    # Victim skips their next turn when groggy is applied (no immediate shake-off).
-    groggy_skip_turn: list[bool] = field(default_factory=list)
+    # Timeline deadline at which groggy lifts on its own.
+    groggy_until: list[float] = field(default_factory=list)
     # After certain slams/finishers while grounded; applies groggy when victim next stands (get_up or pickup).
     pending_groggy: list[bool] = field(default_factory=list)
     # Failed get-up attempts increase the next get-up chance and can grant escape momentum.
     get_up_fail_streak: list[int] = field(default_factory=list)
+    get_up_fail_decay_at: list[float] = field(default_factory=list)
     # Per-actor loop debt. Grapple: raised by re-entering the tie-up (hit or miss);
     # light throws soft-decay it, whips / real exits clear it.
     grapple_loop_pressure: list[int] = field(default_factory=list)
@@ -148,10 +185,13 @@ class MatchState:
     setup_loop_pressure: list[int] = field(default_factory=list)
     # Per-actor debt for answering every tie-up with the same counter chip.
     counter_loop_pressure: list[int] = field(default_factory=list)
+    # Next timeline point at which accumulated loop debt sheds a stack.
+    loop_pressure_decay_at: list[float] = field(default_factory=list)
     # After a worn-down knockdown: defender is hot for a cover until they rise or get pinned.
     cover_heat: list[bool] = field(default_factory=list)
-    # First rise attempt after cover heat always fails so the pin window isn't a coin flip.
-    cover_heat_lock: list[bool] = field(default_factory=list)
+    # Extra timeline distance an action wants to shove a wrestler back by, on top of their
+    # own recovery. The match loop drains this into the turn queue after each action.
+    pending_timeline_push: list[float] = field(default_factory=list)
     # First pin of the match seeds a near-fall when the defender isn't critically down.
     pins_attempted: int = 0
 
@@ -168,32 +208,41 @@ class MatchState:
             self.bloodied = [False, False]
         if not self.pin_bonus_next_cover:
             self.pin_bonus_next_cover = [0, 0]
+        if not self.finisher_echo_until:
+            self.finisher_echo_until = [0.0, 0.0]
         if not self.finisher_shock:
             self.finisher_shock = [0, 0]
+        if not self.finisher_shock_decay_at:
+            self.finisher_shock_decay_at = [0.0, 0.0]
         if not self.groggy:
             self.groggy = [False, False]
-        if not self.groggy_opponent_actions_left:
-            self.groggy_opponent_actions_left = [0, 0]
-        if not self.groggy_skip_turn:
-            self.groggy_skip_turn = [False, False]
+        if not self.groggy_until:
+            self.groggy_until = [0.0, 0.0]
         if not self.pending_groggy:
             self.pending_groggy = [False, False]
         if not self.get_up_fail_streak:
             self.get_up_fail_streak = [0, 0]
+        if not self.get_up_fail_decay_at:
+            self.get_up_fail_decay_at = [0.0, 0.0]
         if not self.grapple_loop_pressure:
             self.grapple_loop_pressure = [0, 0]
         if not self.setup_loop_pressure:
             self.setup_loop_pressure = [0, 0]
         if not self.counter_loop_pressure:
             self.counter_loop_pressure = [0, 0]
+        if not self.loop_pressure_decay_at:
+            # Debt earned at the opening bell gets a full interval before it sheds,
+            # same as debt earned at any other point in the match.
+            self.loop_pressure_decay_at = [
+                _LOOP_PRESSURE_DECAY_INTERVAL,
+                _LOOP_PRESSURE_DECAY_INTERVAL,
+            ]
         if not self.cover_heat:
             self.cover_heat = [False, False]
-        if not self.cover_heat_lock:
-            self.cover_heat_lock = [False, False]
+        if not self.pending_timeline_push:
+            self.pending_timeline_push = [0.0, 0.0]
 
     def valid_rules(self, actor_idx: int) -> list[tuple[int, MoveRule]]:
-        if self.groggy_skip_turn[actor_idx]:
-            return []
         actor = self.wrestlers[actor_idx]
         target = self.wrestlers[1 - actor_idx]
         out: list[tuple[int, MoveRule]] = []
@@ -210,6 +259,57 @@ class MatchState:
             ):
                 out.append((i, rule))
         return out
+
+
+def finisher_echo(state: MatchState, actor_idx: int) -> int:
+    """Pin bonus still owed from a recent finisher, or 0 once the window has closed."""
+    if state.clock > state.finisher_echo_until[actor_idx]:
+        return 0
+    return state.pin_bonus_next_cover[actor_idx]
+
+
+def _clear_finisher_echo(state: MatchState, actor_idx: int) -> None:
+    state.pin_bonus_next_cover[actor_idx] = 0
+    state.finisher_echo_until[actor_idx] = 0.0
+
+
+def _has_loop_debt(state: MatchState, idx: int) -> bool:
+    return bool(
+        state.grapple_loop_pressure[idx]
+        or state.counter_loop_pressure[idx]
+        or state.setup_loop_pressure[idx]
+    )
+
+
+def advance_to(state: MatchState, clock: float) -> None:
+    """Move the match clock and expire everything whose deadline has passed.
+
+    Call once per action, after the turn queue picks an actor and before their options
+    are built, so the menu and the resolution agree about what is still live.
+    """
+    state.clock = clock
+    for i in (0, 1):
+        if state.groggy[i] and clock > state.groggy_until[i]:
+            state.groggy[i] = False
+            state.groggy_until[i] = 0.0
+        if state.pin_bonus_next_cover[i] and clock > state.finisher_echo_until[i]:
+            _clear_finisher_echo(state, i)
+        # Deadlines advance by whole intervals rather than snapping to the clock, so a
+        # long gap sheds every stack it should have rather than just one.
+        while state.finisher_shock[i] > 0 and clock >= state.finisher_shock_decay_at[i]:
+            state.finisher_shock[i] -= 1
+            state.finisher_shock_decay_at[i] += _FINISHER_SHOCK_DECAY_INTERVAL
+        while state.get_up_fail_streak[i] > 0 and clock >= state.get_up_fail_decay_at[i]:
+            state.get_up_fail_streak[i] -= 1
+            state.get_up_fail_decay_at[i] += _GET_UP_FAIL_DECAY_INTERVAL
+        while clock >= state.loop_pressure_decay_at[i] and _has_loop_debt(state, i):
+            state.grapple_loop_pressure[i] = max(0, state.grapple_loop_pressure[i] - 1)
+            state.counter_loop_pressure[i] = max(0, state.counter_loop_pressure[i] - 1)
+            state.setup_loop_pressure[i] = max(0, state.setup_loop_pressure[i] - 1)
+            state.loop_pressure_decay_at[i] += _LOOP_PRESSURE_DECAY_INTERVAL
+        if not _has_loop_debt(state, i):
+            # Debt-free, so the next stack earned should get a full interval to run.
+            state.loop_pressure_decay_at[i] = clock + _LOOP_PRESSURE_DECAY_INTERVAL
 
 
 def _finisher_wear_fraction(state: MatchState) -> float:
@@ -281,8 +381,6 @@ def hit_probability(state: MatchState, actor_idx: int, rule: MoveRule) -> float:
         p -= _GET_UP_FINISH_SHOCK_K * float(state.finisher_shock[actor_idx])
         if m.id == "get_up":
             p += _GET_UP_FAIL_RELIEF_BONUS * min(2, state.get_up_fail_streak[actor_idx])
-            if state.cover_heat[actor_idx]:
-                p -= _COVER_HEAT_GET_UP_PENALTY
     if m.is_finisher:
         p += _FINISHER_HIT_BONUS_MAX * _finisher_wear_fraction(state)
     pressure = loop_pressure_for(state, actor_idx, m)
@@ -293,13 +391,7 @@ def hit_probability(state: MatchState, actor_idx: int, rule: MoveRule) -> float:
         gap = def_hp - att_hp
         if gap > _UNDERDOG_HIT_GAP:
             p += min(_UNDERDOG_HIT_BONUS_MAX, (gap - _UNDERDOG_HIT_GAP) * 0.35)
-    p = max(_HIT_P_MIN, min(_HIT_P_MAX, p))
-    # Cover heat must beat the normal hit floor, or kip-ups erase the pin window.
-    if m.id == "get_up" and state.cover_heat[actor_idx]:
-        if state.cover_heat_lock[actor_idx]:
-            return 0.0
-        p = min(p, 0.08)
-    return p
+    return max(_HIT_P_MIN, min(_HIT_P_MAX, p))
 
 
 def _set_surge(state: MatchState, idx: int, value: int) -> tuple[int, int]:
@@ -423,43 +515,18 @@ def _damage_with_stats(base: int, actor: Wrestler, target: Wrestler, agility_bon
 
 
 def _apply_standing_groggy(state: MatchState, victim_idx: int) -> None:
-    """Standing groggy: victim loses their next turn before they can shake it off."""
-    state.groggy[victim_idx] = True
-    state.groggy_opponent_actions_left[victim_idx] = 2
-    state.groggy_skip_turn[victim_idx] = True
+    """Standing groggy: the victim keeps acting, just slower and only with escapes.
 
-
-def consume_groggy_skip_turn(state: MatchState, actor_idx: int) -> str | None:
-    """If the actor must lose this turn to groggy, return narration and clear the flag."""
-    if not state.groggy_skip_turn[actor_idx]:
-        return None
-    state.groggy_skip_turn[actor_idx] = False
-    actor = state.wrestlers[actor_idx]
-    return f"  {actor.nickname} is groggy — they lose the turn!"
-
-
-def _tick_groggy_timer(
-    state: MatchState,
-    actor_idx: int,
-    *,
-    skip_victim_tick: int | None = None,
-) -> None:
-    """After each completed action by `actor_idx`, count down groggy timer for victims they can exploit.
-
-    ``skip_victim_tick`` is the victim index when this same action just applied *immediate* standing
-    groggy (the stun move itself must not consume the first timer action).
+    Replaces the old lose-a-turn stun. The cost is paid through the speed multiplier in
+    ``scheduler.speed_for`` plus the restricted move gate in ``moves.move_valid``.
     """
-    for v in (0, 1):
-        if not state.groggy[v]:
-            continue
-        if actor_idx != 1 - v:
-            continue
-        if skip_victim_tick is not None and v == skip_victim_tick:
-            continue
-        state.groggy_opponent_actions_left[v] -= 1
-        if state.groggy_opponent_actions_left[v] <= 0:
-            state.groggy[v] = False
-            state.groggy_opponent_actions_left[v] = 0
+    state.groggy[victim_idx] = True
+    state.groggy_until[victim_idx] = state.clock + _GROGGY_DURATION
+
+
+def _clear_groggy(state: MatchState, victim_idx: int) -> None:
+    state.groggy[victim_idx] = False
+    state.groggy_until[victim_idx] = 0.0
 
 
 def _clear_groggy_from_opponent_damage(state: MatchState, victim_idx: int, m: Move) -> None:
@@ -467,8 +534,7 @@ def _clear_groggy_from_opponent_damage(state: MatchState, victim_idx: int, m: Mo
     if m.id == "desperation_strike":
         return
     if m.base_damage > 0 and state.groggy[victim_idx]:
-        state.groggy[victim_idx] = False
-        state.groggy_opponent_actions_left[victim_idx] = 0
+        _clear_groggy(state, victim_idx)
 
 
 def _try_apply_groggy_after_damage(
@@ -555,15 +621,10 @@ def _apply_loop_pressure(
                     )
                 )
     elif m.id == "break_grapple":
-        # Clean break is the non-loop escape; soft-decay counter debt only.
-        state.counter_loop_pressure[actor_idx] = max(0, counter_before - 1)
-    elif m.id in _FORCED_RESET_MOVE_IDS:
-        # get_up / recover sit inside the collar→throw→stand cycle; do not launder debt.
-        pass
-    else:
-        # Standing strikes, rope work, etc. — leave the tie-up diet.
-        state.grapple_loop_pressure[actor_idx] = max(0, grapple_before - 1)
-        state.counter_loop_pressure[actor_idx] = max(0, counter_before - 1)
+        # Clean break is the non-loop escape and wipes the counter habit.
+        state.counter_loop_pressure[actor_idx] = 0
+    # Everything else leaves debt where it is; `advance_to` sheds it on elapsed timeline
+    # so a fast wrestler does not pay staleness twice as fast for the same behaviour.
 
     setup_before = state.setup_loop_pressure[actor_idx]
     if m.id == "climb":
@@ -600,12 +661,8 @@ def _apply_loop_pressure(
                     )
                 )
     elif m.actor_top and m.base_damage > 0:
-        state.setup_loop_pressure[actor_idx] = max(0, setup_before - 1)
-    elif m.id in _FORCED_RESET_MOVE_IDS:
-        # Being floored or shaking off groggy shouldn't launder climb spam.
-        pass
-    else:
-        state.setup_loop_pressure[actor_idx] = max(0, setup_before - 1)
+        # Cashing the climb is the payoff that clears the debt it built.
+        state.setup_loop_pressure[actor_idx] = 0
 
     return mom_gain
 
@@ -616,14 +673,12 @@ def _top_rope_whiff_crashes(m: Move) -> bool:
     Dives leave the buckle on a hit (``actor_after`` is standing or grounded).
     A punch traded on the buckle has no ``actor_after`` and stays put.
     """
-
     if not m.actor_top or m.skip_hit_roll:
         return False
-
     if m.actor_after is None or m.actor_after == BodyPosition.TOP_ROPE:
         return False
-
     return True
+
 
 def _flatten_sequence_events(seq: PinSequence) -> list[MatchEvent]:
     out = list(seq.preamble_events)
@@ -658,7 +713,6 @@ def apply_move(
         seq, won = _plan_pin(state, actor_idx, rng)
         if actor_idx == 1:
             state.cpu_last_move_id = m.id
-        _tick_groggy_timer(state, actor_idx)
         text = pin_sequence_as_text(seq)
         return MoveResult(text, (actor_idx if won else None), seq, _flatten_sequence_events(seq))
 
@@ -674,7 +728,6 @@ def apply_move(
                 _apply_loop_pressure(state, actor_idx, m, lines, events)
             if actor_idx == 1:
                 state.cpu_last_move_id = m.id
-            _tick_groggy_timer(state, actor_idx)
             return MoveResult("\n".join(lines), None, None, events)
 
     if m.is_submission:
@@ -682,7 +735,6 @@ def apply_move(
         seq, won = _plan_submission(state, actor_idx, rule, rng)
         if actor_idx == 1:
             state.cpu_last_move_id = m.id
-        _tick_groggy_timer(state, actor_idx)
         text = pin_sequence_as_text(seq)
         return MoveResult(
             text,
@@ -694,15 +746,13 @@ def apply_move(
     emit("move_attempt", actor=actor_idx, target=tgt, move_id=m.id, move_name=m.name)
 
     if m.id == "shake_groggy":
-        state.groggy[actor_idx] = False
-        state.groggy_opponent_actions_left[actor_idx] = 0
+        _clear_groggy(state, actor_idx)
         lines.append(f"  {actor.nickname} steadies themselves — they're back!")
         emit("groggy_cleared", actor=actor_idx, move_id=m.id, move_name=m.name)
         gain = min(5, state.momentum[actor_idx] + m.momentum_gain)
         state.momentum[actor_idx] = gain
         if actor_idx == 1:
             state.cpu_last_move_id = m.id
-        _tick_groggy_timer(state, actor_idx)
         text = "\n".join(lines) if lines else f"  {actor.nickname}: {m.name}."
         return MoveResult(text, None, None, events)
 
@@ -734,6 +784,9 @@ def apply_move(
         _clear_groggy_from_opponent_damage(state, tgt, m)
         if m.is_finisher:
             state.finisher_shock[tgt] = min(5, state.finisher_shock[tgt] + 2)
+            state.finisher_shock_decay_at[tgt] = (
+                state.clock + _FINISHER_SHOCK_DECAY_INTERVAL
+            )
         if m.targets_head and not state.bloodied[tgt] and _rand_float(rng) < _BLOODIED_CHANCE:
             state.bloodied[tgt] = True
             lines.append(
@@ -765,8 +818,7 @@ def apply_move(
 
     if m.base_damage > 0 and state.health[tgt] <= 0:
         state.position[tgt] = BodyPosition.GROUNDED
-        state.groggy[tgt] = False
-        state.groggy_opponent_actions_left[tgt] = 0
+        _clear_groggy(state, tgt)
         state.pending_groggy[tgt] = False
         lines.append(f"  {target.nickname} crumples and doesn't move — they are out cold!")
         lines.append(
@@ -782,7 +834,6 @@ def apply_move(
         )
         if actor_idx == 1:
             state.cpu_last_move_id = m.id
-        _tick_groggy_timer(state, actor_idx)
         return MoveResult("\n".join(lines), actor_idx, None, events)
 
     if m.base_damage > 0 and state.position[tgt] != BodyPosition.GROUNDED:
@@ -791,9 +842,12 @@ def apply_move(
             state.position[tgt] = BodyPosition.GROUNDED
             state.pending_groggy[tgt] = True
             state.cover_heat[tgt] = True
-            state.cover_heat_lock[tgt] = True
-            state.pin_bonus_next_cover[actor_idx] = max(
-                state.pin_bonus_next_cover[actor_idx], _COVER_HEAT_PIN_BONUS
+            # Flattening them buys timeline as well as position — this is the cover window.
+            state.pending_timeline_push[tgt] += _KNOCKDOWN_HEAD_START
+            state.pin_bonus_next_cover[actor_idx] = max(state.pin_bonus_next_cover[actor_idx], _COVER_HEAT_PIN_BONUS)
+            state.finisher_echo_until[actor_idx] = max(
+                state.finisher_echo_until[actor_idx],
+                state.clock + _FINISHER_ECHO_DURATION,
             )
             lines.append(
                 f"  {target.nickname} collapses to the canvas — the cover is there for the taking!"
@@ -837,21 +891,17 @@ def apply_move(
                 )
 
     if m.id == "desperation_strike":
-        state.groggy[actor_idx] = False
-        state.groggy_opponent_actions_left[actor_idx] = 0
+        _clear_groggy(state, actor_idx)
         lines.append(f"  {actor.nickname} fights through — the groggy haze lifts!")
         emit("groggy_cleared", actor=actor_idx, move_id=m.id, move_name=m.name)
 
-    immediate_groggy_from_stand_victim: int | None = None
     if m.id == "get_up" and state.position[actor_idx] == BodyPosition.STANDING:
         state.get_up_fail_streak[actor_idx] = 0
         state.finisher_shock[actor_idx] = max(0, state.finisher_shock[actor_idx] - 1)
         state.cover_heat[actor_idx] = False
-        state.cover_heat_lock[actor_idx] = False
         if state.pending_groggy[actor_idx]:
             state.pending_groggy[actor_idx] = False
             _apply_standing_groggy(state, actor_idx)
-            immediate_groggy_from_stand_victim = actor_idx
             lines.append(f"  {actor.nickname} rises — still groggy from the impact!")
             emit(
                 "groggy_applied",
@@ -861,18 +911,21 @@ def apply_move(
                 move_name=m.name,
             )
 
-    if m.id == "pickup" and state.position[tgt] == BodyPosition.STANDING and state.pending_groggy[tgt]:
-            state.pending_groggy[tgt] = False
-            _apply_standing_groggy(state, tgt)
-            immediate_groggy_from_stand_victim = tgt
-            lines.append(f"  {target.nickname} is yanked up — their legs aren't under them yet!")
-            emit(
-                "groggy_applied",
-                actor=actor_idx,
-                target=tgt,
-                move_id=m.id,
-                move_name=m.name,
-            )
+    if (
+        m.id == "pickup"
+        and state.position[tgt] == BodyPosition.STANDING
+        and state.pending_groggy[tgt]
+    ):
+        state.pending_groggy[tgt] = False
+        _apply_standing_groggy(state, tgt)
+        lines.append(f"  {target.nickname} is yanked up — their legs aren't under them yet!")
+        emit(
+            "groggy_applied",
+            actor=actor_idx,
+            target=tgt,
+            move_id=m.id,
+            move_name=m.name,
+        )
 
     if m.id == "recover":
         heal = max(3, actor.max_health // 25)
@@ -893,25 +946,22 @@ def apply_move(
     state.momentum[actor_idx] = gain
     if m.is_finisher and m.base_damage > 0:
         state.pin_bonus_next_cover[actor_idx] = m.finisher_pin_bonus
+        state.finisher_echo_until[actor_idx] = state.clock + _FINISHER_ECHO_DURATION
         if m.triggers_pin_after_hit:
             lines.append("  — FINISHER — the bridge is hooked — pinfall attempt!")
         else:
-            lines.append("  — FINISHER — the next cover packs extra heat.")
+            lines.append("  — FINISHER — cover them before the echo fades.")
     if actor_idx == 1:
         state.cpu_last_move_id = m.id
 
-    if m.base_damage <= 0 and m.id not in {"recover", "shake_groggy", "desperation_strike"} and not any(e.kind in {"setup", "groggy_applied", "loop_pressure"} for e in events):
-            emit("setup", actor=actor_idx, target=tgt, move_id=m.id, move_name=m.name)
-
-    skip_victim_tick = immediate_groggy_from_stand_victim
-    if skip_victim_tick is None and (
-            m.base_damage > 0
-            and not was_groggy_before_hit
-            and m.causes_groggy
-            and not m.causes_groggy_on_stand
-            and state.groggy[tgt]
-        ):
-            skip_victim_tick = tgt
+    if (
+        m.base_damage <= 0
+        and m.id not in {"recover", "shake_groggy", "desperation_strike"}
+        and not any(
+            e.kind in {"setup", "groggy_applied", "loop_pressure"} for e in events
+        )
+    ):
+        emit("setup", actor=actor_idx, target=tgt, move_id=m.id, move_name=m.name)
 
     if m.triggers_pin_after_hit and m.base_damage > 0:
         pin_body, won = _plan_pin(state, actor_idx, rng)
@@ -923,12 +973,10 @@ def apply_move(
             step_events=list(pin_body.step_events),
         )
         full = pin_sequence_as_text(seq)
-        _tick_groggy_timer(state, actor_idx, skip_victim_tick=skip_victim_tick)
         return MoveResult(
             full, (actor_idx if won else None), seq, _flatten_sequence_events(seq)
         )
     text = "\n".join(lines) if lines else f"  {actor.nickname}: {m.name}."
-    _tick_groggy_timer(state, actor_idx, skip_victim_tick=skip_victim_tick)
     return MoveResult(text, None, None, events)
 
 
@@ -951,9 +999,11 @@ def _resolve_miss(
     events: list[MatchEvent] = []
 
     if m.id == "get_up":
-        state.cover_heat_lock[actor_idx] = False
         state.get_up_fail_streak[actor_idx] = min(
             3, state.get_up_fail_streak[actor_idx] + 1
+        )
+        state.get_up_fail_decay_at[actor_idx] = (
+            state.clock + _GET_UP_FAIL_DECAY_INTERVAL
         )
         events.append(
             MatchEvent(kind="miss", actor=actor_idx, move_id=m.id, move_name=m.name)
@@ -1069,8 +1119,8 @@ def _plan_pin(state: MatchState, actor_idx: int, rng: random.Random | None) -> t
     step_events: list[list[MatchEvent]] = []
     hp_frac = state.health[tgt] / max(1, defender.max_health)
     mom = state.momentum[actor_idx]
-    fin_bonus = state.pin_bonus_next_cover[actor_idx]
-    state.pin_bonus_next_cover[actor_idx] = 0
+    fin_bonus = finisher_echo(state, actor_idx)
+    _clear_finisher_echo(state, actor_idx)
     # Seed drama: the first cover of the match near-falls unless they're critically down.
     force_near_fall = (
         state.pins_attempted == 0 and hp_frac > _PIN_NEAR_FALL_FLOOR_HP_FRAC
@@ -1341,6 +1391,12 @@ _CPU_VARIETY_PENALTY = 18.0
 # Scaled for heuristic scores roughly in ~0–150.
 _CPU_SOFTMAX_TEMPERATURE = 10.0
 
+# Score-per-tempo is renormalised against a typical move cost so the softmax temperature
+# above keeps meaning what it meant when every move cost exactly one turn.
+_CPU_TEMPO_REFERENCE_COST = 1.5
+# Charged per opponent action conceded while the CPU is recovering.
+_CPU_CONCESSION_PENALTY = 14.0
+
 
 def _cpu_rule_score(state: MatchState, cpu_idx: int, r: MoveRule) -> float:
     """Deterministic preference score for a legal CPU move (softmax input)."""
@@ -1360,7 +1416,7 @@ def _cpu_rule_score(state: MatchState, cpu_idx: int, r: MoveRule) -> float:
 
     if m.is_pin:
         s = 0.0
-        fin_echo = state.pin_bonus_next_cover[cpu_idx]
+        fin_echo = finisher_echo(state, cpu_idx)
         if opp_hp < 0.35:
             s += 80
         elif fin_echo > 0:
@@ -1385,7 +1441,7 @@ def _cpu_rule_score(state: MatchState, cpu_idx: int, r: MoveRule) -> float:
 
     # Prefer the cover tease over murdering a grounded, worn opponent.
     if state.position[opp] == BodyPosition.GROUNDED and (
-        state.cover_heat[opp] or opp_hp < 0.25 or state.pin_bonus_next_cover[cpu_idx] > 0
+        state.cover_heat[opp] or opp_hp < 0.25 or finisher_echo(state, cpu_idx) > 0
     ):
         if m.base_damage > 0:
             s -= 55.0
@@ -1442,6 +1498,38 @@ def _cpu_rule_score(state: MatchState, cpu_idx: int, r: MoveRule) -> float:
     return s
 
 
+def _tempo_adjusted_score(
+    state: MatchState,
+    cpu_idx: int,
+    rule: MoveRule,
+    queue: TurnQueue | None,
+) -> float:
+    """Raw preference converted into value per unit of recovery, minus what it concedes.
+
+    A one-ply scorer that counts actions is blind to the decision the turn queue is
+    actually about: a move worth 60 that leaves the opponent two free actions is usually
+    worse than a move worth 40 that gets the CPU back on the clock first.
+    """
+    raw = _cpu_rule_score(state, cpu_idx, rule)
+    cost = move_tempo_cost(rule.move)
+    score = raw / max(cost, 0.1) * _CPU_TEMPO_REFERENCE_COST
+
+    if queue is None:
+        return score
+
+    speeds = actor_speeds(state)
+    defaults = projection_costs(state)
+    conceded = opponent_actions_conceded(
+        queue, speeds, defaults, actor_idx=cpu_idx, chosen_cost=cost
+    )
+    if conceded:
+        opp = 1 - cpu_idx
+        # Handing over the initiative matters more the healthier the opponent still is.
+        opp_hp = state.health[opp] / max(1, state.wrestlers[opp].max_health)
+        score -= conceded * _CPU_CONCESSION_PENALTY * (0.5 + 0.5 * opp_hp)
+    return score
+
+
 def _softmax_sample_index(scores: list[float], temperature: float) -> int:
     """Sample an index with probabilities ∝ softmax(scores / temperature)."""
     if not scores:
@@ -1461,7 +1549,10 @@ def _softmax_sample_index(scores: list[float], temperature: float) -> int:
     return len(scores) - 1
 
 
-def cpu_choose_rule(state: MatchState, cpu_idx: int) -> MoveRule:
+def cpu_choose_rule(
+    state: MatchState, cpu_idx: int, queue: TurnQueue | None = None
+) -> MoveRule:
+    """Pick the CPU's move. Pass the live ``queue`` so tempo concessions are priced in."""
     options = state.valid_rules(cpu_idx)
     if not options:
         raise RuntimeError("CPU has no valid moves — state bug.")
@@ -1473,12 +1564,12 @@ def cpu_choose_rule(state: MatchState, cpu_idx: int) -> MoveRule:
         pin_rules = [r for r in rules_list if r.move.is_pin]
         if pin_rules and random.random() < _COVER_HEAT_CPU_PIN_BIAS:
             return pin_rules[0]
-    # After a finisher lands, go for the cover even when a kickout is likely.
-    if state.pin_bonus_next_cover[cpu_idx] > 0:
+    # The finisher echo is a race against the clock, so cover even when a kickout is likely.
+    if finisher_echo(state, cpu_idx) > 0:
         pin_rules = [r for r in rules_list if r.move.is_pin]
         if pin_rules and random.random() < _FINISHER_COVER_CPU_PIN_BIAS:
             return pin_rules[0]
-    scores = [_cpu_rule_score(state, cpu_idx, r) for r in rules_list]
+    scores = [_tempo_adjusted_score(state, cpu_idx, r, queue) for r in rules_list]
     idx = _softmax_sample_index(scores, _CPU_SOFTMAX_TEMPERATURE)
     return rules_list[idx]
 
@@ -1487,8 +1578,6 @@ def outcome_label(log: str) -> str:
     """Short label derived from apply_move / pin log text for exchange recap."""
     if not log.strip():
         return "—"
-    if "lose the turn" in log:
-        return "groggy_skip"
     if "KNOCKOUT" in log:
         return "knockout"
     if "SUBMISSION" in log or "taps out" in log:
@@ -1508,16 +1597,3 @@ def outcome_label(log: str) -> str:
     if "recovers" in log:
         return "recover"
     return "ok"
-
-
-def format_exchange_summary(player_move: str, player_log: str, cpu_move: str, cpu_log: str) -> str:
-    """Single line: your move/outcome, then CPU move/outcome."""
-    return (
-        f"You: {player_move} — {outcome_label(player_log)} · "
-        f"CPU: {cpu_move} — {outcome_label(cpu_log)}"
-    )
-
-
-def format_exchange_summary_after_player(player_move: str, player_log: str) -> str:
-    """Recap after your move only; opponent line cleared until CPU acts."""
-    return f"You: {player_move} — {outcome_label(player_log)} · CPU: —"

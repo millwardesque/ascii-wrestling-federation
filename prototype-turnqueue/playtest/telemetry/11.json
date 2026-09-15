@@ -1,0 +1,25 @@
+{
+  "gates_passed": true,
+  "gate_failures": [],
+  "action_count": 20,
+  "sim_time_total": 10.187,
+  "actions_player": 10,
+  "actions_cpu": 10,
+  "action_ratio": 1.0,
+  "consecutive_action_max": 2,
+  "mean_conceded_player": 1.0,
+  "winner": "player",
+  "reason": "submission",
+  "near_fall_count": 0,
+  "curation_pin_visible": true,
+  "log_uniqueness_ratio": 0.6757,
+  "move_repetition_rate": 0.3,
+  "position_diversity": 5,
+  "single_choice_actions": 0,
+  "match_seed": 11,
+  "wrestlers": [
+    "bret_hart",
+    "scott_hall"
+  ],
+  "player_policy": "chaotic"
+}
