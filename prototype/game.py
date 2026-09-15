@@ -6,10 +6,10 @@ import math
 import random
 from dataclasses import dataclass, field
 
-from .commentary_events import MatchEvent
-from .config import get_config
-from .moves import BodyPosition, Move, MoveRule, all_move_rules, move_valid
-from .wrestlers import Wrestler
+from commentary_events import MatchEvent
+from config import get_config
+from moves import BodyPosition, Move, MoveRule, all_move_rules, move_valid
+from wrestlers import Wrestler
 
 # Hit probability: p = clamp(BASE + k_surge*surge - k_diff*difficulty + ... , P_MIN, P_MAX)
 # Surge (0–3) is this-flurry reliability. Match momentum gates finishers and pin/sub contests
