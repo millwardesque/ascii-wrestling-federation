@@ -1,0 +1,19 @@
+{
+  "timing": {
+    "move_gap_between_turns_sec": 0.0,
+    "move_log_scroll_delay_sec": 0.5,
+    "pin_delay_after_count_1_sec": 1.0,
+    "pin_delay_after_count_2_sec": 1.5
+  },
+  "tempo": {
+    "speed_base": 10.0,
+    "speed_per_agility_point": 0.35,
+    "condition_slow_floor": 0.55,
+    "grounded_speed_mult": 0.6,
+    "corner_speed_mult": 0.85,
+    "grappled_speed_mult": 0.9,
+    "groggy_speed_mult": 0.7,
+    "min_speed": 2.0,
+    "queue_preview_depth": 5
+  }
+}

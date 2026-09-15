@@ -1,0 +1,1058 @@
+"""Move definitions: position gates, damage, and post-move ring state."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from enum import Enum
+from typing import Callable
+
+from wrestlers import Wrestler
+
+
+class BodyPosition(Enum):
+    STANDING = "standing"
+    RUNNING_ROPES = "running_ropes"
+    GROUNDED = "grounded"
+    CORNER = "cornered"
+    TOP_ROPE = "top_rope"
+    GRAPPLED = "grappled"
+
+
+@dataclass(frozen=True)
+class Move:
+    id: str
+    name: str
+    description: str
+    # Actor position required
+    actor_standing: bool = True
+    actor_top: bool = False
+    actor_grounded_only: bool = False  # e.g. kick out / stand up
+    actor_corner_only: bool = False  # fight out of turnbuckles
+    actor_grappled_only: bool = False  # break or counter a tie-up
+    # Target position required
+    target_standing: bool | None = None  # None = any
+    target_grounded: bool | None = None
+    target_corner: bool | None = None
+    target_top: bool | None = None  # True => opponent on top rope
+    target_grappled: bool | None = None
+    target_running_ropes: bool | None = None  # True => opponent is running the ropes
+    # Effects
+    base_damage: int = 0
+    is_pin: bool = False
+    is_submission: bool = False
+    # After move: where actor ends (if not specified, stays standing)
+    actor_after: BodyPosition | None = None
+    target_after: BodyPosition | None = None
+    # Climb — only from standing, ends on top rope
+    is_climb: bool = False
+    # Hit the ropes — only from standing, ends running the ropes
+    is_hit_ropes: bool = False
+    # Actor must be running the ropes (return trip / rope sprint)
+    actor_running_ropes_only: bool = False
+    momentum_gain: int = 0
+    # Stochastic resolution (1–5): higher = harder to land when momentum is low
+    difficulty: int = 3
+    # If True, move always resolves (no hit roll); pins use separate pin logic
+    skip_hit_roll: bool = False
+    # Head-targeting strikes (easter egg: rare "bloodied" state on successful hit)
+    targets_head: bool = False
+    # Signature / finisher: bonus damage tier + stores pin strength for next cover only
+    is_finisher: bool = False
+    finisher_pin_bonus: int = 0  # added to each pin count roll; consumed on next pin attempt
+    min_momentum: int = 0  # 0 = always allowed if other gates pass
+    # After a successful damaging hit, immediately resolve a pin (finisher bonus applies to that pin)
+    triggers_pin_after_hit: bool = False
+    # On successful damaging hit: apply groggy to standing target, or pending groggy when they stand (slams).
+    causes_groggy: bool = False
+    causes_groggy_on_stand: bool = False
+    # Only legal when the opponent currently has standing groggy (not pending-on-stand).
+    requires_target_groggy: bool = False
+    # Turn-queue recovery. How far this move pushes the actor back down the timeline,
+    # before speed is applied. ``None`` derives a cost from difficulty and damage.
+    tempo_cost: float | None = None
+
+
+# Derived cost when a move does not set ``tempo_cost`` itself. Harder and heavier moves
+# take longer to come back from, which is the whole tradeoff the turn queue exposes.
+_TEMPO_BASE = 1.0
+_TEMPO_PER_DIFFICULTY = 0.10
+_TEMPO_PER_DAMAGE = 0.025
+TEMPO_COST_MIN = 0.6
+TEMPO_COST_MAX = 3.2
+
+
+def move_tempo_cost(m: Move) -> float:
+    """Recovery cost for one action, clamped into the tunable band."""
+    if m.tempo_cost is not None:
+        cost = m.tempo_cost
+    else:
+        cost = (
+            _TEMPO_BASE
+            + _TEMPO_PER_DIFFICULTY * m.difficulty
+            + _TEMPO_PER_DAMAGE * m.base_damage
+        )
+    return max(TEMPO_COST_MIN, min(TEMPO_COST_MAX, cost))
+
+
+def _always(_a: Wrestler, _t: Wrestler) -> bool:
+    return True
+
+
+def _only_wrestler(wrestler_id: str) -> Callable[[Wrestler, Wrestler], bool]:
+    """Finisher / signature moves: only the named roster id may attempt this move."""
+
+    def _check(actor: Wrestler, _target: Wrestler) -> bool:
+        return actor.id == wrestler_id
+
+    return _check
+
+
+# Predicate: (actor, target) -> extra validation
+MovePredicate = Callable[[Wrestler, Wrestler], bool]
+
+
+@dataclass(frozen=True)
+class MoveRule:
+    move: Move
+    extra: MovePredicate = _always
+
+
+def all_move_rules() -> list[MoveRule]:
+    return [
+        MoveRule(
+            Move(
+                id="collar_elbow",
+                tempo_cost=1.1,
+                name="Collar-and-elbow tie-up",
+                description="Lock horns and fight for control.",
+                target_standing=True,
+                base_damage=0,
+                target_after=BodyPosition.GRAPPLED,
+                momentum_gain=0,
+                difficulty=2,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="turnbuckle_whip",
+                name="Whip into the turnbuckle",
+                description="Drive them backward into the corner.",
+                target_grappled=True,
+                base_damage=6,
+                target_after=BodyPosition.CORNER,
+                momentum_gain=1,
+                difficulty=3,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="punch",
+                tempo_cost=0.9,
+                name="Straight right",
+                description="A stiff shot to the jaw.",
+                target_standing=True,
+                base_damage=6,
+                momentum_gain=1,
+                difficulty=2,
+                targets_head=True,
+                causes_groggy=True,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="kick",
+                tempo_cost=1.1,
+                name="Roundhouse kick",
+                description="Spins through — risky but sharp.",
+                target_standing=True,
+                base_damage=8,
+                momentum_gain=1,
+                difficulty=3,
+                targets_head=True,
+                causes_groggy=True,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="irish_whip",
+                name="Irish whip",
+                description="Send them flying — they're running the ropes on the return.",
+                target_grappled=True,
+                base_damage=3,
+                target_after=BodyPosition.RUNNING_ROPES,
+                momentum_gain=2,
+                difficulty=2,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="arm_drag",
+                name="Arm drag",
+                description="Use the tie-up to send them rolling to the mat.",
+                target_grappled=True,
+                base_damage=7,
+                target_after=BodyPosition.GROUNDED,
+                momentum_gain=2,
+                difficulty=2,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="hip_toss",
+                name="Hip toss",
+                description="Turn the lock-up into a clean throw.",
+                target_grappled=True,
+                base_damage=9,
+                target_after=BodyPosition.GROUNDED,
+                momentum_gain=2,
+                difficulty=3,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="side_headlock",
+                name="Side headlock",
+                description="Clamp down from the tie-up and grind out control.",
+                target_grappled=True,
+                base_damage=5,
+                momentum_gain=2,
+                difficulty=2,
+                targets_head=True,
+                causes_groggy=True,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="hit_the_ropes",
+                tempo_cost=0.8,
+                name="Hit the ropes",
+                description="Bounce off and build steam — you're running the ropes.",
+                actor_standing=True,
+                is_hit_ropes=True,
+                base_damage=0,
+                actor_after=BodyPosition.RUNNING_ROPES,
+                momentum_gain=0,
+                skip_hit_roll=True,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="feet_plant",
+                tempo_cost=0.7,
+                name="Kill the run",
+                description="Grab the ropes and stop — back to your feet in the center.",
+                actor_running_ropes_only=True,
+                actor_standing=False,
+                base_damage=0,
+                actor_after=BodyPosition.STANDING,
+                momentum_gain=0,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="corner_strikes",
+                name="Corner mudhole stomps",
+                description="Trapped in the turnbuckles — boots and forearms.",
+                target_corner=True,
+                base_damage=10,
+                momentum_gain=2,
+                difficulty=3,
+                targets_head=True,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="drag_to_center",
+                name="Slingshot to center",
+                description="Drag them out of the corner — neutral standing in the ring.",
+                target_corner=True,
+                base_damage=3,
+                target_after=BodyPosition.STANDING,
+                momentum_gain=1,
+                difficulty=1,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="pull_off_top",
+                name="Pull off the top rope",
+                description="Yank them down from the buckle — dumped to the canvas.",
+                target_top=True,
+                base_damage=5,
+                target_after=BodyPosition.GROUNDED,
+                momentum_gain=2,
+                difficulty=2,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="bulldog",
+                name="Running bulldog",
+                description="Face-first driver out of the corner.",
+                target_corner=True,
+                base_damage=14,
+                target_after=BodyPosition.GROUNDED,
+                momentum_gain=3,
+                difficulty=4,
+                targets_head=True,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="body_slam",
+                name="Body slam",
+                description="Hoist and slam — only when they're groggy on their feet.",
+                target_standing=True,
+                base_damage=12,
+                target_after=BodyPosition.GROUNDED,
+                momentum_gain=2,
+                difficulty=4,
+                causes_groggy_on_stand=True,
+                requires_target_groggy=True,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="suplex",
+                name="Vertical suplex",
+                description="Arching throw — exploit a groggy opponent.",
+                target_standing=True,
+                base_damage=15,
+                target_after=BodyPosition.GROUNDED,
+                momentum_gain=3,
+                difficulty=5,
+                causes_groggy_on_stand=True,
+                requires_target_groggy=True,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="rope_rebound_clothesline",
+                name="Rebound clothesline",
+                description="Catch them on the return — lariat as they come off the ropes.",
+                target_running_ropes=True,
+                base_damage=16,
+                target_after=BodyPosition.GROUNDED,
+                momentum_gain=3,
+                difficulty=5,
+                targets_head=True,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="kitchen_sink_knee",
+                name="Kitchen-sink knee",
+                description="They're running straight at you — drive a knee into the jaw.",
+                target_running_ropes=True,
+                base_damage=14,
+                target_after=BodyPosition.GROUNDED,
+                momentum_gain=3,
+                difficulty=4,
+                targets_head=True,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="drop_toe_hold",
+                name="Drop toe hold",
+                description="Trip them mid-sprint — they eat canvas.",
+                target_running_ropes=True,
+                base_damage=11,
+                target_after=BodyPosition.GROUNDED,
+                momentum_gain=2,
+                difficulty=3,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="rope_rebound_elbow",
+                name="Rope-spring elbow drop",
+                description="You hit the ropes; they don't — elbow across a downed foe.",
+                actor_running_ropes_only=True,
+                actor_standing=False,
+                target_grounded=True,
+                base_damage=14,
+                actor_after=BodyPosition.STANDING,
+                momentum_gain=2,
+                difficulty=4,
+                targets_head=True,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="springboard_crossbody",
+                name="Springboard crossbody",
+                description="Full sprint — you leave your feet and flatten them.",
+                actor_running_ropes_only=True,
+                actor_standing=False,
+                target_standing=True,
+                base_damage=17,
+                actor_after=BodyPosition.STANDING,
+                target_after=BodyPosition.GROUNDED,
+                momentum_gain=3,
+                difficulty=4,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="rope_dropkick",
+                name="Running dropkick",
+                description="Both boots to the chest off the ropes — textbook.",
+                actor_running_ropes_only=True,
+                actor_standing=False,
+                target_standing=True,
+                base_damage=15,
+                actor_after=BodyPosition.STANDING,
+                target_after=BodyPosition.GROUNDED,
+                momentum_gain=3,
+                difficulty=4,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="spinning_heel_running",
+                name="Spinning heel kick",
+                description="Pivot off the run — heel to the temple.",
+                actor_running_ropes_only=True,
+                actor_standing=False,
+                target_standing=True,
+                base_damage=14,
+                actor_after=BodyPosition.STANDING,
+                target_after=BodyPosition.GROUNDED,
+                momentum_gain=3,
+                difficulty=4,
+                targets_head=True,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="rope_collision",
+                name="Collision course",
+                description="Two freight trains — you both chose violence. The ring shakes.",
+                actor_running_ropes_only=True,
+                actor_standing=False,
+                target_running_ropes=True,
+                base_damage=12,
+                actor_after=BodyPosition.GROUNDED,
+                target_after=BodyPosition.GROUNDED,
+                momentum_gain=2,
+                difficulty=3,
+                targets_head=True,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="climb",
+                tempo_cost=2.2,
+                name="Climb to the top rope",
+                description="Scale the buckle — high risk, high reward next turn.",
+                actor_standing=True,
+                is_climb=True,
+                base_damage=0,
+                actor_after=BodyPosition.TOP_ROPE,
+                momentum_gain=2,
+                skip_hit_roll=True,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="dismount_top",
+                tempo_cost=1.0,
+                name="Climb down carefully",
+                description="Opponent won't stay down — reset to the canvas.",
+                actor_top=True,
+                actor_standing=False,
+                base_damage=0,
+                actor_after=BodyPosition.STANDING,
+                momentum_gain=0,
+                skip_hit_roll=True,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="top_splash",
+                tempo_cost=2.4,
+                name="Flying splash",
+                description="From the top — all your weight across their chest.",
+                actor_top=True,
+                actor_standing=False,
+                target_grounded=True,
+                base_damage=22,
+                actor_after=BodyPosition.STANDING,
+                target_after=BodyPosition.GROUNDED,
+                momentum_gain=4,
+                difficulty=5,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="top_elbow",
+                tempo_cost=2.4,
+                name="Diving elbow drop",
+                description="Elbow driven from the heavens.",
+                actor_top=True,
+                actor_standing=False,
+                target_grounded=True,
+                base_damage=20,
+                actor_after=BodyPosition.STANDING,
+                target_after=BodyPosition.GROUNDED,
+                momentum_gain=4,
+                difficulty=5,
+                targets_head=True,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="top_crossbody",
+                tempo_cost=2.3,
+                name="Diving crossbody",
+                description="Launch from the top — crash into a standing opponent.",
+                actor_top=True,
+                actor_standing=False,
+                target_standing=True,
+                base_damage=17,
+                actor_after=BodyPosition.STANDING,
+                target_after=BodyPosition.GROUNDED,
+                momentum_gain=3,
+                difficulty=4,
+                triggers_pin_after_hit=True,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="top_crossbody_running",
+                tempo_cost=2.3,
+                name="Diving crossbody",
+                description="Time the leap as they hit the ropes — harder to catch clean.",
+                actor_top=True,
+                actor_standing=False,
+                target_running_ropes=True,
+                base_damage=17,
+                actor_after=BodyPosition.STANDING,
+                target_after=BodyPosition.GROUNDED,
+                momentum_gain=3,
+                difficulty=5,
+                triggers_pin_after_hit=True,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="top_missile_dropkick",
+                tempo_cost=2.2,
+                name="Missile dropkick",
+                description="Both boots from the top rope — knock them flat.",
+                actor_top=True,
+                actor_standing=False,
+                target_standing=True,
+                base_damage=15,
+                actor_after=BodyPosition.STANDING,
+                target_after=BodyPosition.GROUNDED,
+                momentum_gain=3,
+                difficulty=4,
+                targets_head=True,
+                causes_groggy_on_stand=True,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="top_missile_dropkick_running",
+                tempo_cost=2.2,
+                name="Missile dropkick",
+                description="Pick them off the rebound — spectacular, but timing is tight.",
+                actor_top=True,
+                actor_standing=False,
+                target_running_ropes=True,
+                base_damage=15,
+                actor_after=BodyPosition.STANDING,
+                target_after=BodyPosition.GROUNDED,
+                momentum_gain=3,
+                difficulty=5,
+                targets_head=True,
+                causes_groggy_on_stand=True,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="top_rope_punch",
+                tempo_cost=1.2,
+                name="Top-rope brawl shot",
+                description="Trade leather on the buckle — both fighting for balance.",
+                actor_top=True,
+                actor_standing=False,
+                target_top=True,
+                base_damage=7,
+                momentum_gain=2,
+                difficulty=4,
+                targets_head=True,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="top_rope_superplex",
+                tempo_cost=2.8,
+                name="Superplex",
+                description="Suplex from the top — the ring shakes with the impact.",
+                actor_top=True,
+                actor_standing=False,
+                target_top=True,
+                base_damage=26,
+                actor_after=BodyPosition.GROUNDED,
+                target_after=BodyPosition.GROUNDED,
+                momentum_gain=4,
+                difficulty=5,
+                causes_groggy_on_stand=True,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="hurricanrana",
+                tempo_cost=2.3,
+                name="Hurricanrana",
+                description="Headscissors through — you land on your feet, they eat canvas.",
+                actor_top=True,
+                actor_standing=False,
+                target_top=True,
+                base_damage=18,
+                actor_after=BodyPosition.STANDING,
+                target_after=BodyPosition.GROUNDED,
+                momentum_gain=3,
+                difficulty=5,
+                targets_head=True,
+                causes_groggy_on_stand=True,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="elbow_drop",
+                name="Elbow drop",
+                description="Standard issue — drop the point on a grounded opponent.",
+                target_grounded=True,
+                base_damage=11,
+                momentum_gain=2,
+                difficulty=3,
+                targets_head=True,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="leg_drop",
+                name="Leg drop",
+                description="Across the throat — crowd pops.",
+                target_grounded=True,
+                base_damage=10,
+                momentum_gain=2,
+                difficulty=3,
+                targets_head=True,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="stomp",
+                name="Stomp",
+                description="Simple, mean, effective.",
+                target_grounded=True,
+                base_damage=7,
+                momentum_gain=1,
+                difficulty=2,
+                targets_head=True,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="stunner",
+                tempo_cost=2.7,
+                name="Stone Cold Stunner",
+                description="Snapmare driver — lights out. FINISHER (Stone Cold only).",
+                target_standing=True,
+                base_damage=18,
+                target_after=BodyPosition.GROUNDED,
+                momentum_gain=3,
+                difficulty=5,
+                targets_head=True,
+                is_finisher=True,
+                finisher_pin_bonus=10,
+                min_momentum=3,
+                causes_groggy_on_stand=True,
+                requires_target_groggy=True,
+            ),
+            extra=_only_wrestler("stone_cold"),
+        ),
+        MoveRule(
+            Move(
+                id="rock_bottom",
+                tempo_cost=2.7,
+                name="Rock Bottom",
+                description="Side slam — spine to canvas. FINISHER (The Rock only).",
+                target_standing=True,
+                base_damage=19,
+                target_after=BodyPosition.GROUNDED,
+                momentum_gain=3,
+                difficulty=5,
+                is_finisher=True,
+                finisher_pin_bonus=12,
+                min_momentum=3,
+                causes_groggy_on_stand=True,
+                requires_target_groggy=True,
+            ),
+            extra=_only_wrestler("the_rock"),
+        ),
+        MoveRule(
+            Move(
+                id="gts",
+                tempo_cost=2.7,
+                name="Go to Sleep",
+                description="Knee lift — they fold. FINISHER (CM Punk only).",
+                target_standing=True,
+                base_damage=18,
+                target_after=BodyPosition.GROUNDED,
+                momentum_gain=3,
+                difficulty=5,
+                targets_head=True,
+                is_finisher=True,
+                finisher_pin_bonus=10,
+                min_momentum=3,
+                causes_groggy_on_stand=True,
+                requires_target_groggy=True,
+            ),
+            extra=_only_wrestler("cm_punk"),
+        ),
+        MoveRule(
+            Move(
+                id="perfect_plex",
+                tempo_cost=2.8,
+                name="Perfect Plex",
+                description="Suplex into a bridging pin — FINISHER (Mr. Perfect only).",
+                target_standing=True,
+                base_damage=17,
+                target_after=BodyPosition.GROUNDED,
+                momentum_gain=3,
+                difficulty=5,
+                is_finisher=True,
+                finisher_pin_bonus=11,
+                min_momentum=3,
+                triggers_pin_after_hit=True,
+                causes_groggy_on_stand=True,
+                requires_target_groggy=True,
+            ),
+            extra=_only_wrestler("mr_perfect"),
+        ),
+        MoveRule(
+            Move(
+                id="sharp_shooter",
+                tempo_cost=2.6,
+                name="Sharpshooter",
+                description="Legs hooked — torture rack for the back. FINISHER (Bret Hart only).",
+                target_grounded=True,
+                base_damage=0,
+                momentum_gain=3,
+                difficulty=4,
+                is_submission=True,
+                is_finisher=True,
+                finisher_pin_bonus=14,
+                min_momentum=2,
+            ),
+            extra=_only_wrestler("bret_hart"),
+        ),
+        MoveRule(
+            Move(
+                id="flying_elbow_finisher",
+                tempo_cost=2.9,
+                name="Flying elbow drop",
+                description="From the top rope — elbow to the chest. FINISHER (Macho Man only).",
+                actor_top=True,
+                actor_standing=False,
+                target_grounded=True,
+                base_damage=26,
+                actor_after=BodyPosition.STANDING,
+                target_after=BodyPosition.GROUNDED,
+                momentum_gain=4,
+                difficulty=5,
+                targets_head=True,
+                is_finisher=True,
+                finisher_pin_bonus=9,
+                min_momentum=2,
+                causes_groggy_on_stand=True,
+            ),
+            extra=_only_wrestler("macho_man"),
+        ),
+        MoveRule(
+            Move(
+                id="razors_edge",
+                tempo_cost=2.7,
+                name="Razor's Edge",
+                description="Fallaway slam from the crucifix — lights out. FINISHER (Scott Hall only).",
+                target_standing=True,
+                base_damage=19,
+                target_after=BodyPosition.GROUNDED,
+                momentum_gain=3,
+                difficulty=5,
+                is_finisher=True,
+                finisher_pin_bonus=12,
+                min_momentum=3,
+                causes_groggy_on_stand=True,
+                requires_target_groggy=True,
+            ),
+            extra=_only_wrestler("scott_hall"),
+        ),
+        MoveRule(
+            Move(
+                id="figure_four",
+                tempo_cost=2.6,
+                name="Figure Four",
+                description="Leglock on the mat — snap the knee. FINISHER (Ric Flair only).",
+                target_grounded=True,
+                base_damage=0,
+                momentum_gain=3,
+                difficulty=4,
+                is_submission=True,
+                is_finisher=True,
+                finisher_pin_bonus=14,
+                min_momentum=2,
+            ),
+            extra=_only_wrestler("ric_flair"),
+        ),
+        MoveRule(
+            Move(
+                id="spinebuster",
+                tempo_cost=2.7,
+                name="Spinebuster",
+                description="Hoist and drive — authority in the ring. FINISHER (Arn Anderson only).",
+                target_standing=True,
+                base_damage=18,
+                target_after=BodyPosition.GROUNDED,
+                momentum_gain=3,
+                difficulty=5,
+                is_finisher=True,
+                finisher_pin_bonus=11,
+                min_momentum=3,
+                causes_groggy_on_stand=True,
+                requires_target_groggy=True,
+            ),
+            extra=_only_wrestler("arn_anderson"),
+        ),
+        MoveRule(
+            Move(
+                id="giant_boot",
+                tempo_cost=2.6,
+                name="Big boot",
+                description="Size-18 boot to the face — timber. FINISHER (Andre only).",
+                target_standing=True,
+                base_damage=20,
+                target_after=BodyPosition.GROUNDED,
+                momentum_gain=3,
+                difficulty=5,
+                targets_head=True,
+                is_finisher=True,
+                finisher_pin_bonus=11,
+                min_momentum=3,
+                causes_groggy_on_stand=True,
+                requires_target_groggy=True,
+            ),
+            extra=_only_wrestler("andre"),
+        ),
+        MoveRule(
+            Move(
+                id="atomic_leg_drop",
+                tempo_cost=2.6,
+                name="Atomic leg drop",
+                description="Leg across the throat — listen to the people. FINISHER (Hulk Hogan only).",
+                target_grounded=True,
+                base_damage=17,
+                momentum_gain=3,
+                difficulty=4,
+                targets_head=True,
+                is_finisher=True,
+                finisher_pin_bonus=10,
+                min_momentum=2,
+                causes_groggy_on_stand=True,
+            ),
+            extra=_only_wrestler("hulk_hogan"),
+        ),
+        MoveRule(
+            Move(
+                id="pin",
+                tempo_cost=2.0,
+                name="Cover — pinfall attempt",
+                description="Hook the leg — listen for the count.",
+                target_grounded=True,
+                base_damage=0,
+                is_pin=True,
+                momentum_gain=0,
+                skip_hit_roll=True,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="pickup",
+                tempo_cost=1.0,
+                name="Pull opponent up",
+                description="Break the cover setup — back to a slugfest.",
+                target_grounded=True,
+                base_damage=2,
+                target_after=BodyPosition.STANDING,
+                momentum_gain=0,
+                skip_hit_roll=True,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="escape_corner",
+                tempo_cost=1.0,
+                name="Battle out of the corner",
+                description="Turn the tables — meet them in the middle of the ring.",
+                actor_corner_only=True,
+                actor_standing=False,
+                base_damage=0,
+                actor_after=BodyPosition.STANDING,
+                momentum_gain=1,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="break_grapple",
+                tempo_cost=0.9,
+                name="Break the grapple",
+                description="Peel their hands away and reset to neutral.",
+                actor_grappled_only=True,
+                actor_standing=False,
+                base_damage=0,
+                actor_after=BodyPosition.STANDING,
+                momentum_gain=0,
+                difficulty=1,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="grapple_counter",
+                tempo_cost=1.0,
+                name="Grapple counter",
+                description="Reverse the tie-up with a short shot — now they're locked up.",
+                actor_grappled_only=True,
+                actor_standing=False,
+                target_standing=True,
+                base_damage=4,
+                actor_after=BodyPosition.STANDING,
+                target_after=BodyPosition.GRAPPLED,
+                momentum_gain=1,
+                difficulty=3,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="get_up",
+                tempo_cost=1.0,
+                name="Fight to your feet",
+                description="Clear your head and stand — you need the ring back.",
+                actor_grounded_only=True,
+                actor_standing=False,
+                base_damage=0,
+                actor_after=BodyPosition.STANDING,
+                momentum_gain=0,
+                difficulty=1,
+                # Not automatic: failure leaves you grounded so the opponent can pin.
+            )
+        ),
+        MoveRule(
+            Move(
+                id="shake_groggy",
+                tempo_cost=1.0,
+                name="Shake the cobwebs",
+                description="Fight to clear your head — end the groggy state if you find your legs.",
+                base_damage=0,
+                momentum_gain=0,
+                difficulty=1,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="desperation_strike",
+                tempo_cost=0.8,
+                name="Desperation strike",
+                description="A wild shot — minor damage; clears your groggy state if it lands.",
+                target_standing=True,
+                base_damage=3,
+                momentum_gain=0,
+                difficulty=2,
+            )
+        ),
+        MoveRule(
+            Move(
+                id="recover",
+                tempo_cost=1.6,
+                name="Catch your breath",
+                description="Reset stance — small recovery.",
+                base_damage=0,
+                momentum_gain=0,
+                skip_hit_roll=True,
+            )
+        ),
+    ]
+
+
+def move_valid(
+    rule: MoveRule,
+    actor: Wrestler,
+    target: Wrestler,
+    actor_pos: BodyPosition,
+    target_pos: BodyPosition,
+    actor_momentum: int = 0,
+    *,
+    actor_groggy: bool = False,
+    target_groggy: bool = False,
+) -> bool:
+    m = rule.move
+    if actor_groggy:
+        if m.id not in (
+            "shake_groggy",
+            "desperation_strike",
+            "break_grapple",
+            "grapple_counter",
+        ):
+            return False
+    elif m.id in ("shake_groggy", "desperation_strike"):
+        return False
+    if m.requires_target_groggy and not target_groggy:
+        return False
+    if m.min_momentum > 0 and actor_momentum < m.min_momentum:
+        return False
+    if m.actor_corner_only:
+        if actor_pos != BodyPosition.CORNER:
+            return False
+    elif m.actor_grappled_only:
+        if actor_pos != BodyPosition.GRAPPLED:
+            return False
+    elif m.actor_grounded_only:
+        if actor_pos != BodyPosition.GROUNDED:
+            return False
+    elif m.actor_top:
+        if actor_pos != BodyPosition.TOP_ROPE:
+            return False
+    elif m.is_climb:
+        if actor_pos != BodyPosition.STANDING:
+            return False
+    elif m.is_hit_ropes:
+        if actor_pos != BodyPosition.STANDING:
+            return False
+    elif m.actor_running_ropes_only:
+        if actor_pos != BodyPosition.RUNNING_ROPES:
+            return False
+    elif not m.actor_standing:
+        return False
+    else:
+        if actor_pos != BodyPosition.STANDING:
+            return False
+
+    if m.target_standing is True and target_pos != BodyPosition.STANDING:
+        return False
+    if m.target_grounded is True and target_pos != BodyPosition.GROUNDED:
+        return False
+    if m.target_corner is True and target_pos != BodyPosition.CORNER:
+        return False
+    if m.target_top is True and target_pos != BodyPosition.TOP_ROPE:
+        return False
+    if m.target_grappled is True and target_pos != BodyPosition.GRAPPLED:
+        return False
+    if m.target_running_ropes is True and target_pos != BodyPosition.RUNNING_ROPES:
+        return False
+
+    return rule.extra(actor, target)

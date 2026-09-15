@@ -1,0 +1,23 @@
+"""Single source for the AWF block ASCII logo and title-screen copy.
+
+The logo is used on the title screen and on the in-match pause menu.
+"""
+
+from __future__ import annotations
+
+# Block-style “AWF” (reads as one logo; fits ~40–48 column terminals)
+AWF_LOGO_LINES: tuple[str, ...] = (
+    "  █████╗ ██╗    ██╗███████╗ ",
+    " ██╔══██╗██║    ██║██╔════╝ ",
+    " ███████║██║ █╗ ██║█████╗  ",
+    " ██╔══██║██║███╗██║██╔══╝  ",
+    " ██║  ██║╚███╔███╔╝██║     ",
+    " ╚═╝  ╚═╝ ╚══╝╚══╝ ╚═╝     ",
+)
+
+INTRO_LINES: tuple[str, ...] = (
+    "Terminal pro-wrestling — pinfall only.",
+    "Pick your fighter, trade holds and strikes, fight until the three-count.",
+)
+
+PROMPT_LINE = "Press any key to start  ·  ESC to exit"
