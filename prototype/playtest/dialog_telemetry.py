@@ -17,21 +17,21 @@ Findings carry a severity:
 from __future__ import annotations
 
 import re
-from typing import Any, Iterable
+from collections.abc import Iterable
+from typing import Any
 
 from playtest.telemetry import load_transcript_lines  # re-exported for callers
 from wrestlers import ROSTER
 
-
 __all__ = [
+    "DEFAULT_BANNED_TERMS",
+    "DEFAULT_BATCH_THRESHOLDS",
+    "DEFAULT_THRESHOLDS",
     "aggregate_dialog_telemetry",
     "compute_dialog_telemetry",
-    "load_transcript_lines",
     "line_template",
+    "load_transcript_lines",
     "phrasing_template",
-    "DEFAULT_THRESHOLDS",
-    "DEFAULT_BATCH_THRESHOLDS",
-    "DEFAULT_BANNED_TERMS",
 ]
 
 
@@ -79,7 +79,7 @@ DEFAULT_BANNED_TERMS: dict[str, str] = {
 _NUMBER_RE = re.compile(r"\d+")
 _ANSI_RE = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
 _FLAT_LINE_RE = re.compile(r"^(?P<who>[^:]{1,24}): (?P<what>[^:]+)\.$")
-_NO_CONTACT_RE = re.compile(r"whiffs|can't connect|shrugs it off|no contact", re.I)
+_NO_CONTACT_RE = re.compile(r"whiffs|can't connect|shrugs it off|no contact", re.IGNORECASE)
 _DAMAGE_ANYWHERE_RE = re.compile(r"\b(\d+) damage\b")
 
 # Claim patterns keyed by the state they assert about a named wrestler. ``{n}``
@@ -142,7 +142,7 @@ def phrasing_template(line: str, names: Iterable[str] = (), moves: Iterable[str]
     """
     out = line_template(line, names)
     for move in sorted({m for m in moves if m}, key=len, reverse=True):
-        out = re.sub(re.escape(move), "{M}", out, flags=re.I)
+        out = re.sub(re.escape(move), "{M}", out, flags=re.IGNORECASE)
     return out
 
 
@@ -217,7 +217,7 @@ def _check_numbers(
             continue
         actual = before[index] - after[index]
         claimed = _claimed_health_delta(log, name)
-        quote = _find((rf"{{n}}.*\d+ damage", r"{n}.*stamina"), log, name) or _first_line(log)
+        quote = _find((r"{n}.*\d+ damage", r"{n}.*stamina"), log, name) or _first_line(log)
         if claimed is None:
             if actual != 0:
                 findings.append(

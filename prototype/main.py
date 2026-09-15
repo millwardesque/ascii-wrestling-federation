@@ -8,8 +8,8 @@ import random
 import secrets
 
 from commentary import CommentaryEngine
-from game import MatchState, apply_move, consume_groggy_skip_turn, cpu_choose_rule
 from commentators import choose_commentary_team
+from game import MatchState, apply_move, consume_groggy_skip_turn, cpu_choose_rule
 from render import MatchRenderer, ReturnToTitle
 from render_fixed import FixedLayoutRenderer
 from render_playtest import PlaytestRenderer

@@ -14,7 +14,6 @@ import random
 from dataclasses import dataclass
 from typing import Literal
 
-
 CommentatorRole = Literal["pbp", "color"]
 CommentatorRegister = Literal["straight", "excitable", "sardonic", "folksy"]
 CommentatorBias = Literal["neutral", "face", "heel"]

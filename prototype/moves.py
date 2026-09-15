@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
-from typing import Callable
 
 from wrestlers import Wrestler
 
@@ -966,10 +966,7 @@ def move_valid(
     elif m.actor_top:
         if actor_pos != BodyPosition.TOP_ROPE:
             return False
-    elif m.is_climb:
-        if actor_pos != BodyPosition.STANDING:
-            return False
-    elif m.is_hit_ropes:
+    elif m.is_climb or m.is_hit_ropes:
         if actor_pos != BodyPosition.STANDING:
             return False
     elif m.actor_running_ropes_only:

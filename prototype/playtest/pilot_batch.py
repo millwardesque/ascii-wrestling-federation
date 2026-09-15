@@ -12,7 +12,11 @@ if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 
 from playtest.record_match import record_match
-from playtest.telemetry import compute_telemetry, load_transcript_lines, telemetry_to_report_meta
+from playtest.telemetry import (
+    compute_telemetry,
+    load_transcript_lines,
+    telemetry_to_report_meta,
+)
 
 PILOT_SEEDS = (101, 102, 103, 104, 105, 106, 107, 108, 109, 110)
 POLICIES = ("novice", "aggressive", "methodical", "chaotic")

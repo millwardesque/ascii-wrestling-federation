@@ -7,11 +7,11 @@ import json
 import unittest
 
 from main import run_match
+from moves import MoveRule, all_move_rules
 from playtest.policies import choose_policy_index
 from playtest.telemetry import compute_telemetry
 from render_fixed import _MoveChoice
 from render_playtest import PlaytestRenderer
-from moves import MoveRule, all_move_rules
 
 
 def _rule_by_id(move_id: str) -> MoveRule:

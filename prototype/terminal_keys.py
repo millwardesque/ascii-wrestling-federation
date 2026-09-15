@@ -8,12 +8,12 @@ from typing import Literal
 ToggleToken = Literal["M"]
 
 __all__ = [
-    "tty_interactive",
     "read_any_key",
-    "read_key_or_esc",
-    "read_title_key",
-    "read_move_choice_line",
     "read_digit_1_or_2",
+    "read_key_or_esc",
+    "read_move_choice_line",
+    "read_title_key",
+    "tty_interactive",
     "wait_enter_or_esc",
 ]
 
@@ -77,7 +77,6 @@ def _drain_escape_suffix() -> None:
     """If ESC was the start of an escape sequence, consume the rest."""
     if not _HAS_POSIX:
         return
-    fd = sys.stdin.fileno()
     while True:
         r, _, _ = select.select([sys.stdin], [], [], 0.02)
         if not r:
