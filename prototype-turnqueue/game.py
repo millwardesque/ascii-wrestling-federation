@@ -224,7 +224,12 @@ class MatchState:
         if not self.counter_loop_pressure:
             self.counter_loop_pressure = [0, 0]
         if not self.loop_pressure_decay_at:
-            self.loop_pressure_decay_at = [0.0, 0.0]
+            # Debt earned at the opening bell gets a full interval before it sheds,
+            # same as debt earned at any other point in the match.
+            self.loop_pressure_decay_at = [
+                _LOOP_PRESSURE_DECAY_INTERVAL,
+                _LOOP_PRESSURE_DECAY_INTERVAL,
+            ]
         if not self.cover_heat:
             self.cover_heat = [False, False]
         if not self.pending_timeline_push:
@@ -261,6 +266,14 @@ def _clear_finisher_echo(state: MatchState, actor_idx: int) -> None:
     state.finisher_echo_until[actor_idx] = 0.0
 
 
+def _has_loop_debt(state: MatchState, idx: int) -> bool:
+    return bool(
+        state.grapple_loop_pressure[idx]
+        or state.counter_loop_pressure[idx]
+        or state.setup_loop_pressure[idx]
+    )
+
+
 def advance_to(state: MatchState, clock: float) -> None:
     """Move the match clock and expire everything whose deadline has passed.
 
@@ -274,20 +287,21 @@ def advance_to(state: MatchState, clock: float) -> None:
             state.groggy_until[i] = 0.0
         if state.pin_bonus_next_cover[i] and clock > state.finisher_echo_until[i]:
             _clear_finisher_echo(state, i)
+        # Deadlines advance by whole intervals rather than snapping to the clock, so a
+        # long gap sheds every stack it should have rather than just one.
         while state.finisher_shock[i] > 0 and clock >= state.finisher_shock_decay_at[i]:
             state.finisher_shock[i] -= 1
-            state.finisher_shock_decay_at[i] = clock + _FINISHER_SHOCK_DECAY_INTERVAL
+            state.finisher_shock_decay_at[i] += _FINISHER_SHOCK_DECAY_INTERVAL
         while state.get_up_fail_streak[i] > 0 and clock >= state.get_up_fail_decay_at[i]:
             state.get_up_fail_streak[i] -= 1
-            state.get_up_fail_decay_at[i] = clock + _GET_UP_FAIL_DECAY_INTERVAL
-        while clock >= state.loop_pressure_decay_at[i] and (
-            state.grapple_loop_pressure[i]
-            or state.counter_loop_pressure[i]
-            or state.setup_loop_pressure[i]
-        ):
+            state.get_up_fail_decay_at[i] += _GET_UP_FAIL_DECAY_INTERVAL
+        while clock >= state.loop_pressure_decay_at[i] and _has_loop_debt(state, i):
             state.grapple_loop_pressure[i] = max(0, state.grapple_loop_pressure[i] - 1)
             state.counter_loop_pressure[i] = max(0, state.counter_loop_pressure[i] - 1)
             state.setup_loop_pressure[i] = max(0, state.setup_loop_pressure[i] - 1)
+            state.loop_pressure_decay_at[i] += _LOOP_PRESSURE_DECAY_INTERVAL
+        if not _has_loop_debt(state, i):
+            # Debt-free, so the next stack earned should get a full interval to run.
             state.loop_pressure_decay_at[i] = clock + _LOOP_PRESSURE_DECAY_INTERVAL
 
 

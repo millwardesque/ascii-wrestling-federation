@@ -616,8 +616,8 @@ class FixedLayoutRenderer:
         return self._action_log_lines(wrap_w, c, use_ansi)
 
     def _queue_labels(self) -> tuple[str, str]:
-        if self._player_nick and self._cpu_nick:
-            return ("YOU", self._cpu_nick)
+        if self._state is not None:
+            return ("YOU", self._state.wrestlers[1].nickname)
         return ("YOU", "CPU")
 
     def _print_turn_queue(self, c: _Palette) -> None:
@@ -633,8 +633,8 @@ class FixedLayoutRenderer:
         for slot, actor in enumerate(self._up_next):
             col = c.player if actor == 0 else c.cpu
             text = f"{col}{labels[actor]}{c.reset}"
-            parts.append(f"{c.bold}▸{text}{c.reset}" if slot == 0 else text)
-        print(f"{c.dim}NEXT UP{c.reset}  " + f"{c.dim}·{c.reset}  ".join(parts))
+            parts.append(f"{c.bold}▸ {text}{c.reset}" if slot == 0 else text)
+        print(f"{c.dim}NEXT UP{c.reset}  " + f"  {c.dim}·{c.reset}  ".join(parts))
 
     def _print_momentum_chart(
         self,
@@ -938,7 +938,7 @@ class FixedLayoutRenderer:
             self._redraw_match()
             self._pin_sleep(delay_after)
         self._instruction_heading = (
-            "> CPU TURN..." if actor_is_player else "Choose your move!"
+            "Choose your move!" if self._next_actor_is_player() else "> OPPONENT ACTS..."
         )
         self._redraw_match()
 
