@@ -9,12 +9,13 @@ from __future__ import annotations
 
 import json
 import sys
-from typing import IO, Sequence
+from collections.abc import Sequence
+from typing import IO
 
 from game import MatchState, PinSequence, move_landing_probability_label, outcome_label
 from moves import MoveRule, move_tempo_cost
 from playtest.policies import choose_policy_index
-from render_fixed import _MoveChoice, _curate_move_choices
+from render_fixed import _curate_move_choices, _MoveChoice
 from scheduler import TurnQueue
 from wrestlers import Wrestler
 

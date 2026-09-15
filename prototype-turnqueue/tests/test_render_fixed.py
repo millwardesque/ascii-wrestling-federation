@@ -8,10 +8,10 @@ from game import MatchState
 from render import tempo_label, turn_queue_strip
 from render_fixed import (
     FixedLayoutRenderer,
-    _Palette,
     _curate_move_choices,
     _momentum_chart_lines,
     _move_choice_details,
+    _Palette,
     _status_display,
 )
 from scheduler import TurnQueue

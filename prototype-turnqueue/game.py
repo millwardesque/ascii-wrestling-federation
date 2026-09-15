@@ -13,7 +13,14 @@ from dataclasses import dataclass, field
 
 from commentary_events import MatchEvent
 from config import get_config
-from moves import BodyPosition, Move, MoveRule, all_move_rules, move_tempo_cost, move_valid
+from moves import (
+    BodyPosition,
+    Move,
+    MoveRule,
+    all_move_rules,
+    move_tempo_cost,
+    move_valid,
+)
 from scheduler import (
     TurnQueue,
     actor_speeds,
@@ -626,7 +633,7 @@ def _apply_loop_pressure(
             mom_gain = 0
             _stall_actor_surge(state, actor_idx, events)
             lines.append(
-                f"  The climb looks telegraphed — the sequence stalls."
+                "  The climb looks telegraphed — the sequence stalls."
             )
             if events is not None:
                 events.append(
@@ -837,8 +844,7 @@ def apply_move(
             state.cover_heat[tgt] = True
             # Flattening them buys timeline as well as position — this is the cover window.
             state.pending_timeline_push[tgt] += _KNOCKDOWN_HEAD_START
-            if _COVER_HEAT_PIN_BONUS > state.pin_bonus_next_cover[actor_idx]:
-                state.pin_bonus_next_cover[actor_idx] = _COVER_HEAT_PIN_BONUS
+            state.pin_bonus_next_cover[actor_idx] = max(state.pin_bonus_next_cover[actor_idx], _COVER_HEAT_PIN_BONUS)
             state.finisher_echo_until[actor_idx] = max(
                 state.finisher_echo_until[actor_idx],
                 state.clock + _FINISHER_ECHO_DURATION,
@@ -905,18 +911,21 @@ def apply_move(
                 move_name=m.name,
             )
 
-    if m.id == "pickup" and state.position[tgt] == BodyPosition.STANDING:
-        if state.pending_groggy[tgt]:
-            state.pending_groggy[tgt] = False
-            _apply_standing_groggy(state, tgt)
-            lines.append(f"  {target.nickname} is yanked up — their legs aren't under them yet!")
-            emit(
-                "groggy_applied",
-                actor=actor_idx,
-                target=tgt,
-                move_id=m.id,
-                move_name=m.name,
-            )
+    if (
+        m.id == "pickup"
+        and state.position[tgt] == BodyPosition.STANDING
+        and state.pending_groggy[tgt]
+    ):
+        state.pending_groggy[tgt] = False
+        _apply_standing_groggy(state, tgt)
+        lines.append(f"  {target.nickname} is yanked up — their legs aren't under them yet!")
+        emit(
+            "groggy_applied",
+            actor=actor_idx,
+            target=tgt,
+            move_id=m.id,
+            move_name=m.name,
+        )
 
     if m.id == "recover":
         heal = max(3, actor.max_health // 25)
@@ -945,9 +954,14 @@ def apply_move(
     if actor_idx == 1:
         state.cpu_last_move_id = m.id
 
-    if m.base_damage <= 0 and m.id not in {"recover", "shake_groggy", "desperation_strike"}:
-        if not any(e.kind in {"setup", "groggy_applied", "loop_pressure"} for e in events):
-            emit("setup", actor=actor_idx, target=tgt, move_id=m.id, move_name=m.name)
+    if (
+        m.base_damage <= 0
+        and m.id not in {"recover", "shake_groggy", "desperation_strike"}
+        and not any(
+            e.kind in {"setup", "groggy_applied", "loop_pressure"} for e in events
+        )
+    ):
+        emit("setup", actor=actor_idx, target=tgt, move_id=m.id, move_name=m.name)
 
     if m.triggers_pin_after_hit and m.base_damage > 0:
         pin_body, won = _plan_pin(state, actor_idx, rng)
@@ -1180,7 +1194,7 @@ def _plan_pin(state: MatchState, actor_idx: int, rng: random.Random | None) -> t
                     False,
                 )
             add_step(
-                [f"  Referee: 3!"],
+                ["  Referee: 3!"],
                 0.0,
                 [
                     MatchEvent(
@@ -1278,7 +1292,7 @@ def _plan_submission(
             timing.pin_delay_after_count_1_sec,
         ),
         (
-            [f"  The hold is cinched in deeper!"],
+            ["  The hold is cinched in deeper!"],
             timing.pin_delay_after_count_2_sec,
         ),
     ]

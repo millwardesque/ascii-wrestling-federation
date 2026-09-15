@@ -15,9 +15,10 @@ if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 
 from main import PLAYTEST_POLICIES, run_match
-from playtest.telemetry import compute_telemetry
 from render_playtest import PlaytestRenderer
 from wrestlers import list_roster
+
+from playtest.telemetry import compute_telemetry
 
 
 def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:

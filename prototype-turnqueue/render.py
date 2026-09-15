@@ -11,9 +11,10 @@ header because there are no rounds, ``show_status`` carries the projected turn o
 from __future__ import annotations
 
 import sys
-from typing import Callable, Protocol, Sequence, runtime_checkable
+from collections.abc import Callable, Sequence
+from typing import Protocol, runtime_checkable
 
-from game import MatchState, PinSequence, move_landing_probability_label
+from game import MatchState, PinSequence
 from moves import BodyPosition, MoveRule
 from scheduler import TurnQueue
 from wrestlers import Wrestler
@@ -46,8 +47,7 @@ def health_bar(
     if maximum <= 0:
         bar = "[" + "?" * width + "]"
     else:
-        filled = int(round(width * current / maximum))
-        filled = max(0, min(width, filled))
+        filled = max(0, min(width, round(width * current / maximum)))
         bar = "[" + "█" * filled + "·" * (width - filled) + "]"
     if bloodied and use_color:
         return f"{_ANSI_BLOOD}{bar}{_ANSI_BAR_RESET}"

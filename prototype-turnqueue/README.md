@@ -183,7 +183,7 @@ Things a follow-up should look at, in rough order of how much they matter:
    fast for the same span of match time. Making the increments time-weighted is the
    obvious next step and was deliberately deferred.
 2. **The `tempo` policy is close to a turtle strategy.** It produces the longest matches
-   in the corpus and owns the one seed (17, at 78 actions) that fails the pacing band.
+   in the corpus and owns the one seed (17, at 77 actions) that fails the pacing band.
    That gate is left failing rather than widened, because a player who never commits to
    anything probably *should* be punished by the design and currently is not.
 3. **Tempo tags are flat at 38% of decision points.** Usually because the opponent is

@@ -13,8 +13,9 @@ stays free of a cycle with ``game``.
 from __future__ import annotations
 
 import statistics
+from collections.abc import Sequence
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Sequence
+from typing import TYPE_CHECKING
 
 from config import get_config
 from moves import BodyPosition, MoveRule, move_tempo_cost
@@ -73,7 +74,7 @@ def speed_for(
     return max(tempo.min_speed, speed)
 
 
-def effective_speed(state: "MatchState", idx: int) -> float:
+def effective_speed(state: MatchState, idx: int) -> float:
     wrestler = state.wrestlers[idx]
     condition_frac = state.health[idx] / max(1, wrestler.max_health)
     return speed_for(
@@ -84,7 +85,7 @@ def effective_speed(state: "MatchState", idx: int) -> float:
     )
 
 
-def actor_speeds(state: "MatchState") -> list[float]:
+def actor_speeds(state: MatchState) -> list[float]:
     return [effective_speed(state, i) for i in (0, 1)]
 
 
@@ -97,7 +98,7 @@ def rule_delay(rule: MoveRule, speed: float) -> float:
     return move_delay(move_tempo_cost(rule.move), speed)
 
 
-def projection_cost(state: "MatchState", idx: int) -> float:
+def projection_cost(state: MatchState, idx: int) -> float:
     """Representative cost for "whatever they do next", used to project the queue.
 
     Median of the actor's currently legal moves, so the preview reacts to position —
@@ -109,7 +110,7 @@ def projection_cost(state: "MatchState", idx: int) -> float:
     return statistics.median(move_tempo_cost(rule.move) for _, rule in options)
 
 
-def projection_costs(state: "MatchState") -> list[float]:
+def projection_costs(state: MatchState) -> list[float]:
     return [projection_cost(state, i) for i in (0, 1)]
 
 
@@ -124,11 +125,13 @@ def _winner(
         if best < 0:
             best = i
             continue
-        if next_act_at[i] < next_act_at[best] - _EPSILON:
+        earlier = next_act_at[i] < next_act_at[best] - _EPSILON
+        tied_but_faster = (
+            abs(next_act_at[i] - next_act_at[best]) <= _EPSILON
+            and speeds[i] > speeds[best]
+        )
+        if earlier or tied_but_faster:
             best = i
-        elif abs(next_act_at[i] - next_act_at[best]) <= _EPSILON:
-            if speeds[i] > speeds[best]:
-                best = i
     return best
 
 

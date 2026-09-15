@@ -11,8 +11,9 @@ from __future__ import annotations
 import argparse
 import random
 import secrets
-from typing import Sequence
+from collections.abc import Sequence
 
+from config import get_config
 from game import MatchState, advance_to, apply_move, cpu_choose_rule
 from render import MatchRenderer, ReturnToTitle
 from render_fixed import FixedLayoutRenderer
@@ -24,7 +25,6 @@ from scheduler import (
     projection_costs,
     rule_delay,
 )
-from config import get_config
 from wrestlers import ROSTER, list_roster
 
 PLAYTEST_POLICIES = ("novice", "aggressive", "methodical", "chaotic", "tempo")

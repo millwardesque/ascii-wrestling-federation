@@ -18,9 +18,10 @@ if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 
 from main import PLAYTEST_POLICIES
+from wrestlers import list_roster
+
 from playtest.record_match import record_match
 from playtest.telemetry import compute_telemetry, load_transcript_lines
-from wrestlers import list_roster
 
 
 def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -119,7 +120,7 @@ def main(argv: list[str] | None = None) -> None:
                 f"{seed} {policy:<10} actions={telemetry['action_count']:<4} "
                 f"{telemetry['actions_player']}v{telemetry['actions_cpu']:<4} "
                 f"run={telemetry['consecutive_action_max']:<2} "
-                f"winner={str(telemetry['winner']):<6} {status} "
+                f"winner={telemetry['winner']!s:<6} {status} "
                 f"{telemetry['gate_failures']}"
             )
         summary.append(row)

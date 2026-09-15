@@ -13,7 +13,8 @@ import signal
 import sys
 import textwrap
 import time
-from typing import NamedTuple, Sequence
+from collections.abc import Sequence
+from typing import NamedTuple
 
 from awf_logo import AWF_LOGO_LINES, INTRO_LINES, PROMPT_LINE
 from config import get_config
@@ -102,7 +103,7 @@ _MENU_CONCESSION_PENALTY = 9.0
 def _momentum_chart_lines(
     history: Sequence[tuple[int, int]],
     width: int,
-    c: "_Palette",
+    c: _Palette,
 ) -> list[str]:
     lines = [
         f"{c.bold}Momentum trend{c.reset} {c.dim}(one sample per action){c.reset}"
@@ -621,26 +622,25 @@ class FixedLayoutRenderer:
         return ("YOU", "CPU")
 
     def _print_turn_queue(self, c: _Palette) -> None:
-        """The projected order, with whoever is on the clock highlighted.
+        """The projected order, leading with whoever is on the clock.
 
         This is the whole point of the turn queue being visible: a player can see a flurry
         coming before they commit to the move that causes it.
         """
         if not self._up_next:
             return
-        labels = self._queue_labels()
-        parts: list[str] = []
-        for slot, actor in enumerate(self._up_next):
-            col = c.player if actor == 0 else c.cpu
-            text = f"{col}{labels[actor]}{c.reset}"
-            parts.append(f"{c.bold}▸ {text}{c.reset}" if slot == 0 else text)
-        print(f"{c.dim}NEXT UP{c.reset}  " + f"  {c.dim}·{c.reset}  ".join(parts))
+        player, cpu = self._queue_labels()
+        strip = turn_queue_strip(
+            self._up_next,
+            (f"{c.player}{player}{c.reset}", f"{c.cpu}{cpu}{c.reset}"),
+        )
+        print(f"{c.dim}NEXT UP{c.reset}  {c.bold}▸{c.reset} {strip}")
 
     def _print_momentum_chart(
         self,
         history: Sequence[tuple[int, int]],
         w: int,
-        c: "_Palette",
+        c: _Palette,
     ) -> None:
         for line in _momentum_chart_lines(history, w, c):
             print(line)
@@ -1026,8 +1026,10 @@ class FixedLayoutRenderer:
         while True:
             lines: list[str] = [
                 f"{c.bold}Your plan{c.reset}",
-                f"{c.dim}Each option shows its landing odds and what it costs you "
-                f"in initiative.{c.reset}",
+                (
+                    f"{c.dim}Each option shows its landing odds and what it costs "
+                    f"you in initiative.{c.reset}"
+                ),
                 "",
             ]
             last_intent = ""
