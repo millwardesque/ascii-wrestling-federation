@@ -23,6 +23,32 @@ Important files:
 - `prototype/playtest/`: headless JSONL playtest mode and evaluation telemetry.
 - `todo.md`: backlog.
 
+## Sibling Prototype: `prototype-turnqueue/`
+
+A separate experiment replacing fixed you-then-me alternation with an FFX-style turn
+queue: every move carries a `tempo_cost`, agility and condition drive how fast you act
+again, and the projected turn order is shown in the UI and annotated on every menu option.
+See `prototype-turnqueue/README.md` for the design rationale and tuning knobs.
+
+It is a **sibling, not a successor**. Treat the two as independent:
+
+- Changes to `prototype/` do not propagate to it, and vice versa. If you fix a bug in
+  shared-looking code, check whether the other copy needs the same fix.
+- Their playtest corpora are not comparable. `prototype/` counts shared turns;
+  `prototype-turnqueue/` counts actions, because the two wrestlers no longer act the same
+  number of times. Do not port telemetry gates between them.
+- The commentary engine and dialog/narration evaluation are not ported there, so the
+  narration accuracy workflow below applies only to `prototype/`.
+
+Run and validate it from its own directory:
+
+```bash
+cd prototype-turnqueue
+python3 -m unittest discover -s tests -q
+python3 main.py --random-match
+python3 playtest/run_seed_range.py 1 20 --policy-seed 42
+```
+
 ## Evaluation Frameworks
 
 Two tracks share the playtest transcripts:
