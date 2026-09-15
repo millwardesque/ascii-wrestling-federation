@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import unittest
 
-from commentators import CommentatorPair
 from commentary import CommentaryEngine
 from commentary_events import MatchEvent
 from commentary_templates import validate_move_commentary
+from commentators import CommentatorPair
 from moves import all_move_rules
 from wrestlers import ROSTER
 

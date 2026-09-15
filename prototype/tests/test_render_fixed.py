@@ -7,10 +7,10 @@ import unittest
 from game import MatchState
 from render_fixed import (
     FixedLayoutRenderer,
-    _Palette,
     _curate_move_choices,
     _momentum_chart_lines,
     _move_choice_details,
+    _Palette,
     _status_display,
 )
 from wrestlers import ROSTER

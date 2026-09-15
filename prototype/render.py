@@ -5,10 +5,11 @@ Game rules live in `game.py`. The terminal UI is `render_fixed.FixedLayoutRender
 from __future__ import annotations
 
 import sys
-from typing import Callable, Protocol, Sequence, runtime_checkable
+from collections.abc import Callable, Sequence
+from typing import Protocol, runtime_checkable
 
-from game import MatchState, PinSequence, move_landing_probability_label
 from commentators import CommentatorPair
+from game import MatchState, PinSequence
 from moves import BodyPosition, MoveRule
 from wrestlers import Wrestler
 
@@ -40,7 +41,7 @@ def health_bar(
     if maximum <= 0:
         bar = "[" + "?" * width + "]"
     else:
-        filled = int(round(width * current / maximum))
+        filled = round(width * current / maximum)
         filled = max(0, min(width, filled))
         bar = "[" + "█" * filled + "·" * (width - filled) + "]"
     if bloodied and use_color:

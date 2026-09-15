@@ -6,10 +6,10 @@ import math
 import random
 from dataclasses import dataclass, field
 
-from commentary_events import MatchEvent
-from config import get_config
-from moves import BodyPosition, Move, MoveRule, all_move_rules, move_valid
-from wrestlers import Wrestler
+from .commentary_events import MatchEvent
+from .config import get_config
+from .moves import BodyPosition, Move, MoveRule, all_move_rules, move_valid
+from .wrestlers import Wrestler
 
 # Hit probability: p = clamp(BASE + k_surge*surge - k_diff*difficulty + ... , P_MIN, P_MAX)
 # Surge (0–3) is this-flurry reliability. Match momentum gates finishers and pin/sub contests
@@ -572,7 +572,7 @@ def _apply_loop_pressure(
             mom_gain = 0
             _stall_actor_surge(state, actor_idx, events)
             lines.append(
-                f"  The climb looks telegraphed — the sequence stalls."
+                "  The climb looks telegraphed — the sequence stalls."
             )
             if events is not None:
                 events.append(
@@ -616,12 +616,14 @@ def _top_rope_whiff_crashes(m: Move) -> bool:
     Dives leave the buckle on a hit (``actor_after`` is standing or grounded).
     A punch traded on the buckle has no ``actor_after`` and stays put.
     """
+
     if not m.actor_top or m.skip_hit_roll:
         return False
+
     if m.actor_after is None or m.actor_after == BodyPosition.TOP_ROPE:
         return False
-    return True
 
+    return True
 
 def _flatten_sequence_events(seq: PinSequence) -> list[MatchEvent]:
     out = list(seq.preamble_events)
@@ -859,8 +861,7 @@ def apply_move(
                 move_name=m.name,
             )
 
-    if m.id == "pickup" and state.position[tgt] == BodyPosition.STANDING:
-        if state.pending_groggy[tgt]:
+    if m.id == "pickup" and state.position[tgt] == BodyPosition.STANDING and state.pending_groggy[tgt]:
             state.pending_groggy[tgt] = False
             _apply_standing_groggy(state, tgt)
             immediate_groggy_from_stand_victim = tgt
@@ -899,13 +900,11 @@ def apply_move(
     if actor_idx == 1:
         state.cpu_last_move_id = m.id
 
-    if m.base_damage <= 0 and m.id not in {"recover", "shake_groggy", "desperation_strike"}:
-        if not any(e.kind in {"setup", "groggy_applied", "loop_pressure"} for e in events):
+    if m.base_damage <= 0 and m.id not in {"recover", "shake_groggy", "desperation_strike"} and not any(e.kind in {"setup", "groggy_applied", "loop_pressure"} for e in events):
             emit("setup", actor=actor_idx, target=tgt, move_id=m.id, move_name=m.name)
 
     skip_victim_tick = immediate_groggy_from_stand_victim
-    if skip_victim_tick is None:
-        if (
+    if skip_victim_tick is None and (
             m.base_damage > 0
             and not was_groggy_before_hit
             and m.causes_groggy
@@ -1145,7 +1144,7 @@ def _plan_pin(state: MatchState, actor_idx: int, rng: random.Random | None) -> t
                     False,
                 )
             add_step(
-                [f"  Referee: 3!"],
+                ["  Referee: 3!"],
                 0.0,
                 [
                     MatchEvent(
@@ -1243,7 +1242,7 @@ def _plan_submission(
             timing.pin_delay_after_count_1_sec,
         ),
         (
-            [f"  The hold is cinched in deeper!"],
+            ["  The hold is cinched in deeper!"],
             timing.pin_delay_after_count_2_sec,
         ),
     ]

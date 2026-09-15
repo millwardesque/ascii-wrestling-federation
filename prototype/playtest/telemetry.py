@@ -6,7 +6,6 @@ import json
 from pathlib import Path
 from typing import Any, TextIO
 
-
 DEFAULT_TURN_MIN = 8
 DEFAULT_TURN_MAX = 40
 
@@ -86,7 +85,6 @@ def compute_telemetry(
         # If pin could be legal this turn, it should appear when is_pin exists in valid set.
         # Transcript only includes curated menu; flag if any turn had exactly Finish+pin intent.
         # Conservative gate: if label 'pin' never appears across all player turns, pass.
-        pass
     # Stronger gate: any player turn whose choices include a pin move_id
     pin_turns = [
         row
@@ -116,11 +114,10 @@ def compute_telemetry(
         gate_failures.append("match ended with no_valid_moves")
     if winner is None and reason not in {"max_turns"}:
         gate_failures.append("match ended without a winner")
-    if turn_count < turn_min or turn_count > turn_max:
-        if reason != "max_turns":
-            gate_failures.append(
-                f"turn_count {turn_count} outside band [{turn_min}, {turn_max}]"
-            )
+    if turn_count < turn_min or turn_count > turn_max and reason != "max_turns":
+        gate_failures.append(
+            f"turn_count {turn_count} outside band [{turn_min}, {turn_max}]"
+        )
     if not curation_pin_visible:
         gate_failures.append("pin choice missing from curated menu when pin was offered")
 

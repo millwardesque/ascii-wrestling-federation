@@ -13,12 +13,13 @@ import signal
 import sys
 import textwrap
 import time
-from typing import NamedTuple, Sequence
+from collections.abc import Sequence
+from typing import NamedTuple
 
 from awf_logo import AWF_LOGO_LINES, INTRO_LINES, PROMPT_LINE
-from commentators import CommentatorPair
 from commentary import CommentaryEngine
 from commentary_events import format_commentary_line
+from commentators import CommentatorPair
 from config import get_config
 from game import (
     MatchState,
@@ -90,7 +91,7 @@ _MOVE_INTENT_ORDER = (
 def _momentum_chart_lines(
     history: Sequence[tuple[int, int]],
     width: int,
-    c: "_Palette",
+    c: _Palette,
 ) -> list[str]:
     lines = [
         f"{c.bold}Momentum trend{c.reset} {c.dim}(end of CPU turns){c.reset}"
@@ -568,7 +569,7 @@ class FixedLayoutRenderer:
         use_ansi = bool(self._c.player)
         return self._action_log_lines(wrap_w, c, use_ansi)
 
-    def _style_commentary_line(self, line: str, c: "_Palette") -> str:
+    def _style_commentary_line(self, line: str, c: _Palette) -> str:
         """Bold play-by-play prefixes; dim color commentary."""
         if self._commentary_team is None or not c.bold:
             return line
@@ -586,7 +587,7 @@ class FixedLayoutRenderer:
         self,
         history: Sequence[tuple[int, int]],
         w: int,
-        c: "_Palette",
+        c: _Palette,
     ) -> None:
         for line in _momentum_chart_lines(history, w, c):
             print(line)

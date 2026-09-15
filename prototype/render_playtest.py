@@ -4,13 +4,14 @@ from __future__ import annotations
 
 import json
 import sys
-from typing import IO, Sequence
+from collections.abc import Sequence
+from typing import IO
 
-from game import MatchState, PinSequence, move_landing_probability_label, outcome_label
 from commentators import CommentatorPair
-from moves import BodyPosition, MoveRule
+from game import MatchState, PinSequence, move_landing_probability_label, outcome_label
+from moves import MoveRule
 from playtest.policies import choose_policy_index
-from render_fixed import _MoveChoice, _curate_move_choices
+from render_fixed import _curate_move_choices, _MoveChoice
 from wrestlers import Wrestler
 
 
@@ -314,7 +315,7 @@ class PlaytestRenderer:
         actor: str,
         log: str,
     ) -> None:
-        actor_idx = 0 if actor == "player" else 1
+
         self._turn_count += 1
         payload: dict[str, object] = {
             "event": "turn",

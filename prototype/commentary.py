@@ -9,12 +9,19 @@ See ``docs/commentary-design.md``.
 from __future__ import annotations
 
 import random
-from typing import TYPE_CHECKING, Sequence
+from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
-from commentators import Commentator, CommentatorPair, ROSTER as COMMENTATORS
-from commentary_events import CommentaryLine, EventKind, MatchEvent, format_commentary_line
-from commentary_templates import move_commentary_pool, outcome_for_event_kind
-from wrestlers import Wrestler
+from .commentary_events import (
+    CommentaryLine,
+    EventKind,
+    MatchEvent,
+    format_commentary_line,
+)
+from .commentary_templates import move_commentary_pool, outcome_for_event_kind
+from .commentators import ROSTER as COMMENTATORS
+from .commentators import Commentator, CommentatorPair
+from .wrestlers import Wrestler
 
 if TYPE_CHECKING:
     from game import PinSequence

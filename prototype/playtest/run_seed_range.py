@@ -113,7 +113,7 @@ def main(argv: list[str] | None = None) -> None:
             status = "PASS" if telemetry["gates_passed"] else "FAIL"
             print(
                 f"{seed} {policy:<10} turns={telemetry['turn_count']:<4} "
-                f"winner={str(telemetry['winner']):<6} {status} "
+                f"winner={telemetry['winner']!s:<6} {status} "
                 f"{telemetry['gate_failures']}"
             )
         summary.append(row)

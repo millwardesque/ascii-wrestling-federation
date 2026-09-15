@@ -18,15 +18,15 @@ import ast
 import json
 import re
 import sys
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
 _ROOT = Path(__file__).resolve().parent.parent
 if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 
 from playtest.dialog_telemetry import load_transcript_lines
-
 
 NARRATION_INDENT = "  "
 DEFAULT_SOURCE = Path(__file__).resolve().parent.parent / "game.py"

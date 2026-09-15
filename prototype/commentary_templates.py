@@ -23,8 +23,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Literal
 
-from commentary_events import EventKind
-
+from .commentary_events import EventKind
 
 CommentaryOutcome = Literal["success", "failed"]
 

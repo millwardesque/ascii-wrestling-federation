@@ -16,7 +16,6 @@ from playtest.dialog_telemetry import (
 from render_playtest import PlaytestRenderer
 from wrestlers import ROSTER
 
-
 HITMAN = ROSTER["bret_hart"].max_health
 HALL = ROSTER["scott_hall"].max_health
 
